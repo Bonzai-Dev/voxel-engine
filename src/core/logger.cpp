@@ -4,7 +4,7 @@
 #include <SDL3/SDL_log.h>
 #include "logger.hpp"
 
-namespace logger {
+namespace Logger {
   std::string reset() {
     return "\033[0m";
   }
@@ -17,7 +17,7 @@ namespace logger {
     return result.str();
   }
 
-  void log(const Level logLevel, const Context context, const char *format, va_list args) {
+  void vlog(Level logLevel, Context context, const char *format, va_list args) {
     const auto time = std::time(nullptr);
     std::stringstream logTitle;
     const LogStyle logStyle = style[static_cast<int>(logLevel)];
@@ -39,27 +39,37 @@ namespace logger {
     char message[bufferSize];
     vsnprintf(message, bufferSize, format, args);
 
-    std::cout << logTitle.view() << message << reset() << "\n";
+    std::string_view messageView = message;
+    if (messageView.back() == '\n')
+      messageView = messageView.substr(0, messageView.size() - 1);
+    std::cout << logTitle.view() << messageView << reset() << "\n";
+  }
+
+  void log(const Level logLevel, const Context context, const char *format, ...) {
+    va_list args;
+    va_start(args, format);
+    vlog(logLevel, context, format, args);
+    va_end(args);
   }
 
   void logInfo(Context context, const char *format, ...) {
     va_list args;
     va_start(args, format);
-    log(Level::INFO, context, format, args);
+    vlog(Level::INFO, context, format, args);
     va_end(args);
   }
 
   void logWarning(Context context, const char *format, ...) {
     va_list args;
     va_start(args, format);
-    log(Level::WARNING, context, format, args);
+    vlog(Level::WARNING, context, format, args);
     va_end(args);
   }
 
   void logError(Context context, const char *format, ...) {
     va_list args;
     va_start(args, format);
-    log(Level::ERROR, context, format, args);
+    vlog(Level::ERROR, context, format, args);
     va_end(args);
   }
 }

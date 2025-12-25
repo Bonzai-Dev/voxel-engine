@@ -20,6 +20,6 @@ target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE SDL3::SDL3 glad glm::glm)
 # Resource files
 add_custom_target(
     PROJECT_ASSETS
-    COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different "${CMAKE_SOURCE_DIR}/res" "$<TARGET_FILE_DIR:${PROJECT_NAME}>/res"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different "${CMAKE_SOURCE_DIR}/src/app/res" "$<TARGET_FILE_DIR:${PROJECT_NAME}>/res"
 )
 add_dependencies(${PROJECT_NAME} PROJECT_ASSETS)

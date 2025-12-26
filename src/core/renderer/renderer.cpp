@@ -7,6 +7,10 @@ using namespace Renderer;
 
 namespace Renderer {
   void initialize() {
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+
     // Enables debugging for OpenGL
     glDebugMessageCallback(debugMessageCallback, nullptr);
     glEnable(GL_DEBUG_OUTPUT);
@@ -18,14 +22,19 @@ namespace Renderer {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   }
 
-  unsigned int getUniform(const char *name) {
-    if (m_uniforms.contains(name))
-      return m_uniforms[name];
+  int getUniform(const char *name, unsigned int shaderProgram) {
+    const std::string uniformKey = name + std::to_string(shaderProgram);
+    const GLint uniformLocation = glGetUniformLocation(shaderProgram, name); // INSTEAD OF GETTING THE NAME, I GOT THE KEY RAHHHHH
+    if (uniformLocation == -1) {
+      Logger::logWarning(Logger::Context::RENDERER, "Unable to get the uniform location of %s", name);
+      return -1;
+    }
 
-    // const GLint uniformLocation = glGetUniformLocation(m_shaderProgram, name);
-    // m_uniforms[name] = uniformLocation;
-    // return uniformLocation;
-    return 0;
+    if (m_uniforms.contains(uniformKey))
+      return m_uniforms[uniformKey.data()];
+
+    m_uniforms[uniformKey.c_str()] = uniformLocation;
+    return uniformLocation;
   }
 
   void setFillMode(MeshFillMode fillMode) {
@@ -63,6 +72,7 @@ namespace Renderer {
       glDeleteShader(shader);
       return 0;
     }
+
     return shader;
   }
 

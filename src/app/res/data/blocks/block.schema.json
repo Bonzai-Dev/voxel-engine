@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Block",
+  "description": "Contains data for a blocks",
+  "type": "object",
+  "properties": {
+    "blockType": {
+      "description": "Enum number of the block type.",
+      "type": "integer",
+      "minimum": 0
+    },
+    "meshType": {
+      "description": "Enum number of the mesh type.",
+      "type": "integer",
+      "minimum": 0
+    },
+    "textureCoordinates": {
+      "description": "Contains the position of the texture in the atlas.",
+      "type": "object",
+      "properties": {
+        "front": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "back": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "left": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "right": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "top": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "bottom": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          },
+          "minItems": 2,
+          "maxItems": 2
+        }
+      },
+      "required": [
+        "front",
+        "back",
+        "left",
+        "right",
+        "top",
+        "bottom"
+      ]
+    }
+  },
+  "required": [
+    "blockType",
+    "textureCoordinates"
+  ]
+}

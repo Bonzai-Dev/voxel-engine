@@ -10,6 +10,15 @@ using namespace Logger;
 
 namespace Core {
   Window::Window(const std::string_view windowName, bool mouseLocked) {
+    static bool sdlInitialized = false;
+    if (!sdlInitialized) {
+      if (!SDL_Init(SDL_INIT_VIDEO)) {
+        logError(Context::CORE, "Failed to initialize SDL: %s", SDL_GetError());
+        return;
+      }
+      sdlInitialized = true;
+    }
+
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 6);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
@@ -60,6 +69,14 @@ namespace Core {
     SDL_GL_DestroyContext(m_glContext);
     SDL_DestroyWindow(m_sdlWindow);
     SDL_free(m_displays);
+  }
+
+  int Window::GetWidth() const {
+    return m_currentDisplay->w;
+  }
+
+  int Window::GetHeight() const {
+    return m_currentDisplay->h;
   }
 
   void Window::UpdateBuffer() const {

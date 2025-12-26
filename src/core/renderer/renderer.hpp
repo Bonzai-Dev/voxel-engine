@@ -18,7 +18,7 @@ namespace Renderer {
 
   void clearBuffer(glm::vec4 color);
 
-  unsigned int getUniform(const char *name);
+  int getUniform(const char *name, unsigned int shaderProgram);
 
   void setFillMode(MeshFillMode fillMode);
 

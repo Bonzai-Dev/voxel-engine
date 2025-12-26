@@ -17,6 +17,10 @@ namespace Core {
 
       void UpdateBuffer() const;
 
+      int GetWidth() const;
+
+      int GetHeight() const;
+
     private:
       SDL_GLContext m_glContext;
       SDL_Window *m_sdlWindow;

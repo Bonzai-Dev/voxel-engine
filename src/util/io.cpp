@@ -12,6 +12,8 @@ namespace Util {
       file.seekg(0, std::ios::end);
       const int size = file.tellg();
       const auto contents = new char [size];
+      contents[size] = '\0';
+
       file.seekg(0, std::ios::beg);
       file.read(contents, size);
       file.close();

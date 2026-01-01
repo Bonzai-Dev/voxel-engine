@@ -37,8 +37,8 @@ namespace Core {
     const SDL_Scancode scancode = keyEvent.scancode;
     const SDL_Keycode keycode = SDL_GetKeyFromScancode(keyEvent.scancode, keyEvent.mod, true);
 
-    const bool isScancode = detectMode == Inputs::KeyDetectKeycode && scancode == keyEvent.scancode;
-    const bool isKeycode = detectMode == Inputs::KeyDetectScancode && keycode == keyEvent.key;
+    const bool isScancode = detectMode == Inputs::KeyDetectMode::Keycode && scancode == keyEvent.scancode;
+    const bool isKeycode = detectMode == Inputs::KeyDetectMode::Scancode && keycode == keyEvent.key;
     if (isScancode || isKeycode)
       return true;
 

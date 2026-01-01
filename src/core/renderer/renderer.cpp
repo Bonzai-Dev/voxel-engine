@@ -22,11 +22,34 @@ namespace Renderer {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   }
 
+  unsigned int createVertexBufferObject(const void *data, size_t size) {
+    unsigned int object;
+    glGenBuffers(1, &object);
+    glBindBuffer(GL_ARRAY_BUFFER, object);
+    glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
+    return object;
+  }
+
+  unsigned int createVertexArrayObject() {
+    unsigned int object;
+    glGenVertexArrays(1, &object);
+    glBindVertexArray(object);
+    return object;
+  }
+
+  unsigned int createElementBufferObject(const void *data, size_t size) {
+    unsigned int buffer;
+    glGenBuffers(1, &buffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
+    return buffer;
+  }
+
   int getUniform(const char *name, unsigned int shaderProgram) {
     const std::string uniformKey = name + std::to_string(shaderProgram);
     const GLint uniformLocation = glGetUniformLocation(shaderProgram, name); // INSTEAD OF GETTING THE NAME, I GOT THE KEY RAHHHHH
     if (uniformLocation == -1) {
-      Logger::logWarning(Logger::Context::RENDERER, "Unable to get the uniform location of %s", name);
+      Logger::logWarning(Logger::Context::Renderer, "Unable to get the uniform location of %s", name);
       return -1;
     }
 
@@ -39,18 +62,18 @@ namespace Renderer {
 
   void setFillMode(MeshFillMode fillMode) {
     switch (fillMode) {
-      case MeshFillMode::WIREFRAME:
+      case MeshFillMode::Wireframe:
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         break;
-      case MeshFillMode::SOLID:
+      case MeshFillMode::Solid:
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         break;
     }
   }
 
   unsigned int compileShader(const char *filepath, ShaderType type) {
-    const unsigned int shader = glCreateShader(type == ShaderType::VERTEX ? GL_VERTEX_SHADER : GL_FRAGMENT_SHADER);
-    const char *shaderContent = Util::getFileContents(filepath);
+    const unsigned int shader = glCreateShader(type == ShaderType::Vertex ? GL_VERTEX_SHADER : GL_FRAGMENT_SHADER);
+    const char *shaderContent = Util::File::readTextFile(filepath);
     glShaderSource(shader, 1, &shaderContent, nullptr);
     glCompileShader(shader);
 
@@ -63,8 +86,8 @@ namespace Renderer {
       glGetShaderInfoLog(shader, logLength, &logLength, message);
 
       Logger::logError(
-        Logger::Context::RENDERER, "Failed to compile %s shader (%s): %s",
-        type == ShaderType::VERTEX ? "vertex" : "fragment",
+        Logger::Context::Renderer, "Failed to compile %s shader (%s): %s",
+        type == ShaderType::Vertex ? "vertex" : "fragment",
         filepath,
         message
       );
@@ -78,8 +101,8 @@ namespace Renderer {
 
   unsigned int createShaderProgram(const char *vertexShaderPath, const char *fragmentShaderPath) {
     const unsigned int shaderProgram = glCreateProgram();
-    const unsigned int vertexShader = compileShader(vertexShaderPath, ShaderType::VERTEX);
-    const unsigned int fragmentShader = compileShader(fragmentShaderPath, ShaderType::FRAGMENT);
+    const unsigned int vertexShader = compileShader(vertexShaderPath, ShaderType::Vertex);
+    const unsigned int fragmentShader = compileShader(fragmentShaderPath, ShaderType::Fragment);
 
     glAttachShader(shaderProgram, vertexShader);
     glAttachShader(shaderProgram, fragmentShader);
@@ -113,25 +136,25 @@ namespace Renderer {
     )
       return;
 
-    Logger::Level logLevel = Logger::Level::WARNING;
+    Logger::Level logLevel = Logger::Level::Warning;
 
     switch (type) {
-      case GL_DEBUG_TYPE_ERROR: logLevel = Logger::Level::ERROR;
+      case GL_DEBUG_TYPE_ERROR: logLevel = Logger::Level::Error;
         break;
-      case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: logLevel = Logger::Level::WARNING;
+      case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: logLevel = Logger::Level::Warning;
         break;
-      case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR: logLevel = Logger::Level::WARNING;
+      case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR: logLevel = Logger::Level::Warning;
         break;
-      case GL_DEBUG_TYPE_PORTABILITY: logLevel = Logger::Level::WARNING;
+      case GL_DEBUG_TYPE_PORTABILITY: logLevel = Logger::Level::Warning;
         break;
-      case GL_DEBUG_TYPE_PERFORMANCE: logLevel = Logger::Level::WARNING;
+      case GL_DEBUG_TYPE_PERFORMANCE: logLevel = Logger::Level::Warning;
         break;
-      case GL_DEBUG_TYPE_MARKER: logLevel = Logger::Level::INFO;
+      case GL_DEBUG_TYPE_MARKER: logLevel = Logger::Level::Info;
         break;
-      case GL_DEBUG_TYPE_OTHER: logLevel = Logger::Level::INFO;
+      case GL_DEBUG_TYPE_OTHER: logLevel = Logger::Level::Info;
         break;
     }
 
-    Logger::log(logLevel, Logger::Context::RENDERER, "OpenGL ID %u: %s", id, message);
+    Logger::log(logLevel, Logger::Context::Renderer, "OpenGL ID %u: %s", id, message);
   }
 }

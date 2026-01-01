@@ -4,12 +4,12 @@
   "description": "Contains data for a blocks",
   "type": "object",
   "properties": {
-    "blockType": {
+    "blockId": {
       "description": "Enum number of the block type.",
       "type": "integer",
       "minimum": 0
     },
-    "meshType": {
+    "meshId": {
       "description": "Enum number of the mesh type.",
       "type": "integer",
       "minimum": 0
@@ -78,7 +78,7 @@
     }
   },
   "required": [
-    "blockType",
+    "blockId",
     "textureCoordinates"
   ]
 }

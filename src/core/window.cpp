@@ -13,7 +13,7 @@ namespace Core {
     static bool sdlInitialized = false;
     if (!sdlInitialized) {
       if (!SDL_Init(SDL_INIT_VIDEO)) {
-        logError(Context::CORE, "Failed to initialize SDL: %s", SDL_GetError());
+        logError(Context::Core, "Failed to initialize SDL: %s", SDL_GetError());
         return;
       }
       sdlInitialized = true;
@@ -27,9 +27,9 @@ namespace Core {
     int displayCount;
     m_displays = SDL_GetDisplays(&displayCount);
     if (displayCount > 0) {
-      logInfo(Context::CORE, "Found %d display(s).", displayCount);
+      logInfo(Context::Core, "Found %d display(s).", displayCount);
     } else {
-      logWarning(Context::CORE, "No display found.");
+      logWarning(Context::Core, "No display found.");
     }
     m_currentDisplay = SDL_GetCurrentDisplayMode(m_displays[0]);
 
@@ -41,7 +41,7 @@ namespace Core {
     );
 
     if (!m_sdlWindow) {
-      logError(Context::CORE, "Failed to create SDL window: %s", SDL_GetError());
+      logError(Context::Core, "Failed to create SDL window: %s", SDL_GetError());
       return;
     }
 
@@ -49,13 +49,13 @@ namespace Core {
     m_glContext = SDL_GL_CreateContext(m_sdlWindow);
     const int version = gladLoadGL(SDL_GL_GetProcAddress);
     if (!version) {
-      logError(Context::RENDERER, "Failed to initialize OpenGL context.");
+      logError(Context::Renderer, "Failed to initialize OpenGL context.");
       return;
     }
 
     SDL_SetWindowRelativeMouseMode(m_sdlWindow, mouseLocked);
     logInfo(
-      Context::RENDERER,
+      Context::Renderer,
       "Program has successfully initialized OpenGL %d.%d core profile.",
       GLAD_VERSION_MAJOR(version), GLAD_VERSION_MINOR(version)
     );

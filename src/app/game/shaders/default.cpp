@@ -4,7 +4,7 @@
 #include "default.hpp"
 
 namespace Game::Shader {
-  DefaultShader::DefaultShader() : Shader("./res/default.vert", "./res/default.frag") {
+  DefaultShader::DefaultShader() : Shader("./res/shaders/default.vert", "./res/shaders/default.frag") {
   }
 
   void DefaultShader::UpdateModelMatrix(const glm::mat4 &matrix) const {

@@ -5,13 +5,13 @@
 
 namespace Renderer {
   enum class ShaderType {
-    VERTEX,
-    FRAGMENT,
+    Vertex,
+    Fragment,
   };
 
   enum class MeshFillMode {
-    WIREFRAME,
-    SOLID
+    Wireframe,
+    Solid
   };
 
   void initialize();
@@ -27,6 +27,12 @@ namespace Renderer {
   unsigned int compileShader(const char *filepath, ShaderType type);
 
   unsigned int createShaderProgram(const char *vertexShaderPath, const char *fragmentShaderPath);
+
+  unsigned int createVertexBufferObject(const void *data, size_t size);
+
+  unsigned int createVertexArrayObject();
+
+  unsigned int createElementBufferObject(const void *data, size_t size);
 
   void debugMessageCallback(
     unsigned int source,

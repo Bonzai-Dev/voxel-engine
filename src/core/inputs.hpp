@@ -4,8 +4,8 @@
 
 namespace Core::Inputs {
   enum KeyDetectMode {
-    KeyDetectKeycode,
-    KeyDetectScancode
+    Keycode,
+    Scancode
   };
 
   enum class KeyboardKey {

@@ -6,3 +6,6 @@ add_subdirectory(glad)
 
 # glm
 add_subdirectory(glm)
+
+#simdjson
+add_subdirectory(simdjson)

@@ -1,11 +1,14 @@
 #include <fstream>
 #include <string>
 #include <iostream>
+#include <simdjson.h>
 #include <core/logger.hpp>
 #include "io.hpp"
 
-namespace Util {
-  const char *getFileContents(const char *filepath) {
+using namespace Logger;
+
+namespace Util::File {
+  const char *readTextFile(const char *filepath) {
     // https://stackoverflow.com/questions/195323/what-is-the-most-elegant-way-to-read-a-text-file-with-c
     std::ifstream file(filepath, std::ios::in | std::ios::binary | std::ios::ate);
     if (file.is_open()) {
@@ -20,11 +23,25 @@ namespace Util {
       return contents;
     }
 
-    Logger::logError(
-      Logger::Context::CORE,
+    logError(
+      Context::Core,
       "Failed to read file at %s",
       filepath
     );
-    return "";
+    return {};
+  }
+}
+
+namespace Util::Json {
+  using namespace simdjson;
+  dom::element parseJson(const char *filepath) {
+    static dom::parser parser;
+    dom::element document;
+    auto error = parser.load(filepath).get(document);
+    if (error) {
+      logError(Context::Core, "Failed to parse JSON file at %s: %s", filepath, error_message(error));
+      return {};
+    }
+    return document;
   }
 }

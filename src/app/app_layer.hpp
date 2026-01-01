@@ -3,6 +3,7 @@
 #include <core/render_layer.hpp>
 #include "game/shaders/default.hpp"
 #include "game/camera.hpp"
+#include "game/terrain/chunk.hpp"
 
 class AppLayer : public Core::RenderLayer {
   public:
@@ -13,6 +14,5 @@ class AppLayer : public Core::RenderLayer {
   private:
     Game::Camera m_camera;
     Game::Shader::DefaultShader m_shaderProgram;
-    unsigned int m_vao;
-    unsigned int m_vbo;
+    std::vector<Game::Chunk> m_chunks;
 };

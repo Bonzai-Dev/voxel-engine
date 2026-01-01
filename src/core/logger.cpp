@@ -27,12 +27,9 @@ namespace Logger {
     logTitle << " [" << logStyle.level << "] ";
 
     switch (context) {
-      case Context::CORE:
-        logTitle << "[CORE] ";
-        break;
-      case Context::RENDERER:
-        logTitle << "[RENDERER] ";
-        break;
+      case Context::Core: logTitle << "[CORE] "; break;
+      case Context::Renderer: logTitle << "[RENDERER] "; break;
+      case Context::Game: logTitle << "[GAME] "; break;
     }
     logTitle << colorCode(logStyle.color);
 
@@ -42,7 +39,7 @@ namespace Logger {
     std::string_view messageView = message;
     if (messageView.back() == '\n')
       messageView = messageView.substr(0, messageView.size() - 1);
-    std::cout << logTitle.view() << messageView << reset() << "\n";
+    std::cout << logTitle.view() << messageView << reset() << '\n';
   }
 
   void log(const Level logLevel, const Context context, const char *format, ...) {
@@ -55,21 +52,21 @@ namespace Logger {
   void logInfo(Context context, const char *format, ...) {
     va_list args;
     va_start(args, format);
-    vlog(Level::INFO, context, format, args);
+    vlog(Level::Info, context, format, args);
     va_end(args);
   }
 
   void logWarning(Context context, const char *format, ...) {
     va_list args;
     va_start(args, format);
-    vlog(Level::WARNING, context, format, args);
+    vlog(Level::Warning, context, format, args);
     va_end(args);
   }
 
   void logError(Context context, const char *format, ...) {
     va_list args;
     va_start(args, format);
-    vlog(Level::ERROR, context, format, args);
+    vlog(Level::Error, context, format, args);
     va_end(args);
   }
 }

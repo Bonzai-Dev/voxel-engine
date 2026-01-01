@@ -1,5 +1,4 @@
 #pragma once
-
 #include <string>
 #include <array>
 #include <cstdint>
@@ -7,35 +6,35 @@
 
 // Styling based of the ANSI escape codes
 // https://jakob-bagterp.github.io/colorist-for-python/ansi-escape-codes/
-
 namespace Logger {
   constexpr std::int16_t bufferSize = 256;
 
   enum class Context {
-    CORE,
-    RENDERER
+    Core,
+    Game,
+    Renderer
   };
 
   enum class Level {
-    INFO,
-    WARNING,
-    ERROR
+    Info,
+    Warning,
+    Error
   };
 
   enum class TextBrightness {
-    STANDARD = 3,
-    BRIGHT = 9,
+    Standard = 3,
+    Bright = 9,
   };
 
   enum class TextColor {
-    BLACK,
-    RED,
-    GREEN,
-    YELLOW,
-    BLUE,
-    MAGENTA,
-    CYAN,
-    WHITE,
+    Black,
+    Red,
+    Green,
+    Yellow,
+    Blue,
+    Magenta,
+    Cyan,
+    White,
   };
 
   struct LogStyle {
@@ -45,14 +44,14 @@ namespace Logger {
   };
 
   constexpr std::array style = {
-    LogStyle{"INFO", TextColor::GREEN, TextBrightness::BRIGHT},
-    LogStyle{"WARNING", TextColor::YELLOW, TextBrightness::BRIGHT},
-    LogStyle{"ERROR", TextColor::RED, TextBrightness::BRIGHT},
+    LogStyle{"INFO", TextColor::Green, TextBrightness::Bright},
+    LogStyle{"WARNING", TextColor::Yellow, TextBrightness::Bright},
+    LogStyle{"ERROR", TextColor::Red, TextBrightness::Bright},
   };
 
   std::string reset();
 
-  std::string colorCode(TextColor color, TextBrightness brightness = TextBrightness::STANDARD);
+  std::string colorCode(TextColor color, TextBrightness brightness = TextBrightness::Standard);
 
   void vlog (Level logLevel, Context context, const char *format, va_list args);
 

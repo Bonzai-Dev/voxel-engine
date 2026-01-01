@@ -1,7 +1,7 @@
 {
   "$schema": "block.schema.json",
-  "blockType": 1,
-  "meshType": 0,
+  "blockId": 1,
+  "meshId": 0,
   "textureCoordinates": {
     "front": [1, 15],
     "back": [1, 15],

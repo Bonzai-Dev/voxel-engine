@@ -1,8 +1,7 @@
 {
   "$schema": "block.schema.json",
-  "blockId": 1,
-  "meshId": 0,
-  "textureCoordinates": {
+  "meshId": 1,
+  "spritesheetTiles": {
     "front": [1, 15],
     "back": [1, 15],
     "left": [1, 15],

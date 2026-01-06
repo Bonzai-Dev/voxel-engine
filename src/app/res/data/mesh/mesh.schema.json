@@ -1,0 +1,286 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Mesh",
+  "description": "Specifies the vertices of a mesh to compose a quad.",
+  "type": "object",
+  "properties": {
+    "meshId": {
+      "type": "number",
+      "description": "Mesh identifier."
+    },
+    "faces": {
+      "type": "object",
+      "description": "Faces of the mesh.",
+      "properties": {
+        "front": {
+          "type": "object",
+          "properties": {
+            "bottomLeft": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 3,
+              "maxItems": 3
+            },
+            "bottomRight": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 3,
+              "maxItems": 3
+            },
+            "topRight": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 3,
+              "maxItems": 3
+            },
+            "topLeft": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 3,
+              "maxItems": 3
+            }
+          },
+          "required": [
+            "bottomLeft",
+            "bottomRight",
+            "topRight",
+            "topLeft"
+          ]
+        },
+        "back": {
+          "type": "object",
+          "properties": {
+            "bottomLeft": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 3,
+              "maxItems": 3
+            },
+            "bottomRight": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 3,
+              "maxItems": 3
+            },
+            "topRight": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 3,
+              "maxItems": 3
+            },
+            "topLeft": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 3,
+              "maxItems": 3
+            }
+          },
+          "required": [
+            "bottomLeft",
+            "bottomRight",
+            "topRight",
+            "topLeft"
+          ]
+        },
+        "left": {
+          "type": "object",
+          "properties": {
+            "bottomLeft": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 3,
+              "maxItems": 3
+            },
+            "bottomRight": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 3,
+              "maxItems": 3
+            },
+            "topRight": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 3,
+              "maxItems": 3
+            },
+            "topLeft": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 3,
+              "maxItems": 3
+            }
+          },
+          "required": [
+            "bottomLeft",
+            "bottomRight",
+            "topRight",
+            "topLeft"
+          ]
+        },
+        "right": {
+          "type": "object",
+          "properties": {
+            "bottomLeft": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 3,
+              "maxItems": 3
+            },
+            "bottomRight": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 3,
+              "maxItems": 3
+            },
+            "topRight": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 3,
+              "maxItems": 3
+            },
+            "topLeft": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 3,
+              "maxItems": 3
+            }
+          },
+          "required": [
+            "bottomLeft",
+            "bottomRight",
+            "topRight",
+            "topLeft"
+          ]
+        },
+        "top": {
+          "type": "object",
+          "bottomLeft": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 3,
+            "maxItems": 3
+          },
+          "bottomRight": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 3,
+            "maxItems": 3
+          },
+          "topRight": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 3,
+            "maxItems": 3
+          },
+          "topLeft": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 3,
+            "maxItems": 3
+          },
+          "required": [
+            "bottomLeft",
+            "bottomRight",
+            "topRight",
+            "topLeft"
+          ]
+        },
+        "bottom": {
+          "type": "object",
+          "properties": {
+            "bottomLeft": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 3,
+              "maxItems": 3
+            },
+            "bottomRight": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 3,
+              "maxItems": 3
+            },
+            "topRight": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 3,
+              "maxItems": 3
+            },
+            "topLeft": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 3,
+              "maxItems": 3
+            }
+          },
+          "required": [
+            "bottomLeft",
+            "bottomRight",
+            "topRight",
+            "topLeft"
+          ]
+        }
+      },
+      "required": [
+        "front",
+        "back",
+        "left",
+        "right",
+        "top",
+        "bottom"
+      ]
+    }
+  },
+  "required": [
+    "faces",
+    "meshId"
+  ]
+}

@@ -7,8 +7,6 @@
 // Styling based of the ANSI escape codes
 // https://jakob-bagterp.github.io/colorist-for-python/ansi-escape-codes/
 namespace Logger {
-  constexpr std::int16_t bufferSize = 256;
-
   enum class Context {
     Core,
     Game,

@@ -1,7 +1,8 @@
 #pragma once
-
 #include <string>
+#include <vector>
 #include <glm/vec4.hpp>
+#include <glm/vec3.hpp>
 
 namespace Renderer {
   enum class ShaderType {
@@ -12,6 +13,18 @@ namespace Renderer {
   enum class MeshFillMode {
     Wireframe,
     Solid
+  };
+
+  struct MeshVertex {
+    glm::vec3 position;
+  };
+
+  using Indices = std::vector<unsigned int>;
+  using MeshVertexData = std::vector<MeshVertex>;
+
+  struct MeshData {
+    MeshVertexData vertexData;
+    Indices indices;
   };
 
   void initialize();
@@ -43,4 +56,8 @@ namespace Renderer {
     const char *message,
     const void *userParam
   );
+
+  void useTexture(unsigned int texture);
+
+  unsigned int loadPng(const char *filepath);
 }

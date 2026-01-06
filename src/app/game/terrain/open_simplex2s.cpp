@@ -2,7 +2,7 @@
 
 #include <cmath>
 
-namespace OpenSimplexNoise {
+namespace Game::Terrain {
   using namespace std;
 
   Noise::Noise()

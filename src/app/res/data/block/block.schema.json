@@ -4,17 +4,11 @@
   "description": "Contains data for a blocks",
   "type": "object",
   "properties": {
-    "blockId": {
-      "description": "Enum number of the block type.",
-      "type": "integer",
-      "minimum": 0
-    },
     "meshId": {
-      "description": "Enum number of the mesh type.",
-      "type": "integer",
-      "minimum": 0
+      "type": "number",
+      "description": "Mesh ID used to reference the mesh."
     },
-    "textureCoordinates": {
+    "spritesheetTiles": {
       "description": "Contains the position of the texture in the atlas.",
       "type": "object",
       "properties": {
@@ -78,7 +72,7 @@
     }
   },
   "required": [
-    "blockId",
-    "textureCoordinates"
+    "textureCoordinates",
+    "meshId"
   ]
 }

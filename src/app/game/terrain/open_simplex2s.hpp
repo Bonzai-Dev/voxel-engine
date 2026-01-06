@@ -5,11 +5,10 @@ Open Simple Noise for C++
   by Rickard Lundberg, 2019.
 */
 #pragma once
-
 #include <cstdint>
 #include <array>
 
-namespace OpenSimplexNoise {
+namespace Game::Terrain {
   class Noise {
     public:
       Noise();

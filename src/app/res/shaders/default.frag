@@ -1,7 +1,10 @@
 #version 460 core
 
-out vec4 vertexColor;
+out vec4 VertexColor;
+in vec2 TextureCoordinates;
+
+uniform sampler2D imageTexture;
 
 void main() {
-  vertexColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);
+  VertexColor = texture(imageTexture, TextureCoordinates);
 }

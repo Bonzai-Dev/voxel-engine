@@ -1,4 +1,5 @@
 #include <glad/gl.h>
+#include <stb_image.h>
 #include "../logger.hpp"
 #include "renderer.hpp"
 #include "util/io.hpp"
@@ -7,6 +8,8 @@ using namespace Renderer;
 
 namespace Renderer {
   void initialize() {
+    stbi_set_flip_vertically_on_load(true);
+
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
@@ -73,7 +76,8 @@ namespace Renderer {
 
   unsigned int compileShader(const char *filepath, ShaderType type) {
     const unsigned int shader = glCreateShader(type == ShaderType::Vertex ? GL_VERTEX_SHADER : GL_FRAGMENT_SHADER);
-    const char *shaderContent = Util::File::readTextFile(filepath);
+    const auto shaderSource = Util::File::readTextFile(filepath);
+    const char *shaderContent = shaderSource.c_str();
     glShaderSource(shader, 1, &shaderContent, nullptr);
     glCompileShader(shader);
 
@@ -156,5 +160,35 @@ namespace Renderer {
     }
 
     Logger::log(logLevel, Logger::Context::Renderer, "OpenGL ID %u: %s", id, message);
+  }
+
+  void useTexture(unsigned int texture) {
+    glBindTexture(GL_TEXTURE_2D, texture);
+  }
+
+  unsigned int loadPng(const char *filepath) {
+    int width, height, channelsCount;
+    unsigned char *data = stbi_load(filepath, &width, &height, &channelsCount, 0);
+    if (!data) {
+      Logger::logError(Logger::Context::Core, "Failed to load image at \"%s\".", filepath);
+      return 0;
+    }
+
+    unsigned int texture;
+
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    glGenerateMipmap(GL_TEXTURE_2D);
+    stbi_image_free(data);
+
+    return texture;
   }
 }

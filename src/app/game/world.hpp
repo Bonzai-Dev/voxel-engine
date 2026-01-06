@@ -1,5 +1,5 @@
 #pragma once
-#include "glm/vec3.hpp"
+#include <glm/vec3.hpp>
 
 namespace Game {
   // Cannot build above MaxChunkHeight and below MinChunkHeight

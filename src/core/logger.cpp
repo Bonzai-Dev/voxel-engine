@@ -33,12 +33,19 @@ namespace Logger {
     }
     logTitle << colorCode(logStyle.color);
 
-    char message[bufferSize];
-    vsnprintf(message, bufferSize, format, args);
+    va_list argsSize;
+    va_copy(argsSize, args);
+    const int size = vsnprintf(nullptr, 0, format, argsSize) + 1;
+    va_end(argsSize);
+
+    char message[size];
+    vsnprintf(message, size, format, args);
+    va_end(args);
 
     std::string_view messageView = message;
     if (messageView.back() == '\n')
       messageView = messageView.substr(0, messageView.size() - 1);
+
     std::cout << logTitle.view() << messageView << reset() << '\n';
   }
 

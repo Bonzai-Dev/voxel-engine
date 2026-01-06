@@ -1,9 +1,10 @@
 #pragma once
-
 #include <glm/glm.hpp>
 #include <core/application.hpp>
 
 namespace Game {
+  constexpr inline float MouseSensitivity = 0.25f;
+
   class Camera {
     public:
       explicit Camera(
@@ -23,7 +24,7 @@ namespace Game {
       glm::mat4 m_projectionMatrix = glm::mat4(1.0f);
       glm::mat4 m_viewMatrix = glm::mat4(1.0f);
 
-      glm::vec3 m_rotation = glm::vec3(0, -90, 0);
+      glm::vec3 m_rotation = glm::vec3(0, 0, 0);
       glm::vec3 m_position;
 
       glm::vec3 m_forward = glm::vec3(0.0f);

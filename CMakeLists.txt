@@ -15,7 +15,7 @@ add_executable(${CMAKE_PROJECT_NAME} ${PROJECT_SOURCES})
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 # Linking
-target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE SDL3::SDL3 glad glm::glm simdjson)
+target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE SDL3::SDL3 glad glm::glm simdjson stb)
 
 # Resource files
 add_custom_target(

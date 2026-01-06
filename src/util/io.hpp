@@ -3,20 +3,20 @@
 #include <core/logger.hpp>
 
 namespace Util::File {
-  const char *readTextFile(const char *filepath);
+  std::string readTextFile(std::string_view filepath);
 }
 
 namespace Util::Json {
   using namespace simdjson;
 
-  dom::element parseJson(const char *filepath);
+  dom::element parseJson(std::string_view filepath);
 
   template <typename T>
-  T getData(const char *name, const dom::element &document) {
+  T getData(std::string_view name, const dom::element &document) {
     T value;
-    auto error = document[name].get(value);
+    auto error = document[name.data()].get(value);
     if (error) {
-      Logger::logError(Logger::Context::Core, "Failed to get %s: %s", name, simdjson::error_message(error));
+      Logger::logError(Logger::Context::Core, "Failed to get \"%s\", %s", name, simdjson::error_message(error));
       return T{};
     }
     return value;

@@ -6,17 +6,15 @@
 using namespace Core;
 
 namespace Game {
-  Camera::Camera(const Application &application, const glm::vec3 &cameraPosition, float nearPlane, float farPlane,
-                 float fov) : m_position(cameraPosition), m_nearPlane(nearPlane), m_farPlane(farPlane), m_fov(fov),
-                              m_application(application) {
+  Camera::Camera(const Application &application, const glm::vec3 &cameraPosition, float nearPlane, float farPlane, float fov) :
+    m_position(cameraPosition), m_nearPlane(nearPlane), m_farPlane(farPlane), m_fov(fov), m_application(application) {
     UpdateProjection(nearPlane, farPlane, fov);
   }
 
   void Camera::Update() {
     if (m_application.mouseMoving) {
-      constexpr float mouseSensitivity = 0.25f;
-      m_rotation.y += m_application.mouseDelta.x * mouseSensitivity;
-      m_rotation.x = glm::clamp(m_rotation.x - m_application.mouseDelta.y * mouseSensitivity, -89.9f, 89.9f);
+      m_rotation.y += m_application.mouseDelta.x * MouseSensitivity;
+      m_rotation.x = glm::clamp(m_rotation.x - m_application.mouseDelta.y * MouseSensitivity, -89.9f, 89.9f);
     }
 
     auto inputDirection = glm::zero<glm::vec3>();

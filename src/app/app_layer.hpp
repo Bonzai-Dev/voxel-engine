@@ -13,6 +13,6 @@ class AppLayer : public Core::RenderLayer {
 
   private:
     Game::Camera m_camera;
-    Game::Shader::DefaultShader m_shaderProgram;
-    std::vector<Game::Chunk> m_chunks;
+    Game::Shader::Default m_shaderProgram;
+    std::vector<Game::Terrain::Chunk> m_chunks;
 };

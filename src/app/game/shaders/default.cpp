@@ -4,21 +4,28 @@
 #include "default.hpp"
 
 namespace Game::Shader {
-  DefaultShader::DefaultShader() : Shader("./res/shaders/default.vert", "./res/shaders/default.frag") {
+  Default::Default() : Shader("./res/shaders/default.vert", "./res/shaders/default.frag") {
   }
 
-  void DefaultShader::UpdateModelMatrix(const glm::mat4 &matrix) const {
+  void Default::UpdateModelMatrix(const glm::mat4 &matrix) const {
     const int location = Renderer::getUniform("modelMatrix", m_program);
     glUniformMatrix4fv(location, 1, false, glm::value_ptr(matrix));
   }
 
-  void DefaultShader::UpdateProjectionMatrix(const glm::mat4 &matrix) const {
+  void Default::UpdateProjectionMatrix(const glm::mat4 &matrix) const {
     const int location = Renderer::getUniform("projectionMatrix", m_program);
     glUniformMatrix4fv(location, 1, false, glm::value_ptr(matrix));
   }
 
-  void DefaultShader::UpdateViewMatrix(const glm::mat4 &matrix) const {
+  void Default::UpdateViewMatrix(const glm::mat4 &matrix) const {
     const int location = Renderer::getUniform("viewMatrix", m_program);
     glUniformMatrix4fv(location, 1, false, glm::value_ptr(matrix));
+  }
+
+  void Default::UpdateTexture(unsigned int texture) const {
+    const int location = Renderer::getUniform("imageTexture", m_program);
+    glActiveTexture(GL_TEXTURE0);
+    Renderer::useTexture(texture);
+    glUniform1i(location, 0);
   }
 }

@@ -1,4 +1,4 @@
-# voksel-engine
+# voxel-engine
 A voxel engine written in OpenGL and C++.
 
 ## Cloning

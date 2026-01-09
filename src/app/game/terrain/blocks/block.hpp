@@ -39,6 +39,8 @@ namespace Game::Blocks {
 
       const BlockId &GetBlockId() const { return m_blockId; }
 
+      const MeshId &GetMeshId() const { return m_meshId; }
+
       const BlockMeshData &GetMesh() const { return m_blockMeshData[m_blockId]; }
 
     private:

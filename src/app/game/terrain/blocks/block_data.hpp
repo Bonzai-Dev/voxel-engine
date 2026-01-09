@@ -4,7 +4,10 @@
 namespace Game::Blocks {
   enum class BlockId {
     Air = 0,
-    Dirt = 1,
+    Bedrock = 1,
+    Grass = 2,
+    Dirt = 3,
+    Stone = 4,
   };
 
   enum class MeshId {
@@ -18,6 +21,9 @@ namespace Game::Blocks {
   };
 
   constexpr inline std::array BlockDataFilepaths = {
-    "./res/data/block/dirt.json"
+    "./res/data/block/bedrock.json",
+    "./res/data/block/grass.json",
+    "./res/data/block/dirt.json",
+    "./res/data/block/stone.json"
   };
 }

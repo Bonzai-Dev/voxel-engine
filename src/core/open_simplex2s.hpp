@@ -8,7 +8,7 @@ Open Simple Noise for C++
 #include <cstdint>
 #include <array>
 
-namespace Game::Terrain {
+namespace Core::OpenSimplexNoise {
   class Noise {
     public:
       Noise();

@@ -1,8 +1,7 @@
 #include "open_simplex2s.hpp"
-
 #include <cmath>
 
-namespace Game::Terrain {
+namespace Core::OpenSimplexNoise {
   using namespace std;
 
   Noise::Noise()

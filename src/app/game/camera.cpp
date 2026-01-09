@@ -29,7 +29,7 @@ namespace Game {
     glm::vec3 moveDirection = m_forward * inputDirection.x + m_right * inputDirection.z;
     moveDirection += glm::vec3(0, inputDirection.y, 0);
     m_position += moveDirection;
-
+// std::cout << "Camera Position: (" << m_position.x << ", " << m_position.y << ", " << m_position.z << ")\n";
     const glm::vec3 direction(
       cosf(glm::radians(m_rotation.y)) * cosf(glm::radians(m_rotation.x)),
       sinf(glm::radians(m_rotation.x)),

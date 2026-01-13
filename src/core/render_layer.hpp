@@ -5,13 +5,13 @@ namespace Core {
 
   class RenderLayer {
     public:
-      explicit RenderLayer(const Application &application) : m_application(application) {}
+      explicit RenderLayer(const Application &application) : application(application) {}
 
       virtual ~RenderLayer() = default;
 
-      virtual void Render() {}
+      virtual void render() {}
 
     protected:
-      const Application &m_application;
+      const Application &application;
    };
 }

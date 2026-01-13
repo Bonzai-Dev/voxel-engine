@@ -35,29 +35,29 @@ namespace Game::Blocks {
     public:
       Block(const glm::vec3 &position, BlockId blockId);
 
-      const glm::vec3 &GetPosition() const { return m_position; }
+      const glm::vec3 &getPosition() const { return position; }
 
-      const BlockId &GetBlockId() const { return m_blockId; }
+      const BlockId &getBlockId() const { return blockId; }
 
-      const MeshId &GetMeshId() const { return m_meshId; }
+      const MeshId &getMeshId() const { return meshId; }
 
-      const BlockMeshData &GetMesh() const { return m_blockMeshData[m_blockId]; }
+      const BlockMeshData &getMesh() const { return blockMeshData[blockId]; }
 
     private:
-      static inline std::unordered_map<BlockId, BlockMeshData> m_blockMeshData;
-      static inline std::unordered_map<MeshId, Renderer::MeshData> m_meshData;
-      static inline std::unordered_map<BlockId, BlockData> m_blockData;
+      static inline std::unordered_map<BlockId, BlockMeshData> blockMeshData;
+      static inline std::unordered_map<MeshId, Renderer::MeshData> meshData;
+      static inline std::unordered_map<BlockId, BlockData> blockData;
 
-      const BlockId m_blockId;
-      MeshId m_meshId = MeshId::None;
-      glm::vec3 m_position;
+      const BlockId blockId;
+      MeshId meshId = MeshId::None;
+      glm::vec3 position;
 
-      void SerializeBlockData() const;
+      void serializeBlockData() const;
 
-      static void LoadMesh(MeshId meshId);
+      static void loadMesh(MeshId meshId);
 
-      void LoadBlockMesh() const;
+      void loadBlockMesh() const;
 
-      static glm::vec2 GenerateUv(const glm::ivec2 &spritesheetTile, const glm::vec3 &vertexPosition, Face face);
+      static glm::vec2 generateUv(const glm::ivec2 &spritesheetTile, const glm::vec3 &vertexPosition, Face face);
   };
 }

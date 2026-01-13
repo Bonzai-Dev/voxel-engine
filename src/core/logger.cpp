@@ -4,6 +4,8 @@
 #include <SDL3/SDL_log.h>
 #include "logger.hpp"
 
+#include <sstream>
+
 namespace Logger {
   std::string reset() {
     return "\033[0m";
@@ -38,7 +40,7 @@ namespace Logger {
     const int size = vsnprintf(nullptr, 0, format, argsSize) + 1;
     va_end(argsSize);
 
-    char message[size];
+    char *message = new char[size];
     vsnprintf(message, size, format, args);
     va_end(args);
 
@@ -47,6 +49,7 @@ namespace Logger {
       messageView = messageView.substr(0, messageView.size() - 1);
 
     std::cout << logTitle.view() << messageView << reset() << '\n';
+    delete[] message;
   }
 
   void log(const Level logLevel, const Context context, const char *format, ...) {

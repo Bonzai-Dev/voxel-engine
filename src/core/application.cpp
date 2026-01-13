@@ -10,30 +10,30 @@ namespace Core {
   Application::Application(const char *name) :
   window(std::make_shared<Window>(name)) {
     Renderer::initialize();
-    m_running = true;
+    running = true;
   }
 
-  void Application::Run() {
-    while (m_running) {
-      PollInputs();
+  void Application::run() {
+    while (running) {
+      pollInputs();
 
-      for (const auto &m_layer: m_layers)
-        m_layer->Render();
+      for (const auto &m_layer: layers)
+        m_layer->render();
 
-      window->UpdateBuffer();
+      window->updateBuffer();
 
       const double currentTime = static_cast<double>(SDL_GetTicks()) / 1000;
-      deltaTime = currentTime - m_lastFrameTime;
-      m_lastFrameTime = static_cast<double>(currentTime);
+      deltaTime = currentTime - lastFrameTime;
+      lastFrameTime = static_cast<double>(currentTime);
     }
 
-    Quit();
+    quit();
   }
 
-  bool Application::KeyDown(Inputs::KeyboardKey key, Inputs::KeyDetectMode detectMode) const {
-    if (!m_pressedKeys.contains(key)) return false;
+  bool Application::keyDown(Inputs::KeyboardKey key, Inputs::KeyDetectMode detectMode) const {
+    if (!pressedKeys.contains(key)) return false;
 
-    const SDL_KeyboardEvent keyEvent = m_pressedKeys[key];
+    const SDL_KeyboardEvent keyEvent = pressedKeys[key];
     const SDL_Scancode scancode = keyEvent.scancode;
     const SDL_Keycode keycode = SDL_GetKeyFromScancode(keyEvent.scancode, keyEvent.mod, true);
 
@@ -45,37 +45,37 @@ namespace Core {
     return false;
   }
 
-  void Application::PollInputs() {
+  void Application::pollInputs() {
     SDL_Event windowEvent;
     mouseDelta = glm::zero<glm::vec2>();
-    mouseMoving = false;
+    isMouseMoving = false;
 
     while (SDL_PollEvent(&windowEvent)) {
       const auto pressedKey = static_cast<Inputs::KeyboardKey>(windowEvent.key.scancode);
       switch (windowEvent.type) {
         case SDL_EVENT_QUIT:
-          m_running = false;
+          running = false;
           break;
 
         case SDL_EVENT_KEY_DOWN:
-          if (!m_pressedKeys.contains(pressedKey))
-            m_pressedKeys[pressedKey] = windowEvent.key;
+          if (!pressedKeys.contains(pressedKey))
+            pressedKeys[pressedKey] = windowEvent.key;
           break;
 
         case SDL_EVENT_KEY_UP:
-          if (m_pressedKeys.contains(pressedKey))
-            m_pressedKeys.erase(pressedKey);
+          if (pressedKeys.contains(pressedKey))
+            pressedKeys.erase(pressedKey);
           break;
 
         case SDL_EVENT_MOUSE_MOTION:
-          mouseMoving = true;
+          isMouseMoving = true;
           mouseDelta = glm::vec2(windowEvent.motion.xrel, windowEvent.motion.yrel);
           break;
       }
     }
   }
 
-  void Application::Quit() const {
+  void Application::quit() const {
     SDL_Quit();
   }
 }

@@ -7,12 +7,12 @@ namespace Game::Shader {
     public:
       Default();
 
-      void UpdateModelMatrix(const glm::mat4 &matrix) const;
+      void updateModelMatrix(const glm::mat4 &matrix) const;
 
-      void UpdateProjectionMatrix(const glm::mat4 &matrix) const;
+      void updateProjectionMatrix(const glm::mat4 &matrix) const;
 
-      void UpdateViewMatrix(const glm::mat4 &matrix) const;
+      void updateViewMatrix(const glm::mat4 &matrix) const;
 
-      void UpdateTexture(unsigned int texture) const;
+      void updateTexture(unsigned int texture) const;
   };
 }

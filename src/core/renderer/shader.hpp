@@ -7,9 +7,9 @@ namespace Renderer {
 
       ~Shader() = default;
 
-      void Use() const;
+      void use() const;
 
     protected:
-      unsigned int m_program;
+      unsigned int program;
   };
 }

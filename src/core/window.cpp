@@ -25,35 +25,35 @@ namespace Core {
 
     // Get display information
     int displayCount;
-    m_displays = SDL_GetDisplays(&displayCount);
+    displays = SDL_GetDisplays(&displayCount);
     if (displayCount > 0) {
       logInfo(Context::Core, "Found %d display(s).", displayCount);
     } else {
       logWarning(Context::Core, "No display found.");
     }
-    m_currentDisplay = SDL_GetCurrentDisplayMode(m_displays[0]);
+    currentDisplay = SDL_GetCurrentDisplayMode(displays[0]);
 
     // Creating window
-    m_sdlWindow = SDL_CreateWindow(
+    sdlWindow = SDL_CreateWindow(
       windowName.data(),
-      m_currentDisplay->w, m_currentDisplay->h,
+      currentDisplay->w, currentDisplay->h,
       SDL_WINDOW_OPENGL | SDL_WINDOW_FULLSCREEN
     );
 
-    if (!m_sdlWindow) {
+    if (!sdlWindow) {
       logError(Context::Core, "Failed to create SDL window: %s", SDL_GetError());
       return;
     }
 
     // Creating OpenGL context
-    m_glContext = SDL_GL_CreateContext(m_sdlWindow);
+    glContext = SDL_GL_CreateContext(sdlWindow);
     const int version = gladLoadGL(SDL_GL_GetProcAddress);
     if (!version) {
       logError(Context::Renderer, "Failed to initialize OpenGL context.");
       return;
     }
 
-    SDL_SetWindowRelativeMouseMode(m_sdlWindow, mouseLocked);
+    SDL_SetWindowRelativeMouseMode(sdlWindow, mouseLocked);
     logInfo(
       Context::Renderer,
       "Program has successfully initialized OpenGL %d.%d core profile.",
@@ -62,32 +62,32 @@ namespace Core {
   }
 
   Window::~Window() {
-    Destroy();
+    destroy();
   }
 
-  void Window::Destroy() const {
-    SDL_GL_DestroyContext(m_glContext);
-    SDL_DestroyWindow(m_sdlWindow);
-    SDL_free(m_displays);
+  void Window::destroy() const {
+    SDL_GL_DestroyContext(glContext);
+    SDL_DestroyWindow(sdlWindow);
+    SDL_free(displays);
   }
 
-  int Window::GetWidth() const {
-    return m_currentDisplay->w;
+  int Window::getWidth() const {
+    return currentDisplay->w;
   }
 
-  int Window::GetHeight() const {
-    return m_currentDisplay->h;
+  int Window::getHeight() const {
+    return currentDisplay->h;
   }
 
-  void Window::UpdateBuffer() const {
-    SDL_GL_SwapWindow(m_sdlWindow);
+  void Window::updateBuffer() const {
+    SDL_GL_SwapWindow(sdlWindow);
   }
 
-  void Window::UnlockMouse() {
-    SDL_SetWindowRelativeMouseMode(m_sdlWindow, false);
+  void Window::unlockMouse() {
+    SDL_SetWindowRelativeMouseMode(sdlWindow, false);
   }
 
-  void Window::LockMouse() {
-    SDL_SetWindowRelativeMouseMode(m_sdlWindow, true);
+  void Window::lockMouse() {
+    SDL_SetWindowRelativeMouseMode(sdlWindow, true);
   }
 }

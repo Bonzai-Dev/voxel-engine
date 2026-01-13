@@ -3,8 +3,8 @@
 
 int main() {
   Core::Application application("Voxel Engine");
-  application.AddLayer<AppLayer>();
-  application.Run();
+  application.addLayer<AppLayer>();
+  application.run();
 
   return 0;
 }

@@ -12,29 +12,29 @@ namespace Game {
         float nearPlane = 0.1f, float farPlane = 1000, float fov = 75
       );
 
-      void UpdateProjection(float nearPlane, float farPlane, float fov);
+      void updateProjection(float nearPlane, float farPlane, float fov);
 
-      void Update();
+      void update();
 
-      const glm::mat4 &GetProjectionMatrix() const { return m_projectionMatrix; }
+      const glm::mat4 &getProjectionMatrix() const { return projectionMatrix; }
 
-      const glm::mat4 &GetViewMatrix() const { return m_viewMatrix; }
+      const glm::mat4 &getViewMatrix() const { return viewMatrix; }
 
     private:
-      glm::mat4 m_projectionMatrix = glm::mat4(1.0f);
-      glm::mat4 m_viewMatrix = glm::mat4(1.0f);
+      glm::mat4 projectionMatrix = glm::mat4(1.0f);
+      glm::mat4 viewMatrix = glm::mat4(1.0f);
 
-      glm::vec3 m_rotation = glm::vec3(0, 90, 0);
-      glm::vec3 m_position;
+      glm::vec3 rotation = glm::vec3(0, 90, 0);
+      glm::vec3 position;
 
-      glm::vec3 m_forward = glm::vec3(0.0f);
-      glm::vec3 m_right = glm::vec3(0.0f);
-      glm::vec3 m_up = glm::vec3(0.0f);
+      glm::vec3 forward = glm::vec3(0.0f);
+      glm::vec3 right = glm::vec3(0.0f);
+      glm::vec3 up = glm::vec3(0.0f);
 
-      float m_nearPlane;
-      float m_farPlane;
-      float m_fov;
+      float nearPlane;
+      float farPlane;
+      float fov;
 
-      const Core::Application &m_application;
+      const Core::Application &application;
   };
 }

@@ -9,22 +9,22 @@ namespace Core {
 
       ~Window();
 
-      void Destroy() const;
+      void destroy() const;
 
-      void UnlockMouse();
+      void unlockMouse();
 
-      void LockMouse();
+      void lockMouse();
 
-      void UpdateBuffer() const;
+      void updateBuffer() const;
 
-      int GetWidth() const;
+      int getWidth() const;
 
-      int GetHeight() const;
+      int getHeight() const;
 
     private:
-      SDL_GLContext m_glContext;
-      SDL_Window *m_sdlWindow;
-      const SDL_DisplayMode *m_currentDisplay;
-      SDL_DisplayID *m_displays;
+      SDL_GLContext glContext;
+      SDL_Window *sdlWindow;
+      const SDL_DisplayMode *currentDisplay;
+      SDL_DisplayID *displays;
   };
 }

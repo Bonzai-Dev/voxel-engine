@@ -8,36 +8,44 @@
 #include "inputs.hpp"
 
 namespace Core {
-  class RenderLayer;
+    class RenderLayer;
 
-  class Application {
+    class Application {
     public:
-      explicit Application(const char *name);
+        explicit Application(const char *name);
 
-      void Quit() const;
+        void quit() const;
 
-      void Run();
+        void run();
 
-      void PollInputs();
+        void pollInputs();
 
-      bool KeyDown(Inputs::KeyboardKey key, Inputs::KeyDetectMode detectMode) const;
+        bool keyDown(Inputs::KeyboardKey key, Inputs::KeyDetectMode detectMode) const;
 
-      template<typename TLayer>
-      requires(std::is_base_of_v<RenderLayer, TLayer>)
-      void AddLayer() {
-        m_layers.push_back(std::make_unique<TLayer>(*this));
-      }
+        template<typename TLayer>
+            requires(std::is_base_of_v<RenderLayer, TLayer>)
+        void addLayer() {
+            layers.push_back(std::make_unique<TLayer>(*this));
+        }
 
-      double deltaTime = 0;
-      glm::vec2 mouseDelta = glm::zero<glm::vec2>();
-      bool mouseMoving = false;
-      const std::shared_ptr<Window> window;
+        const double &getDeltaTime() const { return deltaTime; }
+
+        const glm::vec2 &getMouseDelta() const { return mouseDelta; }
+
+        const std::shared_ptr<Window> &getWindow() const { return window; }
+
+        const bool &mouseMoving() const { return isMouseMoving; }
 
     private:
-      std::vector<std::unique_ptr<RenderLayer> > m_layers;
-      mutable std::unordered_map<Inputs::KeyboardKey, SDL_KeyboardEvent> m_pressedKeys;
+        double deltaTime = 0;
+        glm::vec2 mouseDelta = glm::zero<glm::vec2>();
+        bool isMouseMoving = false;
+        const std::shared_ptr<Window> window;
 
-      double m_lastFrameTime = 0;
-      bool m_running;
-  };
+        std::vector<std::unique_ptr<RenderLayer> > layers;
+        mutable std::unordered_map<Inputs::KeyboardKey, SDL_KeyboardEvent> pressedKeys;
+
+        double lastFrameTime = 0;
+        bool running;
+    };
 }

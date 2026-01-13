@@ -12,7 +12,6 @@ namespace Game::Terrain {
       void Render() const;
 
       const glm::mat4 &GetModelMatrix() const { return m_modelMatrix; }
-      int index = 0;
     private:
       static inline Core::OpenSimplexNoise::Noise m_noise{1};
 

@@ -48,6 +48,18 @@ namespace Renderer {
     return buffer;
   }
 
+  void useElementBufferObject(unsigned int buffer) {
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer);
+  }
+
+  void useVertexArrayObject(unsigned int object) {
+    glBindVertexArray(object);
+  }
+
+  void useVertexBufferObject(unsigned int buffer) {
+    glBindBuffer(GL_ARRAY_BUFFER, buffer);
+  }
+
   int getUniform(const char *name, unsigned int shaderProgram) {
     const std::string uniformKey = name + std::to_string(shaderProgram);
     const GLint uniformLocation = glGetUniformLocation(shaderProgram, name); // INSTEAD OF GETTING THE NAME, I GOT THE KEY RAHHHHH

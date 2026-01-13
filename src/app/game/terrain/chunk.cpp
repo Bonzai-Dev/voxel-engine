@@ -3,7 +3,6 @@
 #include <core/logger.hpp>
 #include <iostream>
 #include <glm/gtc/matrix_transform.hpp>
-#include <core/open_simplex2s.hpp>
 #include "blocks/block.hpp"
 #include "../world.hpp"
 #include "chunk.hpp"
@@ -14,7 +13,6 @@ using namespace Game::Blocks;
 namespace Game::Terrain {
   Chunk::Chunk(const glm::ivec2 &position): m_position(position * ChunkSize) {
     m_modelMatrix = glm::translate(m_modelMatrix, glm::vec3(m_position.x, 0, m_position.y));
-    std::cout << "Generating chunk at (" << m_position.x << ", " << m_position.y << ")\n";
     MeshBuilder();
     m_vertexArrayObject = Renderer::createVertexArrayObject();
     m_vertexBufferObject = Renderer::createVertexBufferObject(m_vertexData.data(), sizeof(float) * m_vertexData.size());
@@ -27,11 +25,13 @@ namespace Game::Terrain {
   }
 
   void Chunk::Render() const {
-    glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT, nullptr);
+    Renderer::useVertexArrayObject(m_vertexArrayObject);
+    Renderer::useVertexBufferObject(m_vertexBufferObject);
+    Renderer::useElementBufferObject(m_elementBufferObject);
+    glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(m_indices.size()), GL_UNSIGNED_INT, nullptr);
   }
 
   void Chunk::MeshBuilder() {
-    static int chunkCount = 0;
     for (size_t blockCount = 0; blockCount < TotalChunkBlocks; blockCount++) {
       // Fills in the X column first then Z then Y
       const int x = blockCount % ChunkSize;
@@ -39,52 +39,31 @@ namespace Game::Terrain {
       const int z = (blockCount / ChunkSize) % ChunkSize;
       const auto globalX = static_cast<double>(m_position.x + x);
       const auto globalZ = static_cast<double>(m_position.y + z);
-      constexpr auto noiseFrequency = 0.05f;
-      const int noiseHeight = (int) floor((sinf(globalX * 0.3f) + cosf(globalZ * 0.3f)) * 3.0f);
+      const int noiseHeight = static_cast<int>(floor(m_noise.eval(globalX * 0.05, globalZ * 0.05) * 10.0));
 
-      // int noiseHeight = roundf(m_noise.eval(globalX * noiseFrequency, globalZ * noiseFrequency) * 50.0f);
       BlockId blockId = BlockId::Air;
 
-      // if (chunkCount == 0 && x == ChunkSize - 1 && z == ChunkSize - 1 && y == noiseHeight) {
-      //   std::cout << "Noise at (" << globalX << ", " << globalZ << "): " << noiseHeight << "\n";
-      // }
-      //
-      // if (chunkCount == 1 && x == 0 && z == ChunkSize - 1 && y == noiseHeight) {
-      //   std::cout << "Noise at (" << globalX << ", " << globalZ << "): " << noiseHeight << "\n";
-      // }
-      //
-      // if (chunkCount == 2 && x == 0 && z == ChunkSize - 1 && y == noiseHeight) {
-      //   std::cout << "Noise at (" << globalX << ", " << globalZ << "): " << noiseHeight << "\n";
-      // }
-
-      if (y == noiseHeight) {
-      std::cout << "Added block " << " at position " << x << " " << y << " " << z << "\n";
-        std::cout << "Set grass at (" << globalX << ", " << y << ", " << globalZ << ")" << " Noise: " << noiseHeight << "\n";
+      if (y == noiseHeight)
         blockId = BlockId::Grass;
-      }
 
       if (y < noiseHeight)
         blockId = BlockId::Dirt;
 
-      // if (y == MinChunkHeight)
-      //   blockId = BlockId::Bedrock;
-      //
+      if (y == MinChunkHeight)
+        blockId = BlockId::Bedrock;
+
       if (blockId == BlockId::Air)
         continue;
 
       const Block block(glm::vec3(x, y, z), blockId);
       AddBlock(block);
     }
-    chunkCount ++;
+
     for (size_t blockCount = 0; blockCount < TotalChunkBlocks; blockCount++) {
       const int x = blockCount % ChunkSize;
       const int y = blockCount / (ChunkSize * ChunkSize) + MinChunkHeight;
       const int z = (blockCount / ChunkSize) % ChunkSize;
-      const int globalX = x + m_position.x;
-      const int globalZ = z + m_position.y;
       const auto block = GetBlockLocal(glm::ivec3(x, y, z));
-      // const int noiseHeight = (int) floor((sinf(globalX * 0.3f) + cosf(globalZ * 0.3f)) * 3.0f);
-      // const auto position = glm::ivec3(x, noiseHeight, z);
       const auto &position = block.GetPosition();
 
       if (FaceVisible(Up, position))
@@ -104,34 +83,9 @@ namespace Game::Terrain {
 
   void Chunk::AddFace(const glm::ivec3 &position, Face face) {
     const auto block = GetBlockLocal(position);
-    const auto globalX = static_cast<double>(m_position.x + block.GetPosition().x);
-    const auto globalZ = static_cast<double>(m_position.y + block.GetPosition().z);
-    int noiseHeight = static_cast<int>(roundf(std::sinf(globalX * 0.05f) * std::cosf(globalZ * 0.05f) * 20.0f));
 
     if (block.GetBlockId() == BlockId::Air)
       return;
-
-    //
-    // if (block.GetPosition().y == noiseHeight) {
-    //   std::cout << "added face at (" << globalX << ", " << block.GetPosition().y << ", " << globalZ << ")" << " Noise: " << noiseHeight << "\n";
-    // }
-
-    // const int x = static_cast<int>(block.GetPosition().x);
-    // const int y = static_cast<int>(block.GetPosition().y);
-    // const int z = static_cast<int>(block.GetPosition().z);
-    // const int chunkCount = index;
-    // if (chunkCount == 0 && x == ChunkSize - 1 && z == ChunkSize - 1 && y == noiseHeight) {
-    //   std::cout << "Noise at (" << globalX << ", " << globalZ << "): " << noiseHeight << "\n";
-    // }
-    //
-    // if (chunkCount == 1 && x == 0 && z == ChunkSize - 1 && y == noiseHeight) {
-    //   std::cout << "Noise at (" << globalX << ", " << globalZ << "): " << noiseHeight << "\n";
-    // }
-    //
-    // if (chunkCount == 2 && x == 0 && z == ChunkSize - 1 && y == noiseHeight) {
-    //   std::cout << "Noise at (" << globalX << ", " << globalZ << "): " << noiseHeight << "\n";
-    // }
-
 
     const auto faceIndex = static_cast<unsigned int>(face);
     const auto &vertexData = block.GetMesh().vertexData;
@@ -139,9 +93,11 @@ namespace Game::Terrain {
     const unsigned int vertexIndexStart = faceIndex * 4;
     for (unsigned int vertexIndex = vertexIndexStart; vertexIndex < vertexIndexStart + 4; vertexIndex++) {
       const auto &vertex = vertexData[vertexIndex];
-      m_vertexData.push_back(position.x + vertex.position.x);
-      m_vertexData.push_back(position.y + vertex.position.y);
-      m_vertexData.push_back(position.z + vertex.position.z);
+
+      m_vertexData.push_back(vertex.position.x + position.x);
+      m_vertexData.push_back(vertex.position.y + position.y);
+      m_vertexData.push_back(vertex.position.z + position.z);
+
       m_vertexData.push_back(vertex.uv.x);
       m_vertexData.push_back(vertex.uv.y);
 

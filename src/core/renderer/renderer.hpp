@@ -47,6 +47,12 @@ namespace Renderer {
 
   unsigned int createElementBufferObject(const void *data, size_t size);
 
+  void useElementBufferObject(unsigned int buffer);
+
+  void useVertexArrayObject(unsigned int object);
+
+  void useVertexBufferObject(unsigned int buffer);
+
   void debugMessageCallback(
     unsigned int source,
     unsigned int type,

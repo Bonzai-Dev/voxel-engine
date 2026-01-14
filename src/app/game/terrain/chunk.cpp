@@ -17,10 +17,8 @@ namespace Game::Terrain {
     vertexBufferObject = Renderer::createVertexBufferObject(vertexData.data(), sizeof(float) * vertexData.size());
     elementBufferObject = Renderer::createElementBufferObject(indices.data(), sizeof(unsigned int) * indices.size());
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), nullptr);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
+    Renderer::setVertexData<float>(0, 3, 5, false, 0);
+    Renderer::setVertexData<float>(1, 2, 5, false, 3);
   }
 
   void Chunk::render() const {

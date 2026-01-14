@@ -1,4 +1,5 @@
 #pragma once
+#include <glad/gl.h>
 #include <string>
 #include <vector>
 #include <glm/vec4.hpp>
@@ -52,6 +53,13 @@ namespace Renderer {
   void useVertexArrayObject(unsigned int object);
 
   void useVertexBufferObject(unsigned int buffer);
+
+  template <typename TypeT>
+  void setVertexData(size_t index, size_t size, size_t stride, bool normalized, size_t offset) {
+    const size_t typeSize = sizeof(TypeT);
+    glVertexAttribPointer(index, size, GL_FLOAT, normalized, stride * typeSize, reinterpret_cast<void *>(offset * typeSize));
+    glEnableVertexAttribArray(index);
+  }
 
   void debugMessageCallback(
     unsigned int source,

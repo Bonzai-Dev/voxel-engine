@@ -62,7 +62,7 @@ namespace Renderer {
 
   int getUniform(const char *name, unsigned int shaderProgram) {
     const std::string uniformKey = name + std::to_string(shaderProgram);
-    const GLint uniformLocation = glGetUniformLocation(shaderProgram, name); // INSTEAD OF GETTING THE NAME, I GOT THE KEY RAHHHHH
+    const GLint uniformLocation = glGetUniformLocation(shaderProgram, name);
     if (uniformLocation == -1) {
       Logger::logWarning(Logger::Context::Renderer, "Unable to get the uniform location of %s", name);
       return -1;

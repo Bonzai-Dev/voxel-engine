@@ -1,4 +1,3 @@
-#include <glad/gl.h>
 #include <core/renderer/renderer.hpp>
 #include <core/logger.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -6,19 +5,21 @@
 #include "terrain.hpp"
 #include "chunk.hpp"
 
+#include <iostream>
+
 using namespace Logger;
 using namespace Game::Blocks;
 
 namespace Game {
-  Chunk::Chunk(const glm::ivec2 &position): position(position * ChunkSize) {
+  Chunk::Chunk(const glm::ivec2 &position, const std::vector<int> &heightMap): position(position * ChunkSize), heightMap(heightMap) {
     modelMatrix = glm::translate(modelMatrix, glm::vec3(this->position.x, 0, this->position.y));
     buildMesh();
     vertexArrayObject = Renderer::createVertexArrayObject();
     vertexBufferObject = Renderer::createVertexBufferObject(vertexData.data(), sizeof(float) * vertexData.size());
     elementBufferObject = Renderer::createElementBufferObject(indices.data(), sizeof(unsigned int) * indices.size());
 
-    Renderer::setVertexData<float>(0, 3, 5, false, 0, vertexBufferObject);
-    Renderer::setVertexData<float>(1, 2, 5, false, 3, vertexBufferObject);
+    Renderer::setVertexData<std::float_t>(0, 3, 5, false, 0, vertexBufferObject);
+    Renderer::setVertexData<std::float_t>(1, 2, 5, false, 3, vertexBufferObject);
   }
 
   void Chunk::render() const {
@@ -33,7 +34,9 @@ namespace Game {
       const int z = (blockCount / ChunkSize) % ChunkSize;
       const auto globalX = static_cast<double>(position.x + x);
       const auto globalZ = static_cast<double>(position.y + z);
-      const int noiseHeight = static_cast<int>(floor(noise.eval(globalX * 0.05, globalZ * 0.05) * 50.0));
+      const auto noiseHeight = getNoise(glm::ivec2(x, z));
+
+      std::cout << noiseHeight << std::endl;
 
       BlockId blockId = BlockId::Air;
 
@@ -52,6 +55,7 @@ namespace Game {
       const Block block(glm::vec3(x, y, z), blockId);
       addBlock(block);
     }
+
 
     for (size_t blockCount = 0; blockCount < TotalChunkBlocks; blockCount++) {
       const int x = blockCount % ChunkSize;
@@ -138,6 +142,10 @@ namespace Game {
   void Chunk::addBlock(const Block &block) {
     const size_t index = getBlockIndex(block.getPosition());
     blocks[index] = static_cast<std::uint16_t>(block.getBlockId());
+  }
+
+  int Chunk::getNoise(const glm::ivec2 &position) {
+    return heightMap[position.x + position.y * ChunkSize];
   }
 
   size_t Chunk::getBlockIndex(const glm::ivec3 &position) {

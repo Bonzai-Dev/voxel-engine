@@ -7,7 +7,6 @@
 
 AppLayer::AppLayer(const Core::Application &application) :
   RenderLayer(application), camera(application, glm::vec3(0.0f, 20.0f, 0.0f)), terrain(camera) {
-
 }
 
 void AppLayer::render() {

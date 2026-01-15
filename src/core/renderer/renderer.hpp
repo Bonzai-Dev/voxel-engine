@@ -57,10 +57,23 @@ namespace Renderer {
   void drawTriangles(unsigned int vertexArrayObject, unsigned int vertexBuffer, unsigned int indexBuffer, size_t indicesSize);
 
   template <typename TypeT>
+  constexpr GLenum getGlType() {
+    if (std::is_same_v<TypeT, std::float_t>)
+      return GL_FLOAT;
+    if (std::is_same_v<TypeT, std::double_t>)
+      return GL_DOUBLE;
+    if (std::is_same_v<TypeT, std::uint32_t>)
+      return GL_UNSIGNED_INT;
+    if (std::is_same_v<TypeT, std::int32_t>)
+      return GL_INT;
+    return GL_INVALID_ENUM;
+  }
+
+  template <typename TypeT>
   void setVertexData(size_t index, size_t size, size_t stride, bool normalized, size_t offset, unsigned int vertexBuffer) {
     const size_t typeSize = sizeof(TypeT);
     useVertexBufferObject(vertexBuffer);
-    glVertexAttribPointer(index, size, GL_FLOAT, normalized, stride * typeSize, reinterpret_cast<void *>(offset * typeSize));
+    glVertexAttribPointer(index, size, getGlType<TypeT>(), normalized, stride * typeSize, reinterpret_cast<void *>(offset * typeSize));
     glEnableVertexAttribArray(index);
   }
 

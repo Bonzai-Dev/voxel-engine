@@ -1,6 +1,5 @@
 #pragma once
-#include <glm/glm.hpp>
-#include <core/open_simplex2s.hpp>
+#include <vector>
 #include "blocks/block.hpp"
 
 namespace Game {
@@ -13,7 +12,7 @@ namespace Game {
 
   class Chunk {
     public:
-      Chunk(const glm::ivec2 &position);
+      Chunk(const glm::ivec2 &position, const std::vector<int> &heightMap);
 
       ~Chunk() = default;
 
@@ -22,8 +21,6 @@ namespace Game {
       const glm::mat4 &getModelMatrix() const { return modelMatrix; }
 
     private:
-      static inline Core::OpenSimplexNoise::Noise noise{1};
-
       unsigned int vertexArrayObject;
       unsigned int vertexBufferObject;
       unsigned int elementBufferObject;
@@ -31,6 +28,7 @@ namespace Game {
       glm::mat4 modelMatrix = glm::mat4(1.0f);
       glm::ivec2 position;
 
+      const std::vector<int> &heightMap;
       std::vector<float> vertexData;
       std::vector<unsigned int> indices;
 
@@ -52,6 +50,9 @@ namespace Game {
       bool faceVisible(const glm::ivec3 &faceNormal, const glm::ivec3 &position);
 
       void addFace(const glm::ivec3 &position, Blocks::Face face);
+
+      // Gets height map using a 2d local position
+      int getNoise(const glm::ivec2 &position);
 
       // Gets block index from the flattened 3d array
       static size_t getBlockIndex(const glm::ivec3 &position);

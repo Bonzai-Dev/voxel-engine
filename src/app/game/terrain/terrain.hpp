@@ -27,6 +27,8 @@ namespace Game {
     private:
       int noise2d(const glm::ivec2 &position, const glm::ivec2 &scale, int amplitude) const;
 
+      std::vector<int> generateHeightMap(const glm::ivec2 &chunkPosition) const;
+
       static int generateSeed();
 
       const Chunk &getChunk(const glm::ivec2 &position);
@@ -35,8 +37,8 @@ namespace Game {
 
       const Blocks::Block &getBlock(const glm::ivec3 &position);
 
-      int seed = 0;
-      Core::OpenSimplexNoise::Noise noiseGenerator;
+      int seed = generateSeed();
+      Core::OpenSimplexNoise::Noise noiseGenerator = Core::OpenSimplexNoise::Noise(getSeed());
       const Camera &camera;
       Shader::Default shader;
       std::vector<Chunk> chunks;

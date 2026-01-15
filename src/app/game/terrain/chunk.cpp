@@ -3,13 +3,13 @@
 #include <core/logger.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "blocks/block.hpp"
-#include "../world.hpp"
+#include "terrain.hpp"
 #include "chunk.hpp"
 
 using namespace Logger;
 using namespace Game::Blocks;
 
-namespace Game::Terrain {
+namespace Game {
   Chunk::Chunk(const glm::ivec2 &position): position(position * ChunkSize) {
     modelMatrix = glm::translate(modelMatrix, glm::vec3(this->position.x, 0, this->position.y));
     buildMesh();
@@ -17,15 +17,12 @@ namespace Game::Terrain {
     vertexBufferObject = Renderer::createVertexBufferObject(vertexData.data(), sizeof(float) * vertexData.size());
     elementBufferObject = Renderer::createElementBufferObject(indices.data(), sizeof(unsigned int) * indices.size());
 
-    Renderer::setVertexData<float>(0, 3, 5, false, 0);
-    Renderer::setVertexData<float>(1, 2, 5, false, 3);
+    Renderer::setVertexData<float>(0, 3, 5, false, 0, vertexBufferObject);
+    Renderer::setVertexData<float>(1, 2, 5, false, 3, vertexBufferObject);
   }
 
   void Chunk::render() const {
-    Renderer::useVertexArrayObject(vertexArrayObject);
-    Renderer::useVertexBufferObject(vertexBufferObject);
-    Renderer::useElementBufferObject(elementBufferObject);
-    glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(indices.size()), GL_UNSIGNED_INT, nullptr);
+    Renderer::drawTriangles(vertexArrayObject, vertexBufferObject, elementBufferObject, indices.size());
   }
 
   void Chunk::buildMesh() {

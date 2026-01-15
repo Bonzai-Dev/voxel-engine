@@ -54,9 +54,12 @@ namespace Renderer {
 
   void useVertexBufferObject(unsigned int buffer);
 
+  void drawTriangles(unsigned int vertexArrayObject, unsigned int vertexBuffer, unsigned int indexBuffer, size_t indicesSize);
+
   template <typename TypeT>
-  void setVertexData(size_t index, size_t size, size_t stride, bool normalized, size_t offset) {
+  void setVertexData(size_t index, size_t size, size_t stride, bool normalized, size_t offset, unsigned int vertexBuffer) {
     const size_t typeSize = sizeof(TypeT);
+    useVertexBufferObject(vertexBuffer);
     glVertexAttribPointer(index, size, GL_FLOAT, normalized, stride * typeSize, reinterpret_cast<void *>(offset * typeSize));
     glEnableVertexAttribArray(index);
   }

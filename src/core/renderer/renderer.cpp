@@ -60,6 +60,13 @@ namespace Renderer {
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
   }
 
+  void drawTriangles(unsigned int vertexArrayObject, unsigned int vertexBuffer, unsigned int indexBuffer, size_t indicesSize) {
+    useVertexArrayObject(vertexArrayObject);
+    useVertexBufferObject(vertexBuffer);
+    useElementBufferObject(indexBuffer);
+    glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(indicesSize), GL_UNSIGNED_INT, nullptr);
+  }
+
   int getUniform(const char *name, unsigned int shaderProgram) {
     const std::string uniformKey = name + std::to_string(shaderProgram);
     const GLint uniformLocation = glGetUniformLocation(shaderProgram, name);

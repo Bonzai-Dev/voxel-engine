@@ -3,7 +3,7 @@
 #include <core/open_simplex2s.hpp>
 #include "blocks/block.hpp"
 
-namespace Game::Terrain {
+namespace Game {
   // Cannot build above MaxChunkHeight and below MinChunkHeight
   inline constexpr int MaxChunkHeight = 320;
   inline constexpr int MinChunkHeight = -64;
@@ -14,6 +14,8 @@ namespace Game::Terrain {
   class Chunk {
     public:
       Chunk(const glm::ivec2 &position);
+
+      ~Chunk() = default;
 
       void render() const;
 

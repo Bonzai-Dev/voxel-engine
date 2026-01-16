@@ -5,7 +5,7 @@
 
 using namespace Core;
 
-namespace Game {
+namespace Renderer {
   Camera::Camera(const Application &application, const glm::vec3 &cameraPosition, float nearPlane, float farPlane, float fov) :
     position(cameraPosition), nearPlane(nearPlane), farPlane(farPlane), fov(fov), application(application) {
     updateProjection(nearPlane, farPlane, fov);
@@ -46,6 +46,14 @@ namespace Game {
       position + forward,
       up
     );
+  }
+
+  bool Camera::inView(const Core::AABB &boundingBox) {
+
+  }
+
+  float Camera::getSignedDistanceToPlane(const glm::vec3 &position) const {
+    return glm::dot(normal, position) - distance;
   }
 
   void Camera::updateProjection(float near, float far, float fieldOfView) {

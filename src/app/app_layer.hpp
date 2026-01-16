@@ -1,7 +1,7 @@
 #pragma once
 #include <core/application.hpp>
-#include <core/render_layer.hpp>
-#include "game/camera.hpp"
+#include <../core/renderer/render_layer.hpp>
+#include "../core/renderer/camera/camera.hpp"
 #include "game/terrain/terrain.hpp"
 
 class AppLayer : public Core::RenderLayer {

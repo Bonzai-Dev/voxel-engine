@@ -2,12 +2,13 @@
 #include <glm/vec3.hpp>
 #include <core/open_simplex2s.hpp>
 #include <glm/vec2.hpp>
-#include "../camera.hpp"
+#include "../../../core/renderer/camera/camera.hpp"
 #include "../shaders/default.hpp"
 #include "chunk.hpp"
 
 namespace Game {
-  inline constexpr int RenderDistance = 2;
+  // How many chunks to render in front of the camera
+  inline constexpr int RenderDistance = 10;
 
   inline constexpr auto Up = glm::ivec3(0, 1, 0);
   inline constexpr auto Down = glm::ivec3(0, -1, 0);
@@ -25,15 +26,15 @@ namespace Game {
       void render() const;
 
     private:
-      int noise2d(const glm::ivec2 &position, const glm::ivec2 &scale, int amplitude) const;
+      int noise2d(const glm::ivec2 &position, const glm::vec2 &scale, float amplitude) const;
 
-      std::vector<int> generateHeightMap(const glm::ivec2 &chunkPosition) const;
+      std::vector<int> generateHeightMap(const glm::ivec2 &position) const;
 
       static int generateSeed();
 
       const Chunk &getChunk(const glm::ivec2 &position);
 
-      size_t getChunkIndex(const glm::ivec2 &position);
+      static size_t getChunkIndex(const glm::ivec2 &position);
 
       const Blocks::Block &getBlock(const glm::ivec3 &position);
 

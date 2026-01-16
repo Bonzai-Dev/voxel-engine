@@ -4,7 +4,7 @@
 #include <core/window.hpp>
 #include <glm/gtc/constants.hpp>
 #include "application.hpp"
-#include "render_layer.hpp"
+#include "renderer/render_layer.hpp"
 
 namespace Core {
   Application::Application(const char *name) :

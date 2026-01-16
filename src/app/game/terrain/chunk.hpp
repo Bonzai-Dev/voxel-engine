@@ -34,7 +34,7 @@ namespace Game {
 
       // 3D array flattened to 1D that stores all the chunk's block
       // Stores as 2 byte uint to save memory
-      std::vector<std::uint16_t> blocks = std::vector<std::uint16_t>(TotalChunkBlocks, 0);
+      std::vector<std::uint16_t> blocks = std::vector(TotalChunkBlocks, static_cast<std::uint16_t>(Blocks::BlockId::Air));
 
       void buildMesh();
 
@@ -45,14 +45,14 @@ namespace Game {
 
       void addBlock(const Blocks::Block &block);
 
-      static bool outOfBounds(const glm::ivec3 &position) ;
+      static bool outOfBounds(const glm::ivec3 &position);
 
       bool faceVisible(const glm::ivec3 &faceNormal, const glm::ivec3 &position);
 
       void addFace(const glm::ivec3 &position, Blocks::Face face);
 
       // Gets height map using a 2d local position
-      int getNoise(const glm::ivec2 &position);
+      int getNoise(const glm::ivec2 &position) const;
 
       // Gets block index from the flattened 3d array
       static size_t getBlockIndex(const glm::ivec3 &position);

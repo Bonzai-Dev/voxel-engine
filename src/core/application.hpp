@@ -1,7 +1,7 @@
 #pragma once
 #include <memory>
 #include <vector>
-#include <core/window.hpp>
+#include <renderer/window.hpp>
 #include <glm/vec2.hpp>
 #include <glm/gtc/constants.hpp>
 #include <unordered_map>

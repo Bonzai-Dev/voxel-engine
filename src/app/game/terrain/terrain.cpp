@@ -2,6 +2,8 @@
 #include <core/logger.hpp>
 #include "terrain.hpp"
 
+#include <thread>
+
 namespace Game {
   Terrain::Terrain(const Camera &camera): camera(camera) {
     Logger::logInfo(Logger::Context::Game, "Generating terrain with a seed of %d.", seed);
@@ -11,7 +13,8 @@ namespace Game {
 
     for (int x = -RenderDistance / 2; x <= RenderDistance / 2; x++) {
       for (int z = -RenderDistance / 2; z <= RenderDistance / 2; z++) {
-        chunks.emplace_back(glm::ivec2(x, z), generateHeightMap(glm::ivec2(x, z)));
+        const auto chunk = Chunk(glm::ivec2(x, z), generateHeightMap(glm::ivec2(x, z)));
+        chunks.emplace_back(chunk);
       }
     }
 
@@ -32,19 +35,15 @@ namespace Game {
     return chunks[getChunkIndex(position)];
   }
 
-  // const Blocks::Block &Terrain::getBlock(const glm::ivec3 &position) {
-  //
-  // }
-
-  std::vector<int> Terrain::generateHeightMap(const glm::ivec2 &chunkPosition) const {
-    std::vector<int> map;
+  std::vector<int> Terrain::generateHeightMap(const glm::ivec2 &position) const {
+    std::vector<int> heightMap;
     for (size_t blockCount = 0; blockCount < ChunkSize * ChunkSize; blockCount++) {
-      const auto x = blockCount % ChunkSize + (chunkPosition.x * ChunkSize);
-      const int z = (blockCount / ChunkSize) % ChunkSize + (chunkPosition.y * ChunkSize);
-      map.push_back(noise2d(glm::ivec2(x, z), glm::ivec2(0.5, 0.5), 10));
+      const int x = blockCount % ChunkSize + (position.x * ChunkSize);
+      const int z = (blockCount / ChunkSize) % ChunkSize + (position.y * ChunkSize);
+      const int y = noise2d(glm::ivec2(x, z), glm::vec2(0.01, 0.01), 50);
+      heightMap.push_back(y);
     }
-
-    return map;
+    return heightMap;
   }
 
   size_t Terrain::getChunkIndex(const glm::ivec2 &position) {
@@ -53,11 +52,13 @@ namespace Game {
 
   int Terrain::generateSeed() {
     srand(time(nullptr));
-    static constexpr auto seedRange = static_cast<int>(10e5);
+    static constexpr long seedRange = static_cast<long>(10e10);
     return rand() % (2 * seedRange + 1) - seedRange;
   }
 
-  int Terrain::noise2d(const glm::ivec2 &position, const glm::ivec2 &scale, int amplitude) const {
-    return static_cast<int>(floor(noiseGenerator.eval(position.x * scale.x, position.y * scale.y) * amplitude));
+  int Terrain::noise2d(const glm::ivec2 &position, const glm::vec2 &scale, float amplitude) const {
+    const auto x = static_cast<double>(position.x);
+    const auto y = static_cast<double>(position.y);
+    return static_cast<int>(floor(noiseGenerator.eval(x * scale.x, y * scale.y) * amplitude));
   }
 }

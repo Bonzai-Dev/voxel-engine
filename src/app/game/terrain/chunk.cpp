@@ -1,3 +1,4 @@
+#include <thread>
 #include <core/renderer/renderer.hpp>
 #include <core/logger.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -5,15 +6,16 @@
 #include "terrain.hpp"
 #include "chunk.hpp"
 
-#include <iostream>
-
 using namespace Logger;
 using namespace Game::Blocks;
 
 namespace Game {
-  Chunk::Chunk(const glm::ivec2 &position, const std::vector<int> &heightMap): position(position * ChunkSize), heightMap(heightMap) {
+  Chunk::Chunk(const glm::ivec2 &position, const std::vector<int> &heightMap):
+  position(position * ChunkSize), heightMap(heightMap) {
     modelMatrix = glm::translate(modelMatrix, glm::vec3(this->position.x, 0, this->position.y));
-    buildMesh();
+    auto meshBuilder = std::thread(&Chunk::buildMesh, this);
+    meshBuilder.join();
+
     vertexArrayObject = Renderer::createVertexArrayObject();
     vertexBufferObject = Renderer::createVertexBufferObject(vertexData.data(), sizeof(float) * vertexData.size());
     elementBufferObject = Renderer::createElementBufferObject(indices.data(), sizeof(unsigned int) * indices.size());
@@ -28,18 +30,13 @@ namespace Game {
 
   void Chunk::buildMesh() {
     for (size_t blockCount = 0; blockCount < TotalChunkBlocks; blockCount++) {
-      // Fills in the X column first then Z then Y
       const int x = blockCount % ChunkSize;
       const int y = blockCount / (ChunkSize * ChunkSize) + MinChunkHeight;
       const int z = (blockCount / ChunkSize) % ChunkSize;
-      const auto globalX = static_cast<double>(position.x + x);
-      const auto globalZ = static_cast<double>(position.y + z);
-      const auto noiseHeight = getNoise(glm::ivec2(x, z));
-
-      std::cout << noiseHeight << std::endl;
+      const auto &localPosition = glm::ivec3(x, y, z);
+      const auto noiseHeight = getNoise(glm::ivec2(localPosition.x, localPosition.z));
 
       BlockId blockId = BlockId::Air;
-
       if (y == noiseHeight)
         blockId = BlockId::Grass;
 
@@ -49,20 +46,14 @@ namespace Game {
       if (y == MinChunkHeight)
         blockId = BlockId::Bedrock;
 
-      if (blockId == BlockId::Air)
-        continue;
-
-      const Block block(glm::vec3(x, y, z), blockId);
-      addBlock(block);
+      addBlock({localPosition, blockId});
     }
-
 
     for (size_t blockCount = 0; blockCount < TotalChunkBlocks; blockCount++) {
       const int x = blockCount % ChunkSize;
       const int y = blockCount / (ChunkSize * ChunkSize) + MinChunkHeight;
       const int z = (blockCount / ChunkSize) % ChunkSize;
-      const auto block = getBlockLocal(glm::ivec3(x, y, z));
-      const auto &position = block.getPosition();
+      const auto &position = glm::ivec3(x, y, z);
 
       if (faceVisible(Up, position))
         addFace(position, Face::Top);
@@ -144,7 +135,7 @@ namespace Game {
     blocks[index] = static_cast<std::uint16_t>(block.getBlockId());
   }
 
-  int Chunk::getNoise(const glm::ivec2 &position) {
+  int Chunk::getNoise(const glm::ivec2 &position) const {
     return heightMap[position.x + position.y * ChunkSize];
   }
 

@@ -1,4 +1,5 @@
 #pragma once
+#include <cmath>
 #include <glad/gl.h>
 #include <string>
 #include <vector>

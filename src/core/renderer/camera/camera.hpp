@@ -1,8 +1,9 @@
 #pragma once
 #include <glm/glm.hpp>
 #include <core/application.hpp>
+#include "../aabb.hpp"
 
-namespace Game {
+namespace Renderer {
   constexpr inline float MouseSensitivity = 0.25f;
 
   class Camera {
@@ -19,6 +20,10 @@ namespace Game {
       const glm::mat4 &getProjectionMatrix() const { return projectionMatrix; }
 
       const glm::mat4 &getViewMatrix() const { return viewMatrix; }
+
+      bool inView(const Core::AABB &boundingBox);
+
+      float getSignedDistanceToPlane(const glm::vec3& position) const;
 
     private:
       glm::mat4 projectionMatrix = glm::mat4(1.0f);

@@ -1,10 +1,9 @@
 #include <memory>
 #include <SDL3/SDL.h>
-#include <core/renderer/renderer.hpp>
-#include <core/window.hpp>
 #include <glm/gtc/constants.hpp>
-#include "application.hpp"
-#include "renderer/render_layer.hpp"
+#include <core/renderer/renderer.hpp>
+#include <core/application/application.hpp>
+#include "window.hpp"
 
 namespace Core {
   Application::Application(const char *name) :
@@ -17,8 +16,8 @@ namespace Core {
     while (running) {
       pollInputs();
 
-      for (const auto &m_layer: layers)
-        m_layer->render();
+      for (const auto &layer: layers)
+        layer->render();
 
       window->updateBuffer();
 

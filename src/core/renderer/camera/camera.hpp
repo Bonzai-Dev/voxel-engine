@@ -1,6 +1,6 @@
 #pragma once
 #include <glm/glm.hpp>
-#include <core/application.hpp>
+#include <core/application/application.hpp>
 #include "../aabb.hpp"
 
 namespace Renderer {
@@ -21,9 +21,9 @@ namespace Renderer {
 
       const glm::mat4 &getViewMatrix() const { return viewMatrix; }
 
-      bool inView(const Core::AABB &boundingBox);
-
-      float getSignedDistanceToPlane(const glm::vec3& position) const;
+      // bool inView(const Core::AABB &boundingBox);
+      //
+      // float getSignedDistanceToPlane(const glm::vec3& position) const;
 
     private:
       glm::mat4 projectionMatrix = glm::mat4(1.0f);

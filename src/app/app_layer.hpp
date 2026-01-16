@@ -1,8 +1,8 @@
 #pragma once
-#include <core/application.hpp>
-#include <../core/renderer/render_layer.hpp>
-#include "../core/renderer/camera/camera.hpp"
-#include "game/terrain/terrain.hpp"
+#include <core/application/application.hpp>
+#include <core/application/render_layer.hpp>
+#include <core/renderer/camera/camera.hpp>
+#include "./game/terrain/terrain.hpp"
 
 class AppLayer : public Core::RenderLayer {
   public:
@@ -12,5 +12,5 @@ class AppLayer : public Core::RenderLayer {
 
   private:
     Game::Terrain terrain;
-    Game::Camera camera;
+    Renderer::Camera camera;
 };

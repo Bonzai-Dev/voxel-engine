@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Renderer {
+namespace Core {
   class Application;
 
   class RenderLayer {

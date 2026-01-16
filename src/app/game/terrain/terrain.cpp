@@ -5,7 +5,7 @@
 #include <thread>
 
 namespace Game {
-  Terrain::Terrain(const Camera &camera): camera(camera) {
+  Terrain::Terrain(const Renderer::Camera &camera): camera(camera) {
     Logger::logInfo(Logger::Context::Game, "Generating terrain with a seed of %d.", seed);
 
     shader.use();
@@ -52,7 +52,7 @@ namespace Game {
 
   int Terrain::generateSeed() {
     srand(time(nullptr));
-    static constexpr long seedRange = static_cast<long>(10e10);
+    static constexpr long seedRange = static_cast<long>(10e8);
     return rand() % (2 * seedRange + 1) - seedRange;
   }
 

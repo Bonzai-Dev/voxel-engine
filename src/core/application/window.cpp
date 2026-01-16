@@ -3,12 +3,11 @@
 #include <string_view>
 #include <SDL3/SDL.h>
 #include "../logger.hpp"
-#include "renderer.hpp"
 #include "window.hpp"
 
 using namespace Logger;
 
-namespace Renderer {
+namespace Core {
   Window::Window(const std::string_view windowName, bool mouseLocked) {
     static bool sdlInitialized = false;
     if (!sdlInitialized) {

@@ -1,4 +1,3 @@
-#include <iostream>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "camera.hpp"
@@ -6,7 +5,7 @@
 using namespace Core;
 
 namespace Renderer {
-  Camera::Camera(const Application &application, const glm::vec3 &cameraPosition, float nearPlane, float farPlane, float fov) :
+  Camera::Camera(const Core::Application &application, const glm::vec3 &cameraPosition, float nearPlane, float farPlane, float fov) :
     position(cameraPosition), nearPlane(nearPlane), farPlane(farPlane), fov(fov), application(application) {
     updateProjection(nearPlane, farPlane, fov);
   }
@@ -48,13 +47,13 @@ namespace Renderer {
     );
   }
 
-  bool Camera::inView(const Core::AABB &boundingBox) {
-
-  }
-
-  float Camera::getSignedDistanceToPlane(const glm::vec3 &position) const {
-    return glm::dot(normal, position) - distance;
-  }
+  // bool Camera::inView(const Core::AABB &boundingBox) {
+  //
+  // }
+  //
+  // float Camera::getSignedDistanceToPlane(const glm::vec3 &position) const {
+  //   return glm::dot(normal, position) - distance;
+  // }
 
   void Camera::updateProjection(float near, float far, float fieldOfView) {
     nearPlane = near;

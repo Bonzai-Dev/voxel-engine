@@ -19,7 +19,7 @@ namespace Game {
 
   class Terrain {
     public:
-      Terrain(const Camera &camera);
+      Terrain(const Renderer::Camera &camera);
 
       const int &getSeed() const { return seed; }
 
@@ -40,7 +40,7 @@ namespace Game {
 
       int seed = generateSeed();
       Core::OpenSimplexNoise::Noise noiseGenerator = Core::OpenSimplexNoise::Noise(getSeed());
-      const Camera &camera;
+      const Renderer::Camera &camera;
       Shader::Default shader;
       std::vector<Chunk> chunks;
   };

@@ -5,7 +5,7 @@
 namespace Renderer {
   class FrustumPlane {
     public:
-      FrustumPlane();
+      FrustumPlane(const glm::vec3 &normal, float distance);
 
     private:
       glm::vec3 normal;

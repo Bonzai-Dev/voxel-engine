@@ -2,7 +2,7 @@
 #include <string_view>
 #include <SDL3/SDL.h>
 
-namespace Renderer {
+namespace Core {
   class Window {
     public:
       Window(std::string_view windowName, bool mouseLocked = true);

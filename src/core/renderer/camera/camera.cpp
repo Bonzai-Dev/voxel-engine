@@ -5,9 +5,12 @@
 using namespace Core;
 
 namespace Renderer {
-  Camera::Camera(const Core::Application &application, const glm::vec3 &cameraPosition, float nearPlane, float farPlane, float fov) :
-    position(cameraPosition), nearPlane(nearPlane), farPlane(farPlane), fov(fov), application(application) {
-    updateProjection(nearPlane, farPlane, fov);
+  Camera::Camera(const Application &application, const glm::vec3 &cameraPosition, float fov, float near, float far) :
+  position(cameraPosition),
+  aspectRatio(application.getWindow()->getWidth() / application.getWindow()->getHeight()),
+  frustum(projectionMatrix),
+  fov(fov), application(application) {
+    updateProjection(near, far, fov);
   }
 
   void Camera::update() {
@@ -47,21 +50,18 @@ namespace Renderer {
     );
   }
 
-  // bool Camera::inView(const Core::AABB &boundingBox) {
-  //
-  // }
-  //
-  // float Camera::getSignedDistanceToPlane(const glm::vec3 &position) const {
-  //   return glm::dot(normal, position) - distance;
-  // }
+  const bool inView(const AABB &boundingBox) {
 
-  void Camera::updateProjection(float near, float far, float fieldOfView) {
-    nearPlane = near;
-    farPlane = far;
-    fov = fieldOfView;
+  }
+
+  void Camera::updateProjection(float near, float far, float fov) {
+    this->fov = fov;
+    nearDistance = near;
+    farDistance = far;
+    frustum.update(projectionMatrix);
     const auto windowWidth = static_cast<float>(application.getWindow()->getWidth());
     const auto windowHeight = static_cast<float>(application.getWindow()->getHeight());
     const float aspectRatio = windowWidth / windowHeight;
-    projectionMatrix = glm::perspective(glm::radians(fov), aspectRatio, nearPlane, farPlane);
+    projectionMatrix = glm::perspective(glm::radians(fov), aspectRatio, nearDistance, farDistance);
   }
 }

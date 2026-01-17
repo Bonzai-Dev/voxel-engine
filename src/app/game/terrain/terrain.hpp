@@ -8,7 +8,7 @@
 
 namespace Game {
   // How many chunks to render in front of the camera
-  inline constexpr int RenderDistance = 10;
+  inline constexpr int RenderDistance = 2;
 
   inline constexpr auto Up = glm::ivec3(0, 1, 0);
   inline constexpr auto Down = glm::ivec3(0, -1, 0);

@@ -1,23 +1,33 @@
 #pragma once
-
-#include <glm/vec3.hpp>
+#include "frustum_plane.hpp"
 
 namespace Renderer {
-  class FrustumPlane {
+  class Camera;
+
+  class Frustum {
     public:
-      FrustumPlane(const glm::vec3 &normal, float distance);
+      Frustum(const glm::mat4 &projectionMatrix);
+
+      const FrustumPlane &getLeftPlane() const { return left; }
+
+      const FrustumPlane &getRightPlane() const { return right; }
+
+      const FrustumPlane &getTopPlane() const { return top; }
+
+      const FrustumPlane &getBottomPlane() const { return bottom; }
+
+      const FrustumPlane &getNearPlane() const { return near; }
+
+      const FrustumPlane &getFarPlane() const { return far; }
+
+      void update(const glm::mat4 &projectionMatrix);
 
     private:
-      glm::vec3 normal;
-
-  };
-
-  struct Frustum {
-    FrustumPlane top;
-    FrustumPlane bottom;
-    FrustumPlane left;
-    FrustumPlane right;
-    FrustumPlane far;
-    FrustumPlane near;
+      FrustumPlane left;
+      FrustumPlane right;
+      FrustumPlane top;
+      FrustumPlane bottom;
+      FrustumPlane near;
+      FrustumPlane far;
   };
 }

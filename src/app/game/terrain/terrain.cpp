@@ -1,8 +1,7 @@
+#include <thread>
 #include <iostream>
 #include <core/logger.hpp>
 #include "terrain.hpp"
-
-#include <thread>
 
 namespace Game {
   Terrain::Terrain(const Renderer::Camera &camera): camera(camera) {
@@ -11,48 +10,46 @@ namespace Game {
     shader.use();
     shader.updateTexture(Renderer::loadPng("./res/images/blocks.png"));
 
-    static int culled = 0;
-    // const glm::ivec2 cameraPosition = glm::ivec2(camera.getPosition().x, camera.getPosition().z);
-    const glm::ivec2 cameraPosition = glm::ivec2(0, 0);
-    std::cout << "Camera Position: " <<   cameraPosition.x << ", " << cameraPosition.y << std::endl;
+    auto terrainBuilder = std::thread(&Terrain::loadChunks, this);
+    terrainBuilder.join();
 
-    for (int x = -RenderDistance / 2; x < RenderDistance / 2; x++) {
-      for (int z = -RenderDistance / 2; z < RenderDistance / 2; z++) {
-        const auto boundingBox = Renderer::AABB(
-          glm::vec3(x * ChunkSize, MinChunkHeight, z * ChunkSize),
-          glm::vec3(x * ChunkSize + ChunkSize, MaxChunkHeight, z * ChunkSize + ChunkSize)
-        );
-
-        if (!camera.inView(boundingBox)) {
-          culled++;
-          // continue;
-        }
-
-        const glm::ivec2 position = glm::ivec2(x, z) * ChunkSize;
-        const auto chunk = Chunk(position, generateHeightMap(glm::ivec2(x, z)));
-        std::cout << "Key: " << getChunkIndex(position) << std::endl;
-        std::cout << "Chunk Position: " << x << ", " << z << std::endl;
-        // const auto key = getChunkIndex(glm::ivec2(x, z));
-        chunks.emplace(getChunkIndex(glm::ivec2(x, z)), chunk);
-      }
+    for (auto &chunk : chunks) {
+      chunk.loadMesh();
     }
 
     Logger::logInfo(Logger::Context::Game, "Terrain generated successfully.");
-    // Logger::logInfo(Logger::Context::Game, "Culled %d chunks.", culled);
   }
 
   void Terrain::render() {
     shader.use();
     shader.updateProjectionMatrix(camera.getProjectionMatrix());
     shader.updateViewMatrix(camera.getViewMatrix());
-    for (auto const &[index, chunk] : chunks) {
+
+    for (size_t index = 0; index < chunks.size(); index++){
+      const auto &chunk = chunks[index];
       shader.updateModelMatrix(chunk.getModelMatrix());
       chunk.render();
     }
   }
 
-  const Chunk &Terrain::getChunk(const glm::ivec2 &position) {
+  // const Chunk &Terrain::getChunk(const glm::ivec2 &position) {
+  // }
 
+  void Terrain::loadChunks() {
+    const glm::ivec2 cameraPosition = glm::ivec2(camera.getPosition().x, camera.getPosition().z) / ChunkSize;
+    // const glm::ivec2 cameraPosition = glm::ivec2(0, 0);
+    std::cout << "Camera Position: " <<   cameraPosition.x << ", " << cameraPosition.y << std::endl;
+
+    std::cout << "StartX: " << cameraPosition.x - RenderDistance / 2 << " EndX: " << cameraPosition.x + RenderDistance / 2 << std::endl;
+    std::cout << "StartZ: " << cameraPosition.y - RenderDistance / 2 << " EndZ: " << cameraPosition.y + RenderDistance / 2 << std::endl;
+
+    for (int x = cameraPosition.x - RenderDistance / 2; x < cameraPosition.y + RenderDistance / 2; x++) {
+      for (int z = cameraPosition.y - RenderDistance / 2; z < cameraPosition.y + RenderDistance / 2; z++) {
+        const glm::ivec2 position = glm::ivec2(x, z);
+        const auto chunk = Chunk(position * ChunkSize, generateHeightMap(position));
+        chunks.push_back(chunk);
+      }
+    }
   }
 
   std::vector<int> Terrain::generateHeightMap(const glm::ivec2 &position) const {

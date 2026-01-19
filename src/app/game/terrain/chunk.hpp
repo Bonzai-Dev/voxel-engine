@@ -22,6 +22,8 @@ namespace Game {
 
       const glm::ivec2 &getPosition() const { return position; }
 
+      void loadMesh();
+
     private:
       unsigned int vertexArrayObject;
       unsigned int vertexBufferObject;

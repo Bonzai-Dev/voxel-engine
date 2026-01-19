@@ -11,7 +11,7 @@ namespace Renderer {
     public:
       explicit Camera(
         const Core::Application &application, const glm::vec3 &cameraPosition = glm::vec3(0.0f),
-        float fov = 75, float near = 0.1f, float far = 1000
+        float fov = 75, float near = 0.1f, float far = 10000000
       );
 
       void updateProjection(float near, float far, float fov);

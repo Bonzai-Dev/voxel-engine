@@ -1,4 +1,5 @@
 #pragma once
+#include <array>
 #include <glm/glm.hpp>
 #include <core/renderer/aabb.hpp>
 

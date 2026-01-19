@@ -13,19 +13,20 @@ namespace Game {
   Chunk::Chunk(const glm::ivec2 &position, const std::vector<int> &heightMap):
   position(position), heightMap(heightMap) {
     modelMatrix = glm::translate(modelMatrix, glm::vec3(this->position.x, 0, this->position.y));
-    auto meshBuilder = std::thread(&Chunk::buildMesh, this);
-    meshBuilder.join();
+    buildMesh();
+  }
 
+  void Chunk::render() const {
+    Renderer::drawTriangles(vertexArrayObject, vertexBufferObject, elementBufferObject, indices.size());
+  }
+
+  void Chunk::loadMesh() {
     vertexArrayObject = Renderer::createVertexArrayObject();
     vertexBufferObject = Renderer::createVertexBufferObject(vertexData.data(), sizeof(float) * vertexData.size());
     elementBufferObject = Renderer::createElementBufferObject(indices.data(), sizeof(unsigned int) * indices.size());
 
     Renderer::setVertexData<std::float_t>(0, 3, 5, false, 0, vertexBufferObject);
     Renderer::setVertexData<std::float_t>(1, 2, 5, false, 3, vertexBufferObject);
-  }
-
-  void Chunk::render() const {
-    Renderer::drawTriangles(vertexArrayObject, vertexBufferObject, elementBufferObject, indices.size());
   }
 
   void Chunk::buildMesh() {

@@ -1,4 +1,5 @@
 #pragma once
+#include <thread>
 #include <glm/vec3.hpp>
 #include <core/open_simplex2s.hpp>
 #include <glm/vec2.hpp>
@@ -8,7 +9,7 @@
 
 namespace Game {
   // How many chunks to render in front of the camera
-  inline constexpr int RenderDistance = 2;
+  inline constexpr int RenderDistance = 10;
 
   inline constexpr auto Up = glm::ivec3(0, 1, 0);
   inline constexpr auto Down = glm::ivec3(0, -1, 0);
@@ -26,13 +27,15 @@ namespace Game {
       void render();
 
     private:
+      void loadChunks();
+
       int noise2d(const glm::ivec2 &position, const glm::vec2 &scale, float amplitude) const;
 
       std::vector<int> generateHeightMap(const glm::ivec2 &position) const;
 
       static int generateSeed();
 
-      const Chunk &getChunk(const glm::ivec2 &position);
+      // const Chunk &getChunk(const glm::ivec2 &position);
 
       static size_t getChunkIndex(const glm::ivec2 &position);
 
@@ -42,6 +45,6 @@ namespace Game {
       Core::OpenSimplexNoise::Noise noiseGenerator = Core::OpenSimplexNoise::Noise(getSeed());
       const Renderer::Camera &camera;
       Shader::Default shader;
-      std::unordered_map<int, Chunk> chunks;
+      std::vector<Chunk> chunks;
   };
 }

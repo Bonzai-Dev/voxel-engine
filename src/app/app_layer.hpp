@@ -10,6 +10,6 @@ class AppLayer : public Core::RenderLayer {
     void render() override;
 
   private:
-    Game::Terrain terrain;
     Renderer::Camera camera;
+    Game::Terrain terrain;
 };

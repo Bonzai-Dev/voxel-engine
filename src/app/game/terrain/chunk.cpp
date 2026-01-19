@@ -11,7 +11,7 @@ using namespace Game::Blocks;
 
 namespace Game {
   Chunk::Chunk(const glm::ivec2 &position, const std::vector<int> &heightMap):
-  position(position * ChunkSize), heightMap(heightMap) {
+  position(position), heightMap(heightMap) {
     modelMatrix = glm::translate(modelMatrix, glm::vec3(this->position.x, 0, this->position.y));
     auto meshBuilder = std::thread(&Chunk::buildMesh, this);
     meshBuilder.join();

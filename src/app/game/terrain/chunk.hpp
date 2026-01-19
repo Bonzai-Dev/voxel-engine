@@ -20,6 +20,8 @@ namespace Game {
 
       const glm::mat4 &getModelMatrix() const { return modelMatrix; }
 
+      const glm::ivec2 &getPosition() const { return position; }
+
     private:
       unsigned int vertexArrayObject;
       unsigned int vertexBufferObject;

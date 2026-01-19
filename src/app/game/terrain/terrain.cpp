@@ -12,7 +12,10 @@ namespace Game {
     shader.updateTexture(Renderer::loadPng("./res/images/blocks.png"));
 
     static int culled = 0;
-    static int howmany = 0;
+    // const glm::ivec2 cameraPosition = glm::ivec2(camera.getPosition().x, camera.getPosition().z);
+    const glm::ivec2 cameraPosition = glm::ivec2(0, 0);
+    std::cout << "Camera Position: " <<   cameraPosition.x << ", " << cameraPosition.y << std::endl;
+
     for (int x = -RenderDistance / 2; x < RenderDistance / 2; x++) {
       for (int z = -RenderDistance / 2; z < RenderDistance / 2; z++) {
         const auto boundingBox = Renderer::AABB(
@@ -22,30 +25,34 @@ namespace Game {
 
         if (!camera.inView(boundingBox)) {
           culled++;
-          continue;
+          // continue;
         }
 
-        const auto chunk = Chunk(glm::ivec2(x, z), generateHeightMap(glm::ivec2(x, z)));
-        chunks.emplace_back(chunk);
+        const glm::ivec2 position = glm::ivec2(x, z) * ChunkSize;
+        const auto chunk = Chunk(position, generateHeightMap(glm::ivec2(x, z)));
+        std::cout << "Key: " << getChunkIndex(position) << std::endl;
+        std::cout << "Chunk Position: " << x << ", " << z << std::endl;
+        // const auto key = getChunkIndex(glm::ivec2(x, z));
+        chunks.emplace(getChunkIndex(glm::ivec2(x, z)), chunk);
       }
     }
 
     Logger::logInfo(Logger::Context::Game, "Terrain generated successfully.");
-    Logger::logInfo(Logger::Context::Game, "Culled %d chunks.", culled);
+    // Logger::logInfo(Logger::Context::Game, "Culled %d chunks.", culled);
   }
 
-  void Terrain::render() const {
+  void Terrain::render() {
     shader.use();
     shader.updateProjectionMatrix(camera.getProjectionMatrix());
     shader.updateViewMatrix(camera.getViewMatrix());
-    for (const auto & chunk : chunks) {
+    for (auto const &[index, chunk] : chunks) {
       shader.updateModelMatrix(chunk.getModelMatrix());
       chunk.render();
     }
   }
 
   const Chunk &Terrain::getChunk(const glm::ivec2 &position) {
-    return chunks[getChunkIndex(position)];
+
   }
 
   std::vector<int> Terrain::generateHeightMap(const glm::ivec2 &position) const {
@@ -60,7 +67,8 @@ namespace Game {
   }
 
   size_t Terrain::getChunkIndex(const glm::ivec2 &position) {
-    return (position.x / ChunkSize + position.y / ChunkSize) * ChunkSize;
+    const glm::ivec2 indexPosition = (position + ChunkSize * (RenderDistance / 2)) / ChunkSize;
+    return indexPosition.x + indexPosition.y * ChunkSize;
   }
 
   int Terrain::generateSeed() {

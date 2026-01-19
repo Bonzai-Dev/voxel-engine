@@ -9,7 +9,7 @@ namespace Renderer {
   position(cameraPosition),
   aspectRatio(application.getWindow()->getWidth() / application.getWindow()->getHeight()),
   frustum(projectionMatrix, viewMatrix),
-  fov(fov), application(application) {
+  fov(fov), application(application), farDistance(far), nearDistance(near) {
     updateProjection(near, far, fov);
   }
 

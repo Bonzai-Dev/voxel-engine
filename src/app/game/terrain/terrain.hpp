@@ -2,8 +2,8 @@
 #include <glm/vec3.hpp>
 #include <core/open_simplex2s.hpp>
 #include <glm/vec2.hpp>
-#include "../../../core/renderer/camera/camera.hpp"
-#include "../shaders/default.hpp"
+#include <core/renderer/camera/camera.hpp>
+#include <app/game/shaders/default.hpp>
 #include "chunk.hpp"
 
 namespace Game {
@@ -23,7 +23,7 @@ namespace Game {
 
       const int &getSeed() const { return seed; }
 
-      void render() const;
+      void render();
 
     private:
       int noise2d(const glm::ivec2 &position, const glm::vec2 &scale, float amplitude) const;
@@ -36,12 +36,12 @@ namespace Game {
 
       static size_t getChunkIndex(const glm::ivec2 &position);
 
-      const Blocks::Block &getBlock(const glm::ivec3 &position);
+      // const Blocks::Block &getBlock(const glm::ivec3 &position);
 
       int seed = generateSeed();
       Core::OpenSimplexNoise::Noise noiseGenerator = Core::OpenSimplexNoise::Noise(getSeed());
       const Renderer::Camera &camera;
       Shader::Default shader;
-      std::vector<Chunk> chunks;
+      std::unordered_map<int, Chunk> chunks;
   };
 }

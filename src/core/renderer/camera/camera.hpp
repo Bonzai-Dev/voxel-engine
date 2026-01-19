@@ -39,12 +39,12 @@ namespace Renderer {
       glm::vec3 rotation = glm::vec3(0, 90, 0);
       glm::vec3 position;
 
-      glm::vec3 forward;
-      glm::vec3 right;
-      glm::vec3 up;
+      glm::vec3 forward{};
+      glm::vec3 right{};
+      glm::vec3 up{};
 
-      float nearDistance;
-      float farDistance;
+      float nearDistance{};
+      float farDistance{};
 
       float aspectRatio;
       float fov;

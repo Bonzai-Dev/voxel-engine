@@ -1,33 +1,31 @@
 #pragma once
-#include "frustum_plane.hpp"
+#include <glm/glm.hpp>
+#include <core/renderer/aabb.hpp>
+#include <iostream>
 
 namespace Renderer {
-  class Camera;
+  struct FrustumPlane {
+    glm::vec4 transformation;
+
+    float getDistanceToPoint(const glm::vec3 &point) const {
+      float distance = transformation.x * point.x + transformation.y * point.y + transformation.z * point.z + transformation.w;
+      std::cout << "normal : " << transformation.x << ", " << transformation.y << ", " << transformation.z << ", " << transformation.w << std::endl;
+      // std::cout << "distance: " << glm::dot(transformation, glm::vec4(point, 1.0f)) << std::endl;
+      return glm::dot(glm::vec3(transformation), point) + transformation.w;
+      // std::cout << "distance: " << distance << std::endl;
+      // return distance;
+    }
+  };
 
   class Frustum {
     public:
-      Frustum(const glm::mat4 &projectionMatrix);
+      Frustum(const glm::mat4 &projectionMatrix, const glm::mat4 &viewMatrix);
 
-      const FrustumPlane &getLeftPlane() const { return left; }
+      void update(const glm::mat4 &projectionMatrix, const glm::mat4 &viewMatrix);
 
-      const FrustumPlane &getRightPlane() const { return right; }
-
-      const FrustumPlane &getTopPlane() const { return top; }
-
-      const FrustumPlane &getBottomPlane() const { return bottom; }
-
-      const FrustumPlane &getNearPlane() const { return near; }
-
-      const FrustumPlane &getFarPlane() const { return far; }
-
-      void update(const glm::mat4 &projectionMatrix);
+      bool boundingBoxInView(const AABB &boundingBox) const;
 
     private:
-      FrustumPlane left;
-      FrustumPlane right;
-      FrustumPlane top;
-      FrustumPlane bottom;
-      FrustumPlane near;
-      FrustumPlane far;
+      std::array<FrustumPlane, 6> planes {};
   };
 }

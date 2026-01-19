@@ -30,7 +30,7 @@ namespace Renderer {
 
       const glm::vec3 &getPosition() const { return position; }
 
-      const bool inView(const AABB &boundingBox);
+      const bool inView(const AABB &boundingBox) const { return frustum.boundingBoxInView(boundingBox); }
 
     private:
       glm::mat4 projectionMatrix = glm::mat4(1.0f);

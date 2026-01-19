@@ -1,41 +1,53 @@
+#include <glm/glm.hpp>
 #include <glm/gtc/matrix_access.hpp>
 #include "frustum.hpp"
 #include "camera.hpp"
 
 namespace Renderer {
-  Frustum::Frustum(const glm::mat4 &projectionMartix) {
-    update(projectionMartix);
+  Frustum::Frustum(const glm::mat4 &projectionMatrix, const glm::mat4 &viewMatrix) {
+    update(projectionMatrix, viewMatrix);
   }
 
-  void Frustum::update(const glm::mat4 &projectionMatrix) {
-    const auto &row0 = glm::row(projectionMatrix, 0);
-    const auto &row1 = glm::row(projectionMatrix, 1);
-    const auto &row2 = glm::row(projectionMatrix, 2);
-    const auto &row3 = glm::row(projectionMatrix, 3);
+  bool Frustum::boundingBoxInView(const AABB &boundingBox) const {
+    for (auto &plane : planes) {
+      const auto &minimum = boundingBox.getMinimum();
+      const auto &maximum = boundingBox.getMaximum();
 
-    const glm::vec4 leftPlane = glm::normalize(row0 + row3);
-    const glm::vec4 rightPlane = glm::normalize(row0 - row3);
-    const glm::vec4 bottomPlane = glm::normalize(row1 + row3);
-    const glm::vec4 topPlane = glm::normalize(row1 - row3);
-    const glm::vec4 nearPlane = glm::normalize(row2 + row3);
-    const glm::vec4 farPlane = glm::normalize(row2 - row3);
+      const bool outside = plane.getDistanceToPoint(glm::vec3(minimum.x, minimum.y, minimum.z)) > 0 &&
+             plane.getDistanceToPoint(glm::vec3(maximum.x, minimum.y, minimum.z)) > 0 &&
+             plane.getDistanceToPoint(glm::vec3(minimum.x, maximum.y, minimum.z)) > 0 &&
+             plane.getDistanceToPoint(glm::vec3(maximum.x, maximum.y, minimum.z)) > 0 &&
+             plane.getDistanceToPoint(glm::vec3(minimum.x, minimum.y, maximum.z)) > 0 &&
+             plane.getDistanceToPoint(glm::vec3(maximum.x, minimum.y, maximum.z)) > 0 &&
+             plane.getDistanceToPoint(glm::vec3(minimum.x, maximum.y, maximum.z)) > 0 &&
+             plane.getDistanceToPoint(glm::vec3(maximum.x, maximum.y, maximum.z)) > 0;
 
-    left.normal = glm::vec3(leftPlane);
-    left.distance = leftPlane.w;
+      if (outside)
+        return false;
+    }
 
-    right.normal = glm::vec3(rightPlane);
-    right.distance = rightPlane.w;
+    return true;
+  }
 
-    bottom.normal = glm::vec3(bottomPlane);
-    bottom.distance = bottomPlane.w;
+  void Frustum::update(const glm::mat4 &projectionMatrix, const glm::mat4 &viewMatrix) {
+    const auto matrix = projectionMatrix * viewMatrix;
+    const glm::vec4 &row0 = glm::row(matrix, 0);
+    const glm::vec4 &row1 = glm::row(matrix, 1);
+    const glm::vec4 &row2 = glm::row(matrix, 2);
+    const glm::vec4 &row3 = glm::row(matrix, 3);
 
-    top.normal = glm::vec3(topPlane);
-    top.distance = topPlane.w;
+    auto &leftPlane = planes[0];
+    auto &rightPlane = planes[1];
+    auto &bottomPlane = planes[2];
+    auto &topPlane = planes[3];
+    auto &nearPlane = planes[4];
+    auto &farPlane = planes[5];
 
-    near.normal = glm::vec3(nearPlane);
-    near.distance = nearPlane.w;
-
-    far.normal = glm::vec3(farPlane);
-    far.distance = farPlane.w;
+    leftPlane.transformation = glm::normalize(row0 + row3);
+    rightPlane.transformation = glm::normalize(row0 - row3);
+    bottomPlane.transformation = glm::normalize(row1 + row3);
+    topPlane.transformation = glm::normalize(row1 - row3);
+    nearPlane.transformation = glm::normalize(row2 + row3);
+    farPlane.transformation = glm::normalize(row2 - row3);
   }
 }

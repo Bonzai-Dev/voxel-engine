@@ -11,14 +11,27 @@ namespace Game {
     shader.use();
     shader.updateTexture(Renderer::loadPng("./res/images/blocks.png"));
 
-    for (int x = -RenderDistance / 2; x <= RenderDistance / 2; x++) {
-      for (int z = -RenderDistance / 2; z <= RenderDistance / 2; z++) {
+    static int culled = 0;
+    static int howmany = 0;
+    for (int x = -RenderDistance / 2; x < RenderDistance / 2; x++) {
+      for (int z = -RenderDistance / 2; z < RenderDistance / 2; z++) {
+        const auto boundingBox = Renderer::AABB(
+          glm::vec3(x * ChunkSize, MinChunkHeight, z * ChunkSize),
+          glm::vec3(x * ChunkSize + ChunkSize, MaxChunkHeight, z * ChunkSize + ChunkSize)
+        );
+
+        if (!camera.inView(boundingBox)) {
+          culled++;
+          continue;
+        }
+
         const auto chunk = Chunk(glm::ivec2(x, z), generateHeightMap(glm::ivec2(x, z)));
         chunks.emplace_back(chunk);
       }
     }
 
     Logger::logInfo(Logger::Context::Game, "Terrain generated successfully.");
+    Logger::logInfo(Logger::Context::Game, "Culled %d chunks.", culled);
   }
 
   void Terrain::render() const {

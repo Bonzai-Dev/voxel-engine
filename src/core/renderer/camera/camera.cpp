@@ -8,7 +8,7 @@ namespace Renderer {
   Camera::Camera(const Application &application, const glm::vec3 &cameraPosition, float fov, float near, float far) :
   position(cameraPosition),
   aspectRatio(application.getWindow()->getWidth() / application.getWindow()->getHeight()),
-  frustum(projectionMatrix),
+  frustum(projectionMatrix, viewMatrix),
   fov(fov), application(application) {
     updateProjection(near, far, fov);
   }
@@ -50,15 +50,11 @@ namespace Renderer {
     );
   }
 
-  const bool inView(const AABB &boundingBox) {
-
-  }
-
   void Camera::updateProjection(float near, float far, float fov) {
     this->fov = fov;
     nearDistance = near;
     farDistance = far;
-    frustum.update(projectionMatrix);
+    frustum.update(projectionMatrix, viewMatrix);
     const auto windowWidth = static_cast<float>(application.getWindow()->getWidth());
     const auto windowHeight = static_cast<float>(application.getWindow()->getHeight());
     const float aspectRatio = windowWidth / windowHeight;

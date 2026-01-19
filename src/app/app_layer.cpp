@@ -5,7 +5,7 @@
 #include "app_layer.hpp"
 
 AppLayer::AppLayer(const Core::Application &application) :
-  RenderLayer(application), terrain(camera), camera(application, glm::vec3(0.0f, 20.0f, 0.0f)) {
+  RenderLayer(application), terrain(camera), camera(application, glm::vec3(0.0f, 10.0f, 0.0f)) {
 }
 
 void AppLayer::render() {

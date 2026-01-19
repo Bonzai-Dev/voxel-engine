@@ -6,12 +6,12 @@ namespace Renderer {
     public:
       AABB(const glm::vec3 &minimum, const glm::vec3 &maximum);
 
-      const glm::vec3 &getCenter() const { return center; }
+      const glm::vec3 &getMaximum() const { return maximum; }
 
-      const glm::vec3 &getExtents() const { return extents; }
+      const glm::vec3 &getMinimum() const { return minimum; }
 
     private:
-      glm::vec3 center;
-      glm::vec3 extents;
+      glm::vec3 maximum;
+      glm::vec3 minimum;
   };
 }

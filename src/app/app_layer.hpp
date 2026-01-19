@@ -1,5 +1,4 @@
 #pragma once
-#include <core/application/application.hpp>
 #include <core/application/render_layer.hpp>
 #include <core/renderer/camera/camera.hpp>
 #include "./game/terrain/terrain.hpp"

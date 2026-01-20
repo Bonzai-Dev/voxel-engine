@@ -5,12 +5,12 @@
 #include "app_layer.hpp"
 
 AppLayer::AppLayer(const Core::Application &application) :
-RenderLayer(application), camera(application, glm::vec3(0, 10.0f, 0)), terrain(camera) {
+RenderLayer(application), camera(application, glm::vec3(0, 100.0f, 0)), terrain(camera) {
 }
 
 void AppLayer::render() {
   camera.update();
 
-  Renderer::clearBuffer(Util::Graphics::normalizeColor(glm::vec4(1, 0, 0, 1)));
+  Renderer::clearBuffer(Util::Graphics::normalizeColor(glm::vec4(87, 178, 255, 1)));
   terrain.render();
 }

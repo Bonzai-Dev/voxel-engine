@@ -46,6 +46,8 @@ namespace Game {
 
       int noise2d(const glm::ivec2 &position, const glm::vec2 &scale, float amplitude) const;
 
+      int terrainNoise(const glm::ivec2 &position);
+
       std::vector<int> generateHeightMap(const glm::ivec2 &position);
 
       static int generateSeed();

@@ -9,9 +9,12 @@ namespace Game {
 
     shader.use();
     shader.updateTexture(Renderer::loadPng("./res/images/blocks.png"));
+
+    const int halfRenderDistance = (RenderDistance / 2) * ChunkSize;
+    const glm::ivec3 &cameraPosition = camera.getPosition();
     for (size_t chunkIndex = 0; chunkIndex < RenderDistance * RenderDistance; chunkIndex++) {
-      const int x = (chunkIndex % RenderDistance) * ChunkSize;
-      const int z = ((chunkIndex / RenderDistance) % RenderDistance) * ChunkSize;
+      const int x = cameraPosition.x + (chunkIndex % RenderDistance) * ChunkSize - halfRenderDistance;
+      const int z = cameraPosition.z + ((chunkIndex / RenderDistance) % RenderDistance) * ChunkSize - halfRenderDistance;
       const glm::ivec2 position = glm::ivec2(x, z);
 
       std::thread builder([this, position](){ this->loadChunk(position); });
@@ -36,6 +39,8 @@ namespace Game {
       if (thread.joinable())
         thread.join();
     }
+
+    std::cout << chunkBuilder.size() << std::endl;
   }
 
   void Terrain::render() {
@@ -68,7 +73,7 @@ namespace Game {
     for (size_t blockCount = 0; blockCount < ChunkSize * ChunkSize; blockCount++) {
       const int x = blockCount % ChunkSize + (position.x * ChunkSize);
       const int z = (blockCount / ChunkSize) % ChunkSize + (position.y * ChunkSize);
-      const int y = noise2d(glm::ivec2(x, z), glm::vec2(0.01, 0.01), 50);
+      const int y = terrainNoise(glm::ivec2(x, z));
       heightMap.push_back(y);
     }
     return heightMap;
@@ -78,6 +83,19 @@ namespace Game {
     srand(time(nullptr));
     static constexpr long seedRange = static_cast<long>(10e8);
     return rand() % (2 * seedRange + 1) - seedRange;
+  }
+
+  int Terrain::terrainNoise(const glm::ivec2 &position) {
+    int noise = 80;
+    static const int octaves = 6;
+    static const float baseScale = 0.005f;
+    static const float baseAmplitude = 7.0f;
+    for (size_t octave = 0; octave < octaves; octave++) {
+      const float scale = baseScale  * octave;
+      noise += noise2d(position, glm::vec2(scale, scale), baseAmplitude * octave);
+    }
+
+    return noise;
   }
 
   int Terrain::noise2d(const glm::ivec2 &position, const glm::vec2 &scale, float amplitude) const {

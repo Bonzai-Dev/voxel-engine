@@ -31,7 +31,7 @@ namespace Renderer {
 
     glm::vec3 moveDirection = forward * inputDirection.x + right * inputDirection.z;
     moveDirection += glm::vec3(0, inputDirection.y, 0);
-    position += moveDirection * static_cast<float>(application.getDeltaTime()) * 20.0f;
+    position += moveDirection * static_cast<float>(application.getDeltaTime()) * 30.0f;
 
     const glm::vec3 direction(
       cosf(glm::radians(rotation.y)) * cosf(glm::radians(rotation.x)),

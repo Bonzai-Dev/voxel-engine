@@ -11,7 +11,8 @@ add_subdirectory(thirdparty)
 
 # Creating executable
 file(GLOB_RECURSE PROJECT_SOURCES CONFIGURE_DEPENDS "src/*.h" "src/*.c" "src/*.hpp" "src/*.cpp")
-add_executable(${CMAKE_PROJECT_NAME} ${PROJECT_SOURCES})
+add_executable(${CMAKE_PROJECT_NAME} ${PROJECT_SOURCES}
+        src/app/config.h)
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 # Linking

@@ -10,6 +10,7 @@ class AppLayer : public Core::RenderLayer {
     void render() override;
 
   private:
+    Game::Blocks::BlockManager blockManager;
     Renderer::Camera camera;
     Game::Terrain terrain;
 };

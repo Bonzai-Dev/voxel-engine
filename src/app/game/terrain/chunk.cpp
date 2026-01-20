@@ -1,4 +1,3 @@
-#include <thread>
 #include <core/renderer/renderer.hpp>
 #include <core/logger.hpp>
 #include <glm/gtc/matrix_transform.hpp>

@@ -3,6 +3,7 @@
 #include <glm/vec2.hpp>
 #include <core/renderer/renderer.hpp>
 #include "block_data.hpp"
+#include "block_manager.hpp"
 
 namespace Game::Blocks {
   enum class Face {
@@ -12,23 +13,6 @@ namespace Game::Blocks {
     Right,
     Top,
     Bottom
-  };
-
-  struct BlockVertex : Renderer::MeshVertex {
-    glm::vec2 uv;
-  };
-
-  using BlockVertexData = std::vector<BlockVertex>;
-
-  struct BlockMeshData {
-    BlockVertexData vertexData;
-    Renderer::Indices indices;
-  };
-
-  struct BlockData {
-    BlockId blockId;
-    MeshId meshId;
-    std::vector<glm::ivec2> spritesheetTiles;
   };
 
   class Block {
@@ -41,23 +25,11 @@ namespace Game::Blocks {
 
       const MeshId &getMeshId() const { return meshId; }
 
-      const BlockMeshData &getMesh() const { return blockMeshData[blockId]; }
+      const BlockMeshData &getMesh() const { return BlockManager::getBlockMeshData(blockId); }
 
     private:
-      static inline std::unordered_map<BlockId, BlockMeshData> blockMeshData;
-      static inline std::unordered_map<MeshId, Renderer::MeshData> meshData;
-      static inline std::unordered_map<BlockId, BlockData> blockData;
-
       const BlockId blockId;
       MeshId meshId = MeshId::None;
       glm::vec3 position;
-
-      void serializeBlockData() const;
-
-      static void loadMesh(MeshId meshId);
-
-      void loadBlockMesh() const;
-
-      static glm::vec2 generateUv(const glm::ivec2 &spritesheetTile, const glm::vec3 &vertexPosition, Face face);
   };
 }

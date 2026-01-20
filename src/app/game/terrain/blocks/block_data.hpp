@@ -15,7 +15,7 @@ namespace Game::Blocks {
     Default = 1,
   };
 
-  // Filepaths must be specified in order
+  // Filepaths must be specified in order to the id
   constexpr inline std::array MeshDataFilepaths = {
     "./res/data/mesh/default.json"
   };

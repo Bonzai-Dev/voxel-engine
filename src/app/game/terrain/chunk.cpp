@@ -2,15 +2,15 @@
 #include <core/logger.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "blocks/block.hpp"
-#include "terrain.hpp"
+#include "world.hpp"
 #include "chunk.hpp"
 
 using namespace Logger;
 using namespace Game::Blocks;
 
 namespace Game {
-  Chunk::Chunk(const glm::ivec2 &position, const std::vector<int> &heightMap):
-  position(position), heightMap(heightMap) {
+  Chunk::Chunk(const glm::ivec2 &position, const std::vector<int> &heightMap, World &world):
+  position(position), heightMap(heightMap), world(world) {
     modelMatrix = glm::translate(modelMatrix, glm::vec3(this->position.x, 0, this->position.y));
     buildMesh();
   }
@@ -20,6 +20,10 @@ namespace Game {
   }
 
   void Chunk::loadMesh() {
+    if (loadedMesh)
+      return;
+
+    loadedMesh = true;
     vertexArrayObject = Renderer::createVertexArrayObject();
     vertexBufferObject = Renderer::createVertexBufferObject(vertexData.data(), sizeof(float) * vertexData.size());
     elementBufferObject = Renderer::createElementBufferObject(indices.data(), sizeof(unsigned int) * indices.size());
@@ -77,7 +81,7 @@ namespace Game {
       return;
 
     const auto faceIndex = static_cast<unsigned int>(face);
-    const auto &blockVertexData = block.getMesh().vertexData;
+    const auto &blockVertexData = world.getBlockManager().getBlockMeshData(block.getBlockId()).vertexData;
 
     const unsigned int vertexIndexStart = faceIndex * 4;
     for (unsigned int vertexIndex = vertexIndexStart; vertexIndex < vertexIndexStart + 4; vertexIndex++) {

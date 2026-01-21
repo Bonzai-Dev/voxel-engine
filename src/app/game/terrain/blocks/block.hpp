@@ -3,7 +3,6 @@
 #include <glm/vec2.hpp>
 #include <core/renderer/renderer.hpp>
 #include "block_data.hpp"
-#include "block_manager.hpp"
 
 namespace Game::Blocks {
   enum class Face {
@@ -15,6 +14,23 @@ namespace Game::Blocks {
     Bottom
   };
 
+  struct BlockVertex : Renderer::MeshVertex {
+    glm::vec2 uv;
+  };
+
+  using BlockVertexData = std::vector<BlockVertex>;
+
+  struct BlockMeshData {
+    BlockVertexData vertexData;
+    Renderer::Indices indices;
+  };
+
+  struct BlockData {
+    BlockId blockId;
+    MeshId meshId;
+    std::vector<glm::ivec2> spritesheetTiles;
+  };
+
   class Block {
     public:
       Block(const glm::vec3 &position, BlockId blockId);
@@ -23,9 +39,7 @@ namespace Game::Blocks {
 
       const BlockId &getBlockId() const { return blockId; }
 
-      const MeshId &getMeshId() const { return meshId; }
-
-      const BlockMeshData &getMesh() const { return BlockManager::getBlockMeshData(blockId); }
+      MeshId getMeshId() const { return meshId; }
 
     private:
       const BlockId blockId;

@@ -3,6 +3,8 @@
 #include "blocks/block.hpp"
 
 namespace Game {
+  class World;
+
   // Cannot build above MaxChunkHeight and below MinChunkHeight
   inline constexpr int MaxChunkHeight = 320;
   inline constexpr int MinChunkHeight = -64;
@@ -12,7 +14,7 @@ namespace Game {
 
   class Chunk {
     public:
-      Chunk(const glm::ivec2 &position, const std::vector<int> &heightMap);
+      Chunk(const glm::ivec2 &position, const std::vector<int> &heightMap, World &world);
 
       ~Chunk() = default;
 
@@ -22,15 +24,20 @@ namespace Game {
 
       const glm::ivec2 &getPosition() const { return position; }
 
+      bool meshLoaded() const { return loadedMesh; }
+
       void loadMesh();
 
     private:
+      World &world;
+
       unsigned int vertexArrayObject;
       unsigned int vertexBufferObject;
       unsigned int elementBufferObject;
 
       glm::mat4 modelMatrix = glm::mat4(1.0f);
       glm::ivec2 position;
+      bool loadedMesh = false;
 
       const std::vector<int> &heightMap;
       std::vector<float> vertexData;

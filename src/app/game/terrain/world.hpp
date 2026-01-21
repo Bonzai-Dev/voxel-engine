@@ -7,8 +7,11 @@
 #include <core/renderer/camera/camera.hpp>
 #include <app/game/shaders/default.hpp>
 #include "chunk.hpp"
+#include "blocks/block_manager.hpp"
 
 namespace Game {
+  class BlockManager;
+
   // How many chunks to render in front of the camera
   inline constexpr int RenderDistance = 10;
 
@@ -19,34 +22,35 @@ namespace Game {
   inline constexpr auto Left = glm::ivec3(-1, 0, 0);
   inline constexpr auto Right = glm::ivec3(1, 0, 0);
 
-  class Terrain {
+  class World {
     public:
-      Terrain(const Renderer::Camera &camera);
+      World(const Renderer::Camera &camera);
 
-      ~Terrain();
+      ~World();
 
       const int &getSeed() const { return seed; }
 
       void render();
 
+      const Blocks::BlockManager &getBlockManager() const { return blockManager; }
+
     private:
+      Blocks::BlockManager blockManager;
       Core::OpenSimplexNoise::Noise noiseGenerator = Core::OpenSimplexNoise::Noise(getSeed());
       const Renderer::Camera &camera;
       Shader::Default shader;
       std::vector<Chunk> chunks;
       std::vector<std::thread> chunkBuilder;
-      std::mutex chunkMutex;
+      std::mutex chunkBuilderMutex;
 
       // Position is the actual position of chunk, not the index
       void loadChunk(const glm::ivec2 &position);
 
       void loadTerrain();
 
-      void joinThreads();
-
       int noise2d(const glm::ivec2 &position, const glm::vec2 &scale, float amplitude) const;
 
-      int terrainNoise(const glm::ivec2 &position);
+      int terrainNoise(const glm::ivec2 &position) const;
 
       std::vector<int> generateHeightMap(const glm::ivec2 &position);
 

@@ -18,7 +18,7 @@ namespace Game {
 
       ~Chunk() = default;
 
-      void render() const;
+      void render();
 
       const glm::mat4 &getModelMatrix() const { return modelMatrix; }
 
@@ -26,7 +26,7 @@ namespace Game {
 
       bool meshLoaded() const { return loadedMesh; }
 
-      void loadMesh();
+      void destroy() const;
 
     private:
       World &world;
@@ -46,6 +46,8 @@ namespace Game {
       // 3D array flattened to 1D that stores all the chunk's block
       // Stores as 2 byte uint to save memory
       std::vector<std::uint16_t> blocks = std::vector(TotalChunkBlocks, static_cast<std::uint16_t>(Blocks::BlockId::Air));
+
+      void loadMesh();
 
       void buildMesh();
 

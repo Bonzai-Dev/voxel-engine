@@ -55,6 +55,12 @@ namespace Renderer {
 
   void useVertexBufferObject(unsigned int buffer);
 
+  void deleteVertexArrayObject(unsigned int object);
+
+  void deleteVertexBufferObject(unsigned int buffer);
+
+  void deleteElementBufferObject(unsigned int buffer);
+
   void drawTriangles(unsigned int vertexArrayObject, unsigned int vertexBuffer, unsigned int indexBuffer, size_t indicesSize);
 
   template <typename TypeT>

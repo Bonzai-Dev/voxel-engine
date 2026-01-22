@@ -2,7 +2,6 @@
 #include <core/application/render_layer.hpp>
 #include <core/renderer/camera/camera.hpp>
 #include "./game/terrain/world.hpp"
-#include "./game/terrain/blocks/block_manager.hpp"
 
 class AppLayer : public Core::RenderLayer {
   public:
@@ -12,5 +11,5 @@ class AppLayer : public Core::RenderLayer {
 
   private:
     Renderer::Camera camera;
-    Game::World terrain;
+    Game::World world;
 };

@@ -15,8 +15,15 @@ namespace Game {
     buildMesh();
   }
 
-  void Chunk::render() const {
+  void Chunk::render() {
+    loadMesh();
     Renderer::drawTriangles(vertexArrayObject, vertexBufferObject, elementBufferObject, indices.size());
+  }
+
+  void Chunk::destroy() const {
+    Renderer::deleteVertexArrayObject(vertexArrayObject);
+    Renderer::deleteVertexBufferObject(vertexBufferObject);
+    Renderer::deleteElementBufferObject(elementBufferObject);
   }
 
   void Chunk::loadMesh() {

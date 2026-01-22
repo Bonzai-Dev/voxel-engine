@@ -1,6 +1,7 @@
 #pragma once
 #include <thread>
 #include <mutex>
+#include <condition_variable>
 #include <glm/vec3.hpp>
 #include <core/open_simplex2s.hpp>
 #include <glm/vec2.hpp>
@@ -39,12 +40,11 @@ namespace Game {
       Core::OpenSimplexNoise::Noise noiseGenerator = Core::OpenSimplexNoise::Noise(getSeed());
       const Renderer::Camera &camera;
       Shader::Default shader;
-      std::vector<Chunk> chunks;
+      std::unordered_map<int, Chunk> chunks;
       std::vector<std::thread> chunkBuilder;
       std::mutex chunkBuilderMutex;
 
-      // Position is the actual position of chunk, not the index
-      void loadChunk(const glm::ivec2 &position);
+      bool running = true;
 
       void loadTerrain();
 
@@ -57,5 +57,7 @@ namespace Game {
       static int generateSeed();
 
       int seed = generateSeed();
+
+      int getChunkIndex(const glm::ivec2 &position) const;
   };
 }

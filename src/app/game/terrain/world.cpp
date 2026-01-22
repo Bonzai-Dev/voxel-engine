@@ -8,6 +8,11 @@ namespace Game {
     Logger::logInfo(Logger::Context::Game, "Generating terrain with a seed of %d.", seed);
     shader.use();
     shader.updateTexture(Renderer::loadPng("./res/images/blocks.png"));
+
+    for (size_t threadCount = 0; threadCount < 1; threadCount++) {
+      std::thread terrainLoader(&World::loadTerrain, this);
+      chunkBuilder.push_back(std::move(terrainLoader));
+    }
   }
 
   World::~World() {
@@ -22,15 +27,23 @@ namespace Game {
     shader.updateProjectionMatrix(camera.getProjectionMatrix());
     shader.updateViewMatrix(camera.getViewMatrix());
 
-    static constexpr int halfRenderDistance = (RenderDistance / 2) * ChunkSize;
-    const glm::ivec3 &cameraPosition = camera.getPosition();
-    const glm::ivec3 cameraGridPosition = glm::ivec3(
-      (cameraPosition.x / ChunkSize) * ChunkSize,
-      cameraPosition.y,
-      (cameraPosition.z / ChunkSize) * ChunkSize
-    );
+    for (auto &chunk: chunks) {
+      shader.updateModelMatrix(chunk.second.getModelMatrix());
+      chunk.second.render();
+    }
+  }
 
-    if (chunkBuilder.size() < RenderDistance * RenderDistance) {
+  void World::loadTerrain() {
+    while (running) {
+      std::lock_guard lock(chunkBuilderMutex);
+      static constexpr int halfRenderDistance = (RenderDistance / 2) * ChunkSize;
+      const glm::ivec3 &cameraPosition = camera.getPosition();
+      const glm::ivec3 cameraGridPosition = glm::ivec3(
+        (cameraPosition.x / ChunkSize) * ChunkSize,
+        cameraPosition.y,
+        (cameraPosition.z / ChunkSize) * ChunkSize
+      );
+
       for (size_t chunkIndex = 0; chunkIndex < RenderDistance * RenderDistance; chunkIndex++) {
         const int x = cameraGridPosition.x + (chunkIndex % RenderDistance) * ChunkSize - halfRenderDistance;
         const int z = cameraGridPosition.z + ((chunkIndex / RenderDistance) % RenderDistance) * ChunkSize - halfRenderDistance;
@@ -42,28 +55,12 @@ namespace Game {
         // if (!camera.inView(boundingBox))
         //   continue;
 
-        std::thread builder([this, position]() { this->loadChunk(position); });
-        chunkBuilder.push_back(std::move(builder));
+        const int index = getChunkIndex(position);
+        if (!chunks.contains(index))
+          chunks.emplace(index, Chunk(position, generateHeightMap(position / ChunkSize), *this));
       }
+      std::cout << "Grid position: " << cameraGridPosition.x << ", " << cameraGridPosition.z << " | Chunks loaded: " << chunks.size() << "\n";
     }
-
-    std::cout << "Grid position: " << cameraGridPosition.x << ", " << cameraGridPosition.z << " | Chunks loaded: " << chunks.size() << "\n";
-
-    for (auto &chunk: chunks) {
-      shader.updateModelMatrix(chunk.getModelMatrix());
-      chunk.loadMesh();
-      chunk.render();
-    }
-  }
-
-  void World::loadChunk(const glm::ivec2 &position) {
-    std::this_thread::sleep_for(std::chrono::milliseconds(1));
-    std::lock_guard lock(chunkBuilderMutex);
-    chunks.emplace_back(position, generateHeightMap(position / ChunkSize), *this);
-  }
-
-  void World::loadTerrain() {
-
   }
 
   std::vector<int> World::generateHeightMap(const glm::ivec2 &position) {
@@ -100,5 +97,9 @@ namespace Game {
     const auto x = static_cast<double>(position.x);
     const auto y = static_cast<double>(position.y);
     return static_cast<int>(floor(noiseGenerator.eval(x * scale.x, y * scale.y) * amplitude));
+  }
+
+  int World::getChunkIndex(const glm::ivec2 &position) const {
+    return (position.x ^ 0x1f) + (position.y << ChunkSize);
   }
 }

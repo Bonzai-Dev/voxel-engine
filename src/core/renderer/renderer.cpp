@@ -67,6 +67,18 @@ namespace Renderer {
     glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(indicesSize), GL_UNSIGNED_INT, nullptr);
   }
 
+  void deleteVertexArrayObject(unsigned int object) {
+    glDeleteBuffers(1, &object);
+  }
+
+  void deleteVertexBufferObject(unsigned int buffer) {
+    glDeleteBuffers(1, &buffer);
+  }
+
+  void deleteElementBufferObject(unsigned int buffer) {
+    glDeleteBuffers(1, &buffer);
+  }
+
   int getUniform(const char *name, unsigned int shaderProgram) {
     const std::string uniformKey = name + std::to_string(shaderProgram);
     const GLint uniformLocation = glGetUniformLocation(shaderProgram, name);

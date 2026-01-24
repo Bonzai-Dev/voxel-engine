@@ -6,8 +6,8 @@ namespace Game {
   class World;
 
   // Cannot build above MaxChunkHeight and below MinChunkHeight
-  inline constexpr int MaxChunkHeight = 320;
-  inline constexpr int MinChunkHeight = -64;
+  inline constexpr int MaxChunkHeight = 10;
+  inline constexpr int MinChunkHeight = -10;
   inline constexpr int ChunkSize = 16;
   inline constexpr int ChunkHeight = MaxChunkHeight - MinChunkHeight;
   inline constexpr size_t TotalChunkBlocks = ChunkSize * ChunkSize * ChunkHeight;

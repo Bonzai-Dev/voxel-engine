@@ -16,6 +16,8 @@ namespace Game {
   }
 
   World::~World() {
+      std::cout << "joined\n";
+
     for (auto &thread: chunkBuilder) {
       if (thread.joinable())
         thread.join();
@@ -55,11 +57,10 @@ namespace Game {
         // if (!camera.inView(boundingBox))
         //   continue;
 
-        const int index = getChunkIndex(position);
-        if (!chunks.contains(index))
-          chunks.emplace(index, Chunk(position, generateHeightMap(position / ChunkSize), *this));
+        if (!chunks.contains(ChunkPosition(x, z)))
+          chunks.emplace(ChunkPosition(x, z), Chunk(position, generateHeightMap(position / ChunkSize), *this));
       }
-      std::cout << "Grid position: " << cameraGridPosition.x << ", " << cameraGridPosition.z << " | Chunks loaded: " << chunks.size() << "\n";
+      // std::cout << "Grid position: " << cameraGridPosition.x << ", " << cameraGridPosition.z << " | Chunks loaded: " << chunks.size() << "\n";
     }
   }
 
@@ -97,9 +98,5 @@ namespace Game {
     const auto x = static_cast<double>(position.x);
     const auto y = static_cast<double>(position.y);
     return static_cast<int>(floor(noiseGenerator.eval(x * scale.x, y * scale.y) * amplitude));
-  }
-
-  int World::getChunkIndex(const glm::ivec2 &position) const {
-    return (position.x ^ 0x1f) + (position.y << ChunkSize);
   }
 }

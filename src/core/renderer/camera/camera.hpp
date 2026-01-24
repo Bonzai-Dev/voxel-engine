@@ -32,12 +32,14 @@ namespace Renderer {
 
       const bool inView(const AABB &boundingBox) const { return frustum.boundingBoxInView(boundingBox); }
 
+      bool moving() const { return isMoving; }
+
     private:
       glm::mat4 projectionMatrix = glm::mat4(1.0f);
       glm::mat4 viewMatrix = glm::mat4(1.0f);
 
       glm::vec3 rotation = glm::vec3(0, 90, 0);
-      glm::vec3 position;
+      glm::vec3 position{};
 
       glm::vec3 forward{};
       glm::vec3 right{};
@@ -48,6 +50,8 @@ namespace Renderer {
 
       float aspectRatio;
       float fov;
+
+      bool isMoving;
 
       Frustum frustum;
 

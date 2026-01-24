@@ -1,7 +1,6 @@
 #pragma once
 #include <thread>
 #include <mutex>
-#include <condition_variable>
 #include <glm/vec3.hpp>
 #include <core/open_simplex2s.hpp>
 #include <glm/vec2.hpp>
@@ -9,6 +8,33 @@
 #include <app/game/shaders/default.hpp>
 #include "chunk.hpp"
 #include "blocks/block_manager.hpp"
+
+namespace Game {
+  class ChunkPosition : public glm::ivec2 {
+    friend bool operator==(const ChunkPosition& a, const ChunkPosition& b) {
+      return hash(a) == hash(b);
+    }
+
+    public:
+      static int hash(const glm::ivec2 &position) {
+        return (position.x ^ 0x1f) + (position.y << ChunkSize);
+      }
+
+    ChunkPosition(int x, int y) {
+      this->x = x;
+      this->y = y;
+    }
+
+    ~ChunkPosition() = default;
+  };
+}
+
+template <>
+struct std::hash<Game::ChunkPosition> {
+  size_t operator()(const Game::ChunkPosition& position) const noexcept {
+    return Game::ChunkPosition::hash(position);
+  }
+};
 
 namespace Game {
   class BlockManager;
@@ -40,7 +66,7 @@ namespace Game {
       Core::OpenSimplexNoise::Noise noiseGenerator = Core::OpenSimplexNoise::Noise(getSeed());
       const Renderer::Camera &camera;
       Shader::Default shader;
-      std::unordered_map<int, Chunk> chunks;
+      std::unordered_map<ChunkPosition, Chunk> chunks;
       std::vector<std::thread> chunkBuilder;
       std::mutex chunkBuilderMutex;
 
@@ -57,7 +83,5 @@ namespace Game {
       static int generateSeed();
 
       int seed = generateSeed();
-
-      int getChunkIndex(const glm::ivec2 &position) const;
   };
 }

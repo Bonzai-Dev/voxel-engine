@@ -9,14 +9,14 @@ namespace Game {
     shader.use();
     shader.updateTexture(Renderer::loadPng("./res/images/blocks.png"));
 
-    for (size_t threadCount = 0; threadCount < 1; threadCount++) {
+    for (size_t threadCount = 0; threadCount < 5; threadCount++) {
       std::thread terrainLoader(&World::loadTerrain, this);
       chunkBuilder.push_back(std::move(terrainLoader));
     }
   }
 
   World::~World() {
-      std::cout << "joined\n";
+    std::cout << "joined\n";
 
     for (auto &thread: chunkBuilder) {
       if (thread.joinable())
@@ -29,9 +29,33 @@ namespace Game {
     shader.updateProjectionMatrix(camera.getProjectionMatrix());
     shader.updateViewMatrix(camera.getViewMatrix());
 
-    for (auto &chunk: chunks) {
-      shader.updateModelMatrix(chunk.second.getModelMatrix());
-      chunk.second.render();
+    static constexpr int halfRenderDistance = (RenderDistance / 2) * ChunkSize;
+    const glm::ivec3 &cameraPosition = camera.getPosition();
+    const glm::ivec2 cameraGridPosition = glm::ivec2(
+      (cameraPosition.x / ChunkSize) * ChunkSize,
+      (cameraPosition.z / ChunkSize) * ChunkSize
+    );
+
+    const int minimumX = cameraGridPosition.x - halfRenderDistance;
+    const int maximumX = cameraGridPosition.x + halfRenderDistance;
+    const int minimumZ = cameraGridPosition.y - halfRenderDistance;
+    const int maximumZ = cameraGridPosition.y + halfRenderDistance;
+
+    for (auto iterator = chunks.cbegin(); iterator != chunks.cend(); ) {
+      const auto &position = iterator->first;
+      const auto &chunk = iterator->second;
+
+      if (position.x < minimumX || position.x > maximumX || position.y < minimumZ || position.y > maximumZ) {
+        chunk.deleteBuffers();
+        chunks.erase(iterator++);
+      }
+      else
+        ++iterator;
+    }
+
+    for (auto &[position, chunk]: chunks) {
+      shader.updateModelMatrix(chunk.getModelMatrix());
+      chunk.render();
     }
   }
 
@@ -40,16 +64,16 @@ namespace Game {
       std::lock_guard lock(chunkBuilderMutex);
       static constexpr int halfRenderDistance = (RenderDistance / 2) * ChunkSize;
       const glm::ivec3 &cameraPosition = camera.getPosition();
-      const glm::ivec3 cameraGridPosition = glm::ivec3(
+      const glm::ivec2 cameraGridPosition = glm::ivec2(
         (cameraPosition.x / ChunkSize) * ChunkSize,
-        cameraPosition.y,
         (cameraPosition.z / ChunkSize) * ChunkSize
       );
 
       for (size_t chunkIndex = 0; chunkIndex < RenderDistance * RenderDistance; chunkIndex++) {
         const int x = cameraGridPosition.x + (chunkIndex % RenderDistance) * ChunkSize - halfRenderDistance;
-        const int z = cameraGridPosition.z + ((chunkIndex / RenderDistance) % RenderDistance) * ChunkSize - halfRenderDistance;
-        const auto position = glm::ivec2(x, z);
+        const int z = cameraGridPosition.y + ((chunkIndex / RenderDistance) % RenderDistance) * ChunkSize -
+                      halfRenderDistance;
+        const glm::ivec2 position = glm::ivec2(x, z);
         // const auto boundingBox = Renderer::AABB(
         //   glm::vec3(x * ChunkSize, MinChunkHeight, z * ChunkSize),
         //   glm::vec3(x * ChunkSize + ChunkSize, MaxChunkHeight, z * ChunkSize + ChunkSize)
@@ -60,7 +84,6 @@ namespace Game {
         if (!chunks.contains(ChunkPosition(x, z)))
           chunks.emplace(ChunkPosition(x, z), Chunk(position, generateHeightMap(position / ChunkSize), *this));
       }
-      // std::cout << "Grid position: " << cameraGridPosition.x << ", " << cameraGridPosition.z << " | Chunks loaded: " << chunks.size() << "\n";
     }
   }
 
@@ -82,7 +105,7 @@ namespace Game {
   }
 
   int World::terrainNoise(const glm::ivec2 &position) const {
-    int noise = 80;
+    int noise = 20;
     static const int octaves = 6;
     static const float baseScale = 0.005f;
     static const float baseAmplitude = 7.0f;

@@ -20,10 +20,10 @@ namespace Game {
     Renderer::drawTriangles(vertexArrayObject, vertexBufferObject, elementBufferObject, indices.size());
   }
 
-  void Chunk::destroy() const {
-    Renderer::deleteVertexArrayObject(vertexArrayObject);
+  void Chunk::deleteBuffers() const {
     Renderer::deleteVertexBufferObject(vertexBufferObject);
     Renderer::deleteElementBufferObject(elementBufferObject);
+    Renderer::deleteVertexArrayObject(vertexArrayObject);
   }
 
   void Chunk::loadMesh() {

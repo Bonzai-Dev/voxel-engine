@@ -67,8 +67,20 @@ namespace Renderer {
     glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(indicesSize), GL_UNSIGNED_INT, nullptr);
   }
 
+  void unbindVertexArrayObject() {
+    glBindVertexArray(0);
+  }
+
+  void unbindVertexBufferObject() {
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+  }
+
+  void unbindElementBufferObject() {
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+  }
+
   void deleteVertexArrayObject(unsigned int object) {
-    glDeleteBuffers(1, &object);
+    glDeleteVertexArrays(1, &object);
   }
 
   void deleteVertexBufferObject(unsigned int buffer) {

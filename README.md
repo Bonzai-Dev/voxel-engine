@@ -1,5 +1,6 @@
 # voxel-engine
 A voxel engine written in OpenGL and C++.
+Runs on both Windows and Linux.
 
 ## Cloning
 ```bash

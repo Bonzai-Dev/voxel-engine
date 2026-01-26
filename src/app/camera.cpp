@@ -1,16 +1,14 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "camera.hpp"
-
-#include <iostream>
+#include "config.hpp"
 
 using namespace Core;
 
-namespace Renderer {
-  Camera::Camera(const Application &application, const glm::vec3 &cameraPosition, float fov, float near, float far) :
+namespace Game {
+  Camera::Camera(const Application &application, const glm::vec3 &cameraPosition, float far, float fov, float near) :
   position(cameraPosition),
   aspectRatio(application.getWindow()->getWidth() / application.getWindow()->getHeight()),
-  frustum(projectionMatrix, viewMatrix),
   fov(fov), application(application), farDistance(far), nearDistance(near) {
     updateProjection(near, far, fov);
   }
@@ -18,8 +16,8 @@ namespace Renderer {
   void Camera::update() {
     if (application.mouseMoving()) {
       const auto mouseDelta = application.getMouseDelta();
-      rotation.y += mouseDelta.x * MouseSensitivity;
-      rotation.x = glm::clamp(rotation.x - mouseDelta.y * MouseSensitivity, -89.9f, 89.9f);
+      rotation.y += mouseDelta.x * Config::CameraSensitivity;
+      rotation.x = glm::clamp(rotation.x - mouseDelta.y * Config::CameraSensitivity, -89.9f, 89.9f);
     }
 
     auto inputDirection = glm::zero<glm::vec3>();
@@ -33,7 +31,7 @@ namespace Renderer {
 
     glm::vec3 moveDirection = forward * inputDirection.x + right * inputDirection.z;
     moveDirection += glm::vec3(0, inputDirection.y, 0);
-    position += moveDirection * static_cast<float>(application.getDeltaTime()) * 30.0f;
+    position += moveDirection * static_cast<float>(application.getDeltaTime()) * Config::CameraSpeed;
     isMoving = glm::length(moveDirection) != 0;
 
     const glm::vec3 direction(
@@ -57,7 +55,6 @@ namespace Renderer {
     this->fov = fov;
     nearDistance = near;
     farDistance = far;
-    frustum.update(projectionMatrix, viewMatrix);
     const auto windowWidth = static_cast<float>(application.getWindow()->getWidth());
     const auto windowHeight = static_cast<float>(application.getWindow()->getHeight());
     const float aspectRatio = windowWidth / windowHeight;

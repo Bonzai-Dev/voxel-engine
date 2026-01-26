@@ -1,16 +1,10 @@
 #pragma once
 #include <vector>
 #include "blocks/block.hpp"
+#include <app/config.hpp>
 
 namespace Game {
   class World;
-
-  // Cannot build above MaxChunkHeight and below MinChunkHeight
-  inline constexpr int MaxChunkHeight = 1;
-  inline constexpr int MinChunkHeight = -3;
-  inline constexpr int ChunkSize = 16;
-  inline constexpr int ChunkHeight = MaxChunkHeight - MinChunkHeight;
-  inline constexpr size_t TotalChunkBlocks = ChunkSize * ChunkSize * ChunkHeight;
 
   class Chunk {
     public:
@@ -45,7 +39,7 @@ namespace Game {
 
       // 3D array flattened to 1D that stores all the chunk's block
       // Stores as 2 byte uint to save memory
-      std::vector<std::uint16_t> blocks = std::vector(TotalChunkBlocks, static_cast<std::uint16_t>(Blocks::BlockId::Air));
+      std::vector<std::uint16_t> blocks = std::vector(Config::TotalChunkBlocks, static_cast<std::uint16_t>(Blocks::BlockId::Air));
 
       void loadMesh();
 

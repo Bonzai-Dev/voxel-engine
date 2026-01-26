@@ -1,22 +1,25 @@
 #include <thread>
 #include <iostream>
 #include <core/logger.hpp>
+#include "../camera.hpp"
 #include "world.hpp"
 
+using namespace Game::Config;
+
 namespace Game {
-  World::World(const Renderer::Camera &camera) : camera(camera) {
+  World::World(const Camera &camera) : camera(camera) {
     Logger::logInfo(Logger::Context::Game, "Generating terrain with a seed of %d.", seed);
     shader.use();
     shader.updateTexture(Renderer::loadPng("./res/images/blocks.png"));
 
-    for (size_t threadCount = 0; threadCount < 5; threadCount++) {
+    for (size_t threadCount = 0; threadCount < 10; threadCount++) {
       std::thread terrainLoader(&World::loadTerrain, this);
       chunkBuilder.push_back(std::move(terrainLoader));
     }
   }
 
   World::~World() {
-    std::cout << "joined\n";
+    running = false;
 
     for (auto &thread: chunkBuilder) {
       if (thread.joinable())
@@ -41,15 +44,16 @@ namespace Game {
     const int minimumZ = cameraGridPosition.y - halfRenderDistance;
     const int maximumZ = cameraGridPosition.y + halfRenderDistance;
 
-    for (auto iterator = chunks.cbegin(); iterator != chunks.cend(); ) {
+    for (auto iterator = chunks.cbegin(); iterator != chunks.cend();) {
       const auto &position = iterator->first;
       const auto &chunk = iterator->second;
 
-      if (position.x < minimumX || position.x > maximumX || position.y < minimumZ || position.y > maximumZ) {
+      const bool outsideRenderDistance = position.x < minimumX || position.x > maximumX || position.y < minimumZ ||
+                                         position.y > maximumZ;
+      if (outsideRenderDistance) {
         chunk.deleteBuffers();
         chunks.erase(iterator++);
-      }
-      else
+      } else
         ++iterator;
     }
 
@@ -57,6 +61,37 @@ namespace Game {
       shader.updateModelMatrix(chunk.getModelMatrix());
       chunk.render();
     }
+  }
+
+  Blocks::BlockId World::getBlockId(const glm::ivec3 &position) {
+    return evaluateBlockType(position.y, terrainNoise(glm::ivec2(position.x, position.z)));
+  }
+
+  Blocks::BlockId World::evaluateBlockType(int y, int noiseHeight) {
+    const bool inChunkHeight = y >= MinChunkHeight && y < MaxChunkHeight;
+    if (!inChunkHeight)
+      return Blocks::BlockId::Air;
+
+    if (y == MinChunkHeight)
+      return Blocks::BlockId::Bedrock;
+
+    if (y == MinChunkHeight + 1)
+      return Blocks::BlockId::Dirt;
+
+    if (y == noiseHeight)
+      return Blocks::BlockId::Grass;
+
+    if (y == MinChunkHeight + 2)
+      return Blocks::BlockId::Water;
+
+    if (y < noiseHeight) {
+      if (y <= noiseHeight - 10)
+        return Blocks::BlockId::Stone;
+
+      return Blocks::BlockId::Dirt;
+    }
+
+    return Blocks::BlockId::Air;
   }
 
   void World::loadTerrain() {
@@ -74,12 +109,6 @@ namespace Game {
         const int z = cameraGridPosition.y + ((chunkIndex / RenderDistance) % RenderDistance) * ChunkSize -
                       halfRenderDistance;
         const glm::ivec2 position = glm::ivec2(x, z);
-        // const auto boundingBox = Renderer::AABB(
-        //   glm::vec3(x * ChunkSize, MinChunkHeight, z * ChunkSize),
-        //   glm::vec3(x * ChunkSize + ChunkSize, MaxChunkHeight, z * ChunkSize + ChunkSize)
-        // );
-        // if (!camera.inView(boundingBox))
-        //   continue;
 
         if (!chunks.contains(ChunkPosition(x, z)))
           chunks.emplace(ChunkPosition(x, z), Chunk(position, generateHeightMap(position / ChunkSize), *this));
@@ -105,13 +134,13 @@ namespace Game {
   }
 
   int World::terrainNoise(const glm::ivec2 &position) const {
-    int noise = 20;
-    static const int octaves = 6;
-    static const float baseScale = 0.005f;
-    static const float baseAmplitude = 7.0f;
-    for (size_t octave = 0; octave < octaves; octave++) {
-      const float scale = baseScale * octave;
-      noise += noise2d(position, glm::vec2(scale, scale), baseAmplitude * octave);
+    int noise = NoiseHeightOffset;
+    float scale = NoiseBaseScale;
+    float amplitude = NoiseBaseAmplitude;
+    for (size_t octave = 1; octave < NoiseOctaves + 1; octave++) {
+      scale *= 2.0f;
+      amplitude *= 0.5f;
+      noise += noise2d(position, glm::vec2(scale, scale), amplitude);
     }
 
     return noise;
@@ -120,6 +149,6 @@ namespace Game {
   int World::noise2d(const glm::ivec2 &position, const glm::vec2 &scale, float amplitude) const {
     const auto x = static_cast<double>(position.x);
     const auto y = static_cast<double>(position.y);
-    return static_cast<int>(floor(noiseGenerator.eval(x * scale.x, y * scale.y) * amplitude));
+    return static_cast<int>(ceilf(noiseGenerator.eval(x * scale.x, y * scale.y) * amplitude));
   }
 }

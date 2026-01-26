@@ -6,5 +6,10 @@ in vec2 TextureCoordinates;
 uniform sampler2D imageTexture;
 
 void main() {
-  VertexColor = texture(imageTexture, TextureCoordinates);
+  vec4 textureColor = texture(imageTexture, TextureCoordinates);
+
+  if (textureColor.a < 0.1)
+    discard;
+
+  VertexColor = textureColor;
 }

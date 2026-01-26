@@ -1,7 +1,7 @@
 #pragma once
 #include <core/application/render_layer.hpp>
-#include <core/renderer/camera/camera.hpp>
-#include "./game/terrain/world.hpp"
+#include "camera.hpp"
+#include "terrain/world.hpp"
 
 class AppLayer : public Core::RenderLayer {
   public:
@@ -10,6 +10,6 @@ class AppLayer : public Core::RenderLayer {
     void render() override;
 
   private:
-    Renderer::Camera camera;
+    Game::Camera camera;
     Game::World world;
 };

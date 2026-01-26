@@ -9,8 +9,8 @@ using namespace Logger;
 using namespace Game::Blocks;
 
 namespace Game {
-  Chunk::Chunk(const glm::ivec2 &position, const std::vector<int> &heightMap, World &world):
-  position(position), heightMap(heightMap), world(world) {
+  Chunk::Chunk(const glm::ivec2 &position, const std::vector<int> &heightMap, World &world) : position(position),
+    heightMap(heightMap), world(world) {
     modelMatrix = glm::translate(modelMatrix, glm::vec3(this->position.x, 0, this->position.y));
     buildMesh();
   }
@@ -40,30 +40,21 @@ namespace Game {
   }
 
   void Chunk::buildMesh() {
-    for (size_t blockCount = 0; blockCount < TotalChunkBlocks; blockCount++) {
-      const int x = blockCount % ChunkSize;
-      const int y = blockCount / (ChunkSize * ChunkSize) + MinChunkHeight;
-      const int z = (blockCount / ChunkSize) % ChunkSize;
+    for (size_t blockCount = 0; blockCount < Config::TotalChunkBlocks; blockCount++) {
+      const int x = blockCount % Config::ChunkSize;
+      const int y = blockCount / (Config::ChunkSize * Config::ChunkSize) + Config::MinChunkHeight;
+      const int z = (blockCount / Config::ChunkSize) % Config::ChunkSize;
       const auto &localPosition = glm::ivec3(x, y, z);
       const auto noiseHeight = getNoise(glm::ivec2(localPosition.x, localPosition.z));
-
-      BlockId blockId = BlockId::Air;
-      if (y == noiseHeight)
-        blockId = BlockId::Grass;
-
-      if (y < noiseHeight)
-        blockId = BlockId::Dirt;
-
-      if (y == MinChunkHeight)
-        blockId = BlockId::Bedrock;
+      const BlockId blockId = world.evaluateBlockType(localPosition.y, noiseHeight);
 
       addBlock({localPosition, blockId});
     }
 
-    for (size_t blockCount = 0; blockCount < TotalChunkBlocks; blockCount++) {
-      const int x = blockCount % ChunkSize;
-      const int y = blockCount / (ChunkSize * ChunkSize) + MinChunkHeight;
-      const int z = (blockCount / ChunkSize) % ChunkSize;
+    for (size_t blockCount = 0; blockCount < Config::TotalChunkBlocks; blockCount++) {
+      const int x = blockCount % Config::ChunkSize;
+      const int y = blockCount / (Config::ChunkSize * Config::ChunkSize) + Config::MinChunkHeight;
+      const int z = (blockCount / Config::ChunkSize) % Config::ChunkSize;
       const auto &position = glm::ivec3(x, y, z);
 
       if (faceVisible(Up, position))
@@ -119,17 +110,23 @@ namespace Game {
   }
 
   Block Chunk::getBlockLocal(const glm::ivec3 &position) {
-    if (outOfBounds(position))
-      return {glm::vec3(position.x, position.y, position.z), BlockId::Air};
+    if (outOfBounds(position)) {
+      const glm::vec3 worldPosition = glm::vec3(
+        position.x + this->position.x,
+        position.y,
+        position.z + this->position.y
+      );
+      return {glm::vec3(position.x, position.y, position.z), world.getBlockId(worldPosition)};
+    }
 
     const size_t index = getBlockIndex(position);
     return {glm::vec3(position.x, position.y, position.z), static_cast<BlockId>(blocks[index])};
   }
 
   bool Chunk::outOfBounds(const glm::ivec3 &position) {
-    const bool xOut = position.x < 0 || position.x >= ChunkSize;
-    const bool yOut = position.y < MinChunkHeight || position.y >= MaxChunkHeight;
-    const bool zOut = position.z < 0 || position.z >= ChunkSize;
+    const bool xOut = position.x < 0 || position.x >= Config::ChunkSize;
+    const bool yOut = position.y < Config::MinChunkHeight || position.y >= Config::MaxChunkHeight;
+    const bool zOut = position.z < 0 || position.z >= Config::ChunkSize;
     if (xOut || yOut || zOut)
       return true;
 
@@ -138,7 +135,15 @@ namespace Game {
 
   bool Chunk::faceVisible(const glm::ivec3 &faceNormal, const glm::ivec3 &position) {
     const glm::ivec3 neighbourPosition = position + faceNormal;
-    return getBlockLocal(neighbourPosition).getBlockId() == BlockId::Air;
+    const auto blockId = getBlockLocal(neighbourPosition).getBlockId();
+
+    if (blockId == BlockId::Air)
+      return true;
+
+    if (blockId == BlockId::Water && faceNormal == Up)
+      return true;
+
+    return false;
   }
 
   void Chunk::addBlock(const Block &block) {
@@ -147,10 +152,10 @@ namespace Game {
   }
 
   int Chunk::getNoise(const glm::ivec2 &position) const {
-    return heightMap[position.x + position.y * ChunkSize];
+    return heightMap[position.x + position.y * Config::ChunkSize];
   }
 
   size_t Chunk::getBlockIndex(const glm::ivec3 &position) {
-    return position.x + (position.y - MinChunkHeight) * ChunkSize * ChunkSize + position.z * ChunkSize;
+    return position.x + (position.y - Config::MinChunkHeight) * Config::ChunkSize * Config::ChunkSize + position.z * Config::ChunkSize;
   }
 }

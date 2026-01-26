@@ -1,0 +1,12 @@
+{
+  "$schema": "block.schema.json",
+  "meshId": 1,
+  "spritesheetTiles": {
+    "front": [6, 15],
+    "back": [6, 15],
+    "left": [6, 15],
+    "right": [6, 15],
+    "top": [6, 15],
+    "bottom": [6, 15]
+  }
+}

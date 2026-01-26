@@ -59,13 +59,12 @@ namespace Game {
         ++iterator;
     }
 
-    // TODO: DEFINE A WATER LEVEL
     std::map<float, glm::vec3> sorted;
     for (auto &[position, chunk]: chunks) {
       static constexpr int halfChunkSize = ChunkSize / 2;
-      const glm::vec3 waterMeshPosition = glm::vec3(position.x + halfChunkSize, MinChunkHeight + 1.5f,
+      const glm::vec3 waterMeshPosition = glm::vec3(position.x + halfChunkSize, WaterLevel,
                                                     position.y + halfChunkSize);
-      const glm::vec3 chunkPosition = glm::vec3(position.x, MinChunkHeight + 1, position.y);
+      const glm::vec3 chunkPosition = glm::vec3(position.x, MinChunkHeight, position.y);
 
       sorted[glm::length(camera.getPosition() - waterMeshPosition)] = chunkPosition;
     }
@@ -73,8 +72,8 @@ namespace Game {
     for (std::map<float, glm::vec3>::reverse_iterator it = sorted.rbegin(); it != sorted.rend(); ++it) {
       const glm::ivec3 &chunkPosition = it->second;
 
-      if (chunks.contains({chunkPosition.x, chunkPosition.z})) {
-        auto &chunk = chunks.at({chunkPosition.x, chunkPosition.z});
+      if (chunks.contains(ChunkPosition(chunkPosition.x, chunkPosition.z))) {
+        auto &chunk = chunks.at(ChunkPosition(chunkPosition.x, chunkPosition.z));
         shader.updateModelMatrix(chunk.getModelMatrix());
         chunk.renderBlocks();
         chunk.renderWater();
@@ -107,7 +106,7 @@ namespace Game {
       return Blocks::BlockId::Dirt;
     }
 
-    if (y == MinChunkHeight + 2)
+    if (y == WaterLevel)
       return Blocks::BlockId::Water;
 
     return Blocks::BlockId::Air;

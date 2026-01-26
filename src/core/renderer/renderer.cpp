@@ -215,6 +215,25 @@ namespace Renderer {
     glBindTexture(GL_TEXTURE_2D, texture);
   }
 
+  unsigned int loadCubemap(std::vector<std::string_view> faces) {
+    // int width, height, channelsCount;
+    // for (size_t index = 0; index < faces.size(); index++) {
+    //       unsigned char *data = stbi_load(filepath.data(), &width, &height, &channelsCount, 0);
+    //   if (data)
+    //   {
+    //     glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
+    //                  0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data
+    //     );
+    //     stbi_image_free(data);
+    //   }
+    //   else
+    //   {
+    //     std::cout << "Cubemap tex failed to load at path: " << faces[i] << std::endl;
+    //     stbi_image_free(data);
+    //   }
+    // }
+  }
+
   unsigned int loadPng(const char *filepath) {
     int width, height, channelsCount;
     unsigned char *data = stbi_load(filepath, &width, &height, &channelsCount, 0);

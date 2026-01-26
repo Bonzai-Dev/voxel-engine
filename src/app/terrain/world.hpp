@@ -17,7 +17,10 @@ namespace Game {
 
     public:
       static int hash(const glm::ivec2 &position) {
-        return (position.x ^ 0x1f) + (position.y << Config::ChunkSize);
+        int hash = sizeof(position);
+        hash ^= position.x + 0x9e3779b9 + (hash <<  6) + (hash >> 2);
+        hash ^= position.y + 0x9e3779b9 + (hash <<  6) + (hash >> 2);
+        return hash;
       }
 
     ChunkPosition(int x, int y) {
@@ -67,9 +70,9 @@ namespace Game {
       Core::OpenSimplexNoise::Noise noiseGenerator = Core::OpenSimplexNoise::Noise(getSeed());
       const Camera &camera;
       Shader::Default shader;
-      std::unordered_map<ChunkPosition, Chunk> chunks;
-      std::vector<std::thread> chunkBuilder;
-      std::mutex chunkBuilderMutex;
+      std::unordered_map<ChunkPosition, Chunk> chunks{};
+      std::vector<std::thread> chunkBuilder{};
+      std::mutex chunkBuilderMutex{};
 
       bool running = true;
 

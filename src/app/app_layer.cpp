@@ -22,6 +22,6 @@ void AppLayer::render() {
   if (!wireframe)
     Renderer::setFillMode(Renderer::MeshFillMode::Solid);
 
-  Renderer::clearBuffer(Util::Graphics::normalizeColor(glm::vec4(87, 178, 255, 1)));
+  Renderer::clearBuffer(Util::Graphics::normalizeColor(glm::vec4(192, 231, 255, 1)));
   world.render();
 }

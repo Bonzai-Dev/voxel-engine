@@ -102,5 +102,7 @@ namespace Renderer {
 
   void useTexture(unsigned int texture);
 
+  unsigned int loadCubemap(std::vector<std::string_view> faces);
+
   unsigned int loadPng(const char *filepath);
 }

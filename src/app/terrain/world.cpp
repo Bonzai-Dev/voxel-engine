@@ -4,6 +4,8 @@
 #include "../camera.hpp"
 #include "world.hpp"
 
+#include <map>
+
 using namespace Game::Config;
 
 namespace Game {
@@ -57,9 +59,26 @@ namespace Game {
         ++iterator;
     }
 
+    // TODO: DEFINE A WATER LEVEL
+    std::map<float, glm::vec3> sorted;
     for (auto &[position, chunk]: chunks) {
-      shader.updateModelMatrix(chunk.getModelMatrix());
-      chunk.render();
+      static constexpr int halfChunkSize = ChunkSize / 2;
+      const glm::vec3 waterMeshPosition = glm::vec3(position.x + halfChunkSize, MinChunkHeight + 1.5f,
+                                                    position.y + halfChunkSize);
+      const glm::vec3 chunkPosition = glm::vec3(position.x, MinChunkHeight + 1, position.y);
+
+      sorted[glm::length(camera.getPosition() - waterMeshPosition)] = chunkPosition;
+    }
+
+    for (std::map<float, glm::vec3>::reverse_iterator it = sorted.rbegin(); it != sorted.rend(); ++it) {
+      const glm::ivec3 &chunkPosition = it->second;
+
+      if (chunks.contains({chunkPosition.x, chunkPosition.z})) {
+        auto &chunk = chunks.at({chunkPosition.x, chunkPosition.z});
+        shader.updateModelMatrix(chunk.getModelMatrix());
+        chunk.renderBlocks();
+        chunk.renderWater();
+      }
     }
   }
 
@@ -81,15 +100,15 @@ namespace Game {
     if (y == noiseHeight)
       return Blocks::BlockId::Grass;
 
-    if (y == MinChunkHeight + 2)
-      return Blocks::BlockId::Water;
-
     if (y < noiseHeight) {
       if (y <= noiseHeight - 10)
         return Blocks::BlockId::Stone;
 
       return Blocks::BlockId::Dirt;
     }
+
+    if (y == MinChunkHeight + 2)
+      return Blocks::BlockId::Water;
 
     return Blocks::BlockId::Air;
   }

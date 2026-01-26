@@ -64,6 +64,9 @@ namespace Renderer {
   }
 
   void drawTriangles(unsigned int vertexArrayObject, unsigned int vertexBuffer, unsigned int indexBuffer, size_t indicesSize) {
+    if (indicesSize == 0)
+      return;
+
     useVertexArrayObject(vertexArrayObject);
     useVertexBufferObject(vertexBuffer);
     useElementBufferObject(indexBuffer);

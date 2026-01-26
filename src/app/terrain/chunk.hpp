@@ -12,7 +12,9 @@ namespace Game {
 
       ~Chunk() = default;
 
-      void render();
+      void renderWater();
+
+      void renderBlocks();
 
       const glm::mat4 &getModelMatrix() const { return modelMatrix; }
 
@@ -25,17 +27,24 @@ namespace Game {
     private:
       World &world;
 
-      unsigned int vertexArrayObject;
-      unsigned int vertexBufferObject;
-      unsigned int elementBufferObject;
+      unsigned int blockVertexArrayObject;
+      unsigned int blockVertexBuffer;
+      unsigned int blockIndexBuffer;
+
+      unsigned int waterVertexArrayObject;
+      unsigned int waterVertexBuffer;
+      unsigned int waterIndexBuffer;
 
       glm::mat4 modelMatrix = glm::mat4(1.0f);
       glm::ivec2 position;
       bool loadedMesh = false;
 
       const std::vector<int> &heightMap;
-      std::vector<float> vertexData;
-      std::vector<unsigned int> indices;
+      std::vector<float> blockVertexData;
+      std::vector<unsigned int> blockIndices;
+
+      std::vector<float> waterVertexData;
+      std::vector<unsigned int> waterIndices;
 
       // 3D array flattened to 1D that stores all the chunk's block
       // Stores as 2 byte uint to save memory
@@ -56,7 +65,7 @@ namespace Game {
 
       bool faceVisible(const glm::ivec3 &faceNormal, const glm::ivec3 &position);
 
-      void addFace(const glm::ivec3 &position, Blocks::Face face);
+      void addFace(const glm::ivec3 &position, Blocks::Face face, std::vector<float> &vertexData, std::vector<unsigned int> &indices);
 
       // Gets height map using a 2d local position
       int getNoise(const glm::ivec2 &position) const;

@@ -10,6 +10,7 @@ class AppLayer : public Core::RenderLayer {
     void render() override;
 
   private:
+    bool wireframe = false;
     Game::Camera camera;
     Game::World world;
 };

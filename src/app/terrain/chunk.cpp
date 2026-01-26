@@ -7,6 +7,7 @@
 
 using namespace Logger;
 using namespace Game::Blocks;
+using namespace Game::Config;
 
 namespace Game {
   Chunk::Chunk(const glm::ivec2 &position, const std::vector<int> &heightMap, World &world) : position(position),
@@ -15,15 +16,35 @@ namespace Game {
     buildMesh();
   }
 
-  void Chunk::render() {
+  void Chunk::renderBlocks() {
     loadMesh();
-    Renderer::drawTriangles(vertexArrayObject, vertexBufferObject, elementBufferObject, indices.size());
+    Renderer::drawTriangles(
+      blockVertexArrayObject,
+      blockVertexBuffer,
+      blockIndexBuffer,
+      blockIndices.size()
+    );
+  }
+
+  void Chunk::renderWater() {
+    loadMesh();
+    Renderer::drawTriangles(
+      waterVertexArrayObject,
+      waterVertexBuffer,
+      waterIndexBuffer,
+      waterIndices.size()
+    );
   }
 
   void Chunk::deleteBuffers() const {
-    Renderer::deleteVertexBufferObject(vertexBufferObject);
-    Renderer::deleteElementBufferObject(elementBufferObject);
-    Renderer::deleteVertexArrayObject(vertexArrayObject);
+    Renderer::deleteVertexBufferObject(blockVertexBuffer);
+    Renderer::deleteElementBufferObject(blockIndexBuffer);
+
+    Renderer::deleteElementBufferObject(waterIndexBuffer);
+    Renderer::deleteVertexBufferObject(waterVertexBuffer);
+
+    Renderer::deleteVertexArrayObject(waterVertexArrayObject);
+    Renderer::deleteVertexBufferObject(waterVertexBuffer);
   }
 
   void Chunk::loadMesh() {
@@ -31,12 +52,22 @@ namespace Game {
       return;
 
     loadedMesh = true;
-    vertexArrayObject = Renderer::createVertexArrayObject();
-    vertexBufferObject = Renderer::createVertexBufferObject(vertexData.data(), sizeof(float) * vertexData.size());
-    elementBufferObject = Renderer::createElementBufferObject(indices.data(), sizeof(unsigned int) * indices.size());
+    blockVertexArrayObject = Renderer::createVertexArrayObject();
+    blockVertexBuffer = Renderer::createVertexBufferObject(blockVertexData.data(),
+                                                           sizeof(float) * blockVertexData.size());
+    blockIndexBuffer = Renderer::createElementBufferObject(blockIndices.data(),
+                                                           sizeof(unsigned int) * blockIndices.size());
 
-    Renderer::setVertexData<std::float_t>(0, 3, 5, false, 0, vertexBufferObject);
-    Renderer::setVertexData<std::float_t>(1, 2, 5, false, 3, vertexBufferObject);
+    Renderer::setVertexData<std::float_t>(0, 3, 5, false, 0, blockVertexBuffer);
+    Renderer::setVertexData<std::float_t>(1, 2, 5, false, 3, blockVertexBuffer);
+
+    waterVertexArrayObject = Renderer::createVertexArrayObject();
+    waterVertexBuffer = Renderer::createVertexBufferObject(waterVertexData.data(),
+                                                           sizeof(float) * waterVertexData.size());
+    waterIndexBuffer = Renderer::createElementBufferObject(waterIndices.data(),
+                                                           sizeof(unsigned int) * waterIndices.size());
+    Renderer::setVertexData<std::float_t>(0, 3, 5, false, 0, waterVertexBuffer);
+    Renderer::setVertexData<std::float_t>(1, 2, 5, false, 3, waterVertexBuffer);
   }
 
   void Chunk::buildMesh() {
@@ -56,23 +87,42 @@ namespace Game {
       const int y = blockCount / (Config::ChunkSize * Config::ChunkSize) + Config::MinChunkHeight;
       const int z = (blockCount / Config::ChunkSize) % Config::ChunkSize;
       const auto &position = glm::ivec3(x, y, z);
+      const auto blockId = getBlockLocal(position).getBlockId();
 
-      if (faceVisible(Up, position))
-        addFace(position, Face::Top);
-      if (faceVisible(Down, position))
-        addFace(position, Face::Bottom);
-      if (faceVisible(Forward, position))
-        addFace(position, Face::Front);
-      if (faceVisible(Backward, position))
-        addFace(position, Face::Back);
-      if (faceVisible(Left, position))
-        addFace(position, Face::Left);
-      if (faceVisible(Right, position))
-        addFace(position, Face::Right);
+      if (blockId == BlockId::Water) {
+        if (faceVisible(Up, position))
+          addFace(position, Face::Top, waterVertexData, waterIndices);
+        if (faceVisible(Down, position))
+          addFace(position, Face::Bottom, waterVertexData, waterIndices);
+        if (faceVisible(Forward, position))
+          addFace(position, Face::Front, waterVertexData, waterIndices);
+        if (faceVisible(Backward, position))
+          addFace(position, Face::Back, waterVertexData, waterIndices);
+        if (faceVisible(Left, position))
+          addFace(position, Face::Left, waterVertexData, waterIndices);
+        if (faceVisible(Right, position))
+          addFace(position, Face::Right, waterVertexData, waterIndices);
+      }
+
+      if (blockId != BlockId::Water && blockId != BlockId::Air) {
+        if (faceVisible(Up, position))
+          addFace(position, Face::Top, blockVertexData, blockIndices);
+        if (faceVisible(Down, position))
+          addFace(position, Face::Bottom, blockVertexData, blockIndices);
+        if (faceVisible(Forward, position))
+          addFace(position, Face::Front, blockVertexData, blockIndices);
+        if (faceVisible(Backward, position))
+          addFace(position, Face::Back, blockVertexData, blockIndices);
+        if (faceVisible(Left, position))
+          addFace(position, Face::Left, blockVertexData, blockIndices);
+        if (faceVisible(Right, position))
+          addFace(position, Face::Right, blockVertexData, blockIndices);
+      }
     }
   }
 
-  void Chunk::addFace(const glm::ivec3 &position, Face face) {
+  void Chunk::addFace(const glm::ivec3 &position, Face face, std::vector<float> &vertexData,
+                      std::vector<unsigned int> &indices) {
     const auto block = getBlockLocal(position);
 
     if (block.getBlockId() == BlockId::Air)
@@ -88,7 +138,6 @@ namespace Game {
       vertexData.push_back(blockVertex.position.x + position.x);
       vertexData.push_back(blockVertex.position.y + position.y);
       vertexData.push_back(blockVertex.position.z + position.z);
-
       vertexData.push_back(blockVertex.uv.x);
       vertexData.push_back(blockVertex.uv.y);
 
@@ -134,13 +183,14 @@ namespace Game {
   }
 
   bool Chunk::faceVisible(const glm::ivec3 &faceNormal, const glm::ivec3 &position) {
+    const auto blockId = getBlockLocal(position).getBlockId();
     const glm::ivec3 neighbourPosition = position + faceNormal;
-    const auto blockId = getBlockLocal(neighbourPosition).getBlockId();
+    const auto neighbourBlockId = getBlockLocal(neighbourPosition).getBlockId();
 
-    if (blockId == BlockId::Air)
+    if (neighbourBlockId == BlockId::Air)
       return true;
 
-    if (blockId == BlockId::Water && faceNormal == Up)
+    if (neighbourBlockId == BlockId::Water && blockId != BlockId::Water)
       return true;
 
     return false;
@@ -156,6 +206,7 @@ namespace Game {
   }
 
   size_t Chunk::getBlockIndex(const glm::ivec3 &position) {
-    return position.x + (position.y - Config::MinChunkHeight) * Config::ChunkSize * Config::ChunkSize + position.z * Config::ChunkSize;
+    return position.x + (position.y - Config::MinChunkHeight) * Config::ChunkSize * Config::ChunkSize + position.z *
+           Config::ChunkSize;
   }
 }

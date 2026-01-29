@@ -8,9 +8,9 @@ namespace Game {
 
   class Chunk {
     public:
-      Chunk(const glm::ivec2 &position, const std::vector<int> &heightMap, World &world);
+      Chunk(const glm::ivec2 &position, std::vector<int> heightMap, World &world);
 
-      ~Chunk() = default;
+      ~Chunk();
 
       void renderWater();
 
@@ -39,12 +39,12 @@ namespace Game {
       glm::ivec2 position;
       bool loadedMesh = false;
 
-      const std::vector<int> &heightMap;
-      std::vector<float> blockVertexData;
-      std::vector<unsigned int> blockIndices;
+      std::vector<int> heightMap{};
+      std::vector<float> blockVertexData{};
+      std::vector<unsigned int> blockIndices{};
 
-      std::vector<float> waterVertexData;
-      std::vector<unsigned int> waterIndices;
+      std::vector<float> waterVertexData{};
+      std::vector<unsigned int> waterIndices{};
 
       // 3D array flattened to 1D that stores all the chunk's block
       // Stores as 2 byte uint to save memory

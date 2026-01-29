@@ -3,6 +3,8 @@
 #include <glm/gtc/type_ptr.hpp>
 #include "default.hpp"
 
+using namespace Renderer;
+
 namespace Game::Shader {
   Default::Default() : Shader("./res/shaders/default.vert", "./res/shaders/default.frag") {
   }

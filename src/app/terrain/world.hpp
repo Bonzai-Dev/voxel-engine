@@ -1,6 +1,8 @@
 #pragma once
+#include <condition_variable>
 #include <thread>
 #include <mutex>
+#include <shared_mutex>
 #include <glm/vec3.hpp>
 #include <core/open_simplex2s.hpp>
 #include <glm/vec2.hpp>
@@ -70,9 +72,13 @@ namespace Game {
       Core::OpenSimplexNoise::Noise noiseGenerator = Core::OpenSimplexNoise::Noise(getSeed());
       const Camera &camera;
       Shader::Default shader;
-      std::unordered_map<ChunkPosition, Chunk> chunks{};
-      std::vector<std::thread> chunkBuilder{};
-      std::mutex chunkBuilderMutex{};
+
+      std::vector<std::thread> chunkBuilder;
+      std::unordered_map<ChunkPosition, Chunk> chunkMap;
+      // std::unordered_map<ChunkPosition, Chunk> chunks;
+      std::vector<ChunkPosition> deleteQueue;
+      std::shared_mutex chunkBuilderMutex;
+      std::mutex deleteQueueMutex;
 
       bool running = true;
 

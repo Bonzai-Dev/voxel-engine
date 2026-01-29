@@ -4,8 +4,6 @@
 #include "renderer.hpp"
 #include "util/io.hpp"
 
-using namespace Renderer;
-
 namespace Renderer {
   void initialize() {
     stbi_set_flip_vertically_on_load(true);
@@ -20,9 +18,9 @@ namespace Renderer {
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 
     glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
   }
-
+  
   void clearBuffer(glm::vec4 color) {
     glClearColor(color.r, color.g, color.b, color.a);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -87,14 +85,17 @@ namespace Renderer {
 
   void deleteVertexArrayObject(unsigned int object) {
     glDeleteVertexArrays(1, &object);
+    object = 0;
   }
 
   void deleteVertexBufferObject(unsigned int buffer) {
     glDeleteBuffers(1, &buffer);
+    buffer = 0;
   }
 
   void deleteElementBufferObject(unsigned int buffer) {
     glDeleteBuffers(1, &buffer);
+    buffer = 0;
   }
 
   int getUniform(const char *name, unsigned int shaderProgram) {
@@ -105,10 +106,10 @@ namespace Renderer {
       return -1;
     }
 
-    if (m_uniforms.contains(uniformKey))
-      return m_uniforms[uniformKey.data()];
+    if (uniforms.contains(uniformKey))
+      return uniforms[uniformKey.data()];
 
-    m_uniforms[uniformKey.c_str()] = uniformLocation;
+    uniforms[uniformKey.c_str()] = uniformLocation;
     return uniformLocation;
   }
 

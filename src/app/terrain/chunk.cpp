@@ -10,10 +10,13 @@ using namespace Game::Blocks;
 using namespace Game::Config;
 
 namespace Game {
-  Chunk::Chunk(const glm::ivec2 &position, const std::vector<int> &heightMap, World &world) : position(position),
-    heightMap(heightMap), world(world) {
+  Chunk::Chunk(const glm::ivec2 &position, std::vector<int> heightMap, World &world) : world(world),
+  position(position), heightMap(std::move(heightMap)) {
     modelMatrix = glm::translate(modelMatrix, glm::vec3(this->position.x, 0, this->position.y));
     buildMesh();
+  }
+
+  Chunk::~Chunk() {
   }
 
   void Chunk::renderBlocks() {
@@ -40,11 +43,11 @@ namespace Game {
     Renderer::deleteVertexBufferObject(blockVertexBuffer);
     Renderer::deleteElementBufferObject(blockIndexBuffer);
 
-    Renderer::deleteElementBufferObject(waterIndexBuffer);
     Renderer::deleteVertexBufferObject(waterVertexBuffer);
+    Renderer::deleteElementBufferObject(waterIndexBuffer);
 
     Renderer::deleteVertexArrayObject(waterVertexArrayObject);
-    Renderer::deleteVertexBufferObject(waterVertexBuffer);
+    Renderer::deleteVertexBufferObject(blockVertexArrayObject);
   }
 
   void Chunk::loadMesh() {
@@ -81,6 +84,29 @@ namespace Game {
 
       addBlock({localPosition, blockId});
     }
+
+    // // Not really the most efficient way to do this but it works for now
+    // std::multimap<float, ChunkPosition> waterMeshes;
+    // for (auto &[position, chunk]: chunks) {
+    //   static constexpr int halfChunkSize = ChunkSize / 2;
+    //   const glm::vec3 waterMeshPosition = glm::vec3(
+    //     position.x + halfChunkSize,
+    //     WaterLevel,
+    //     position.y + halfChunkSize
+    //   );
+    //   const float distance = glm::length(camera.getPosition() - waterMeshPosition);
+    //   waterMeshes.insert({distance, position});
+    // }
+    //
+    // for (std::map<float, ChunkPosition>::reverse_iterator it = waterMeshes.rbegin(); it != waterMeshes.rend(); ++it) {
+    //   const ChunkPosition &chunkPosition = it->second;
+    //   if (chunks.contains(chunkPosition)) {
+    //     auto &chunk = chunks.at(chunkPosition);
+    //     shader.updateModelMatrix(chunk.getModelMatrix());
+    //     chunk.renderBlocks();
+    //     chunk.renderWater();
+    //   }
+    // }
 
     for (size_t blockCount = 0; blockCount < TotalChunkBlocks; blockCount++) {
       const int x = blockCount % ChunkSize;

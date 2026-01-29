@@ -1,5 +1,6 @@
 #pragma once
 #include <cmath>
+#include <mutex>
 #include <glad/gl.h>
 #include <string>
 #include <vector>
@@ -37,7 +38,7 @@ namespace Renderer {
 
   void setFillMode(MeshFillMode fillMode);
 
-  inline std::unordered_map<std::string, unsigned int> m_uniforms;
+  inline std::unordered_map<std::string, unsigned int> uniforms;
 
   unsigned int compileShader(const char *filepath, ShaderType type);
 

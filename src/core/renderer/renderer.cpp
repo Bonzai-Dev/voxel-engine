@@ -173,8 +173,8 @@ namespace Renderer {
       auto message = static_cast<char*>(alloca(logLength * sizeof(char)));
       glGetShaderInfoLog(shader, logLength, &logLength, message);
 
-      Logger::logError(
-        Logger::Context::Renderer, "Failed to compile %s shader (%s): %s",
+      logError(
+        Context::Renderer, "Failed to compile %s shader (%s): %s",
         type == ShaderType::Vertex ? "vertex" : "fragment",
         filepath,
         message
@@ -224,26 +224,26 @@ namespace Renderer {
     )
       return;
 
-    Logger::Level logLevel = Logger::Level::Warning;
+    Level logLevel = Level::Warning;
 
     switch (type) {
-      case GL_DEBUG_TYPE_ERROR: logLevel = Logger::Level::Error;
+      case GL_DEBUG_TYPE_ERROR: logLevel = Level::Error;
         break;
-      case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: logLevel = Logger::Level::Warning;
+      case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: logLevel = Level::Warning;
         break;
-      case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR: logLevel = Logger::Level::Warning;
+      case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR: logLevel = Level::Warning;
         break;
-      case GL_DEBUG_TYPE_PORTABILITY: logLevel = Logger::Level::Warning;
+      case GL_DEBUG_TYPE_PORTABILITY: logLevel = Level::Warning;
         break;
-      case GL_DEBUG_TYPE_PERFORMANCE: logLevel = Logger::Level::Warning;
+      case GL_DEBUG_TYPE_PERFORMANCE: logLevel = Level::Warning;
         break;
-      case GL_DEBUG_TYPE_MARKER: logLevel = Logger::Level::Info;
+      case GL_DEBUG_TYPE_MARKER: logLevel = Level::Info;
         break;
-      case GL_DEBUG_TYPE_OTHER: logLevel = Logger::Level::Info;
+      case GL_DEBUG_TYPE_OTHER: logLevel = Level::Info;
         break;
     }
 
-    Logger::log(logLevel, Logger::Context::Renderer, "OpenGL ID %u: %s", id, message);
+    Logger::log(logLevel, Context::Renderer, "OpenGL ID %u: %s", id, message);
   }
 
   void useTexture(unsigned int texture) {

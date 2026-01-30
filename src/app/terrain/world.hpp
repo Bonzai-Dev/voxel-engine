@@ -18,10 +18,13 @@ namespace Game {
     }
 
     public:
-      static int hash(const glm::ivec2 &position) {
-        int hash = sizeof(position);
-        hash ^= position.x + 0x9e3779b9 + (hash <<  6) + (hash >> 2);
-        hash ^= position.y + 0x9e3779b9 + (hash <<  6) + (hash >> 2);
+      static unsigned long long hash(const glm::ivec2 &position) {
+        unsigned long long hash = 0;
+        hash = hash * 257 + position.x;
+        hash %= 1000000007;
+
+        hash = hash * 257 + position.y;
+        hash %= 1000000007;
         return hash;
       }
 
@@ -73,12 +76,12 @@ namespace Game {
       const Camera &camera;
       Shader::Default shader;
 
-      std::vector<std::thread> worldBuilder;
+      std::vector<std::thread> builderThreads;
       std::unordered_map<ChunkPosition, Chunk> chunkMap;
       std::vector<ChunkPosition> deleteQueue;
       std::mutex chunkBuilderMutex;
       std::mutex deleteQueueMutex;
-      std::condition_variable buildChunks;
+      std::condition_variable chunkBuilder;
 
       bool generating = true;
       bool running = true;

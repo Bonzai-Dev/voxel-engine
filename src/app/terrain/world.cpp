@@ -16,15 +16,16 @@ namespace Game {
 
     for (size_t threadCount = 0; threadCount < 1; threadCount++) {
       std::thread terrainLoader(&World::loadTerrain, this);
-      worldBuilder.push_back(std::move(terrainLoader));
+      builderThreads.push_back(std::move(terrainLoader));
     }
   }
 
   World::~World() {
+    chunkBuilder.notify_all();
     running = false;
     generating = false;
 
-    for (auto &thread: worldBuilder) {
+    for (auto &thread: builderThreads) {
       if (thread.joinable())
         thread.join();
     }
@@ -37,7 +38,7 @@ namespace Game {
 
     if (camera.moving()) {
       generating = true;
-      buildChunks.notify_all();
+      chunkBuilder.notify_all();
     } else {
       generating = false;
     }
@@ -47,7 +48,7 @@ namespace Game {
     deleteQueue.swap(localDeleteQueue);
     queueLock.unlock();
 
-    std::unique_lock renderLock(chunkBuilderMutex);
+    std::unique_lock deleteLock(chunkBuilderMutex);
     for (auto &position: localDeleteQueue) {
       if (chunkMap.contains(position)) {
         auto &chunk = chunkMap.at(position);
@@ -55,8 +56,10 @@ namespace Game {
         chunkMap.erase(position);
       }
     }
+    deleteLock.unlock();
 
     // Not really the most efficient way of sorting but works for now
+    std::unique_lock renderLock(chunkBuilderMutex);
     std::multimap<float, ChunkPosition> waterMeshes;
     for (auto &[position, chunk]: chunkMap) {
       static constexpr int halfChunkSize = ChunkSize / 2;
@@ -82,6 +85,9 @@ namespace Game {
 
   void World::loadTerrain() {
     while (running) {
+      std::unique_lock chunkBuilderLock(chunkBuilderMutex);
+      // chunkBuilder.wait(chunkBuilderLock, [this] { return generating || !running; });
+
       static constexpr int halfRenderDistance = (RenderDistance / 2) * ChunkSize;
       const glm::ivec3 &cameraPosition = camera.getPosition();
       const glm::ivec2 cameraGridPosition = glm::ivec2(
@@ -94,9 +100,8 @@ namespace Game {
       const int minimumZ = cameraGridPosition.y - halfRenderDistance;
       const int maximumZ = cameraGridPosition.y + halfRenderDistance;
 
-      std::unique_lock chunkBuilderLock(chunkBuilderMutex);
       for (const auto &[position, chunk] : chunkMap) {
-        const bool cullChunk = position.x < minimumX || position.x >= maximumX || position.y < minimumZ || position.y >= maximumZ;
+        const bool cullChunk = position.x < minimumX || position.x > maximumX || position.y < minimumZ || position.y > maximumZ;
         if (cullChunk) {
           std::lock_guard lock(deleteQueueMutex);
           deleteQueue.push_back(position);
@@ -111,7 +116,7 @@ namespace Game {
         const ChunkPosition position(x, z);
 
         if (!chunkMap.contains(position)) {
-          std::this_thread::sleep_for(std::chrono::milliseconds(1));
+          std::this_thread::sleep_for(std::chrono::nanoseconds(1));
           std::lock_guard lock(chunkBuilderMutex);
           chunkMap.emplace(position, Chunk(position, generateHeightMap(position / static_cast<int>(ChunkSize)), *this));
         }

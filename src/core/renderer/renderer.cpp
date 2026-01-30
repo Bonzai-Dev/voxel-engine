@@ -20,9 +20,9 @@ namespace Renderer {
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 
     glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   }
-  
+
   void clearBuffer(glm::vec4 color) {
     glClearColor(color.r, color.g, color.b, color.a);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -133,10 +133,11 @@ namespace Renderer {
   }
 
   int getUniform(const char *name, unsigned int shaderProgram) {
+    static std::unordered_map<std::string, unsigned int> uniforms;
     const std::string uniformKey = name + std::to_string(shaderProgram);
     const GLint uniformLocation = glGetUniformLocation(shaderProgram, name);
     if (uniformLocation == -1) {
-      logWarning(Context::Renderer, "Unable to get the uniform location of %s", name);
+      logWarning(Context::Renderer, "Unable to get the uniform location of \"%s\"", name);
       return -1;
     }
 
@@ -250,23 +251,38 @@ namespace Renderer {
     glBindTexture(GL_TEXTURE_2D, texture);
   }
 
-  unsigned int loadCubemap(std::vector<std::string_view> faces) {
-    // int width, height, channelsCount;
-    // for (size_t index = 0; index < faces.size(); index++) {
-    //       unsigned char *data = stbi_load(filepath.data(), &width, &height, &channelsCount, 0);
-    //   if (data)
-    //   {
-    //     glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
-    //                  0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data
-    //     );
-    //     stbi_image_free(data);
-    //   }
-    //   else
-    //   {
-    //     std::cout << "Cubemap tex failed to load at path: " << faces[i] << std::endl;
-    //     stbi_image_free(data);
-    //   }
-    // }
+  void useCubeMap(unsigned int texture) {
+    glBindTexture(GL_TEXTURE_CUBE_MAP, texture);
+  }
+
+  unsigned int loadCubeMap(const std::array<std::string_view, 6> &faces) {
+    unsigned int texture;
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, texture);
+
+    int width, height, channelsCount;
+    for (size_t faceIndex = 0; faceIndex < faces.size(); faceIndex++) {
+      std::string_view filepath = faces[faceIndex];
+      unsigned char *data = stbi_load(filepath.data(), &width, &height, &channelsCount, 0);
+      if (!data) {
+        logError(Context::Renderer, "Failed to load cube map texture at \"%s\"", faceIndex);
+        stbi_image_free(data);
+      }
+
+      glTexImage2D(
+        GL_TEXTURE_CUBE_MAP_POSITIVE_X + faceIndex,
+              0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data
+      );
+      stbi_image_free(data);
+    }
+
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+    return texture;
   }
 
   unsigned int loadPng(const char *filepath) {
@@ -274,6 +290,7 @@ namespace Renderer {
     unsigned char *data = stbi_load(filepath, &width, &height, &channelsCount, 0);
     if (!data) {
       logError(Context::Core, "Failed to load image at \"%s\".", filepath);
+      stbi_image_free(data);
       return 0;
     }
 

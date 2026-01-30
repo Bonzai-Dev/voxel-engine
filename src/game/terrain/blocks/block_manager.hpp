@@ -27,6 +27,8 @@ namespace Game::Blocks {
 
       const MeshId &getBlockMeshId(BlockId blockId) const { return blockData[blockId].meshId; }
 
+      const Renderer::MeshData &getMeshData(MeshId meshId) const { return meshData[meshId]; }
+
     private:
       mutable std::unordered_map<BlockId, BlockMeshData> blockMeshData;
       mutable std::unordered_map<MeshId, Renderer::MeshData> meshData;

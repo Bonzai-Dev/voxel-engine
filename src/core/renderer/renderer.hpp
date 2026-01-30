@@ -38,8 +38,6 @@ namespace Renderer {
 
   void setFillMode(MeshFillMode fillMode);
 
-  inline std::unordered_map<std::string, unsigned int> uniforms;
-
   unsigned int compileShader(const char *filepath, ShaderType type);
 
   unsigned int createShaderProgram(const char *vertexShaderPath, const char *fragmentShaderPath);
@@ -110,7 +108,9 @@ namespace Renderer {
 
   void useTexture(unsigned int texture);
 
-  unsigned int loadCubemap(std::vector<std::string_view> faces);
+  void useCubeMap(unsigned int texture);
+
+  unsigned int loadCubeMap(const std::array<std::string_view, 6> &faces);
 
   unsigned int loadPng(const char *filepath);
 }

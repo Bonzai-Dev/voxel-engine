@@ -2,13 +2,13 @@
 #include <condition_variable>
 #include <thread>
 #include <mutex>
-#include <shared_mutex>
 #include <glm/vec3.hpp>
 #include <core/open_simplex2s.hpp>
 #include <glm/vec2.hpp>
-#include <app/camera.hpp>
-#include <app/shaders/default.hpp>
+#include <game/camera.hpp>
+#include <game/shaders/block.hpp>
 #include "chunk.hpp"
+#include "game/skybox.hpp"
 #include "blocks/block_manager.hpp"
 
 namespace Game {
@@ -74,7 +74,9 @@ namespace Game {
       Blocks::BlockManager blockManager;
       Core::OpenSimplexNoise::Noise noiseGenerator = Core::OpenSimplexNoise::Noise(getSeed());
       const Camera &camera;
-      Shader::Default shader;
+      Shader::Block shader;
+
+      Skybox skybox;
 
       std::vector<std::thread> builderThreads;
       std::unordered_map<ChunkPosition, Chunk> chunkMap;

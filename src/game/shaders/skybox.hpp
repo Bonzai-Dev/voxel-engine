@@ -1,13 +1,11 @@
 #pragma once
 #include <glm/glm.hpp>
-#include <core/renderer/shader.hpp>
+#include "block.hpp"
 
 namespace Game::Shader {
-  class Default : public Renderer::Shader {
+  class Skybox : public Renderer::Shader {
     public:
-      Default();
-
-      void updateModelMatrix(const glm::mat4 &matrix) const;
+      Skybox();
 
       void updateProjectionMatrix(const glm::mat4 &matrix) const;
 

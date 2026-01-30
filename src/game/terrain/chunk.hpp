@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 #include "blocks/block.hpp"
-#include <app/config.hpp>
+#include <game/config.hpp>
 
 namespace Game {
   class World;

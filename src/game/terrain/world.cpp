@@ -1,15 +1,13 @@
 #include <thread>
-#include <iostream>
+#include <map>
 #include <core/logger.hpp>
 #include "../camera.hpp"
 #include "world.hpp"
 
-#include <map>
-
 using namespace Game::Config;
 
 namespace Game {
-  World::World(const Camera &camera) : camera(camera) {
+  World::World(const Camera &camera) : camera(camera), skybox(blockManager.getMeshData(Blocks::MeshId::Default)) {
     Logger::logInfo(Logger::Context::Game, "Generating terrain with a seed of %d.", seed);
     shader.use();
     shader.updateTexture(Renderer::loadPng("./res/images/blocks.png"));
@@ -32,6 +30,8 @@ namespace Game {
   }
 
   void World::render() {
+    skybox.render();
+
     shader.use();
     shader.updateProjectionMatrix(camera.getProjectionMatrix());
     shader.updateViewMatrix(camera.getViewMatrix());
@@ -86,7 +86,7 @@ namespace Game {
   void World::loadTerrain() {
     while (running) {
       std::unique_lock chunkBuilderLock(chunkBuilderMutex);
-      // chunkBuilder.wait(chunkBuilderLock, [this] { return generating || !running; });
+      chunkBuilder.wait(chunkBuilderLock, [this] { return generating || !running; });
 
       static constexpr int halfRenderDistance = (RenderDistance / 2) * ChunkSize;
       const glm::ivec3 &cameraPosition = camera.getPosition();
@@ -116,7 +116,7 @@ namespace Game {
         const ChunkPosition position(x, z);
 
         if (!chunkMap.contains(position)) {
-          std::this_thread::sleep_for(std::chrono::nanoseconds(1));
+          std::this_thread::sleep_for(std::chrono::milliseconds(1));
           std::lock_guard lock(chunkBuilderMutex);
           chunkMap.emplace(position, Chunk(position, generateHeightMap(position / static_cast<int>(ChunkSize)), *this));
         }

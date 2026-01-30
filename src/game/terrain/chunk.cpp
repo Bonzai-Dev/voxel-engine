@@ -79,11 +79,6 @@ namespace Game {
                                                            sizeof(unsigned int) * waterIndices.size());
     Renderer::setVertexData<std::float_t>(0, 3, 5, false, 0, waterVertexBuffer);
     Renderer::setVertexData<std::float_t>(1, 2, 5, false, 3, waterVertexBuffer);
-
-    // std::cout << "Block vertex buffer: " << blockVertexBuffer << '\n';
-    // std::cout << "Block index buffer: " << blockIndexBuffer << '\n';
-    // std::cout << "Water vertex buffer: " << waterVertexBuffer << '\n';
-    // std::cout << "Water index buffer: " << waterIndexBuffer << '\n';
   }
 
   void Chunk::buildMesh() {

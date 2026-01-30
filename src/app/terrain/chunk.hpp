@@ -10,7 +10,7 @@ namespace Game {
     public:
       Chunk(const glm::ivec2 &position, std::vector<int> heightMap, World &world);
 
-      ~Chunk();
+      ~Chunk() = default;
 
       void renderWater();
 

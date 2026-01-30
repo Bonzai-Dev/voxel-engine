@@ -73,13 +73,14 @@ namespace Game {
       const Camera &camera;
       Shader::Default shader;
 
-      std::vector<std::thread> chunkBuilder;
+      std::vector<std::thread> worldBuilder;
       std::unordered_map<ChunkPosition, Chunk> chunkMap;
-      // std::unordered_map<ChunkPosition, Chunk> chunks;
       std::vector<ChunkPosition> deleteQueue;
-      std::shared_mutex chunkBuilderMutex;
+      std::mutex chunkBuilderMutex;
       std::mutex deleteQueueMutex;
+      std::condition_variable buildChunks;
 
+      bool generating = true;
       bool running = true;
 
       void loadTerrain();

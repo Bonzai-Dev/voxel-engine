@@ -14,16 +14,17 @@ namespace Game {
     shader.use();
     shader.updateTexture(Renderer::loadPng("./res/images/blocks.png"));
 
-    // for (size_t threadCount = 0; threadCount < 10; threadCount++) {
-    //   std::thread terrainLoader(&World::loadTerrain, this);
-    //   chunkBuilder.push_back(std::move(terrainLoader));
-    // }
+    for (size_t threadCount = 0; threadCount < 1; threadCount++) {
+      std::thread terrainLoader(&World::loadTerrain, this);
+      worldBuilder.push_back(std::move(terrainLoader));
+    }
   }
 
   World::~World() {
     running = false;
+    generating = false;
 
-    for (auto &thread: chunkBuilder) {
+    for (auto &thread: worldBuilder) {
       if (thread.joinable())
         thread.join();
     }
@@ -34,120 +35,48 @@ namespace Game {
     shader.updateProjectionMatrix(camera.getProjectionMatrix());
     shader.updateViewMatrix(camera.getViewMatrix());
 
-    static constexpr int halfRenderDistance = (RenderDistance / 2) * ChunkSize;
-    const glm::ivec3 &cameraPosition = camera.getPosition();
-    const glm::ivec2 cameraGridPosition = glm::ivec2(
-      (cameraPosition.x / ChunkSize) * ChunkSize,
-      (cameraPosition.z / ChunkSize) * ChunkSize
-    );
-
-
-    // // Not really the most efficient way to do this but it works for now
-    // std::multimap<float, ChunkPosition> waterMeshes;
-    // for (auto &[position, chunk]: chunks) {
-    //   static constexpr int halfChunkSize = ChunkSize / 2;
-    //   const glm::vec3 waterMeshPosition = glm::vec3(
-    //     position.x + halfChunkSize,
-    //     WaterLevel,
-    //     position.y + halfChunkSize
-    //   );
-    //   const float distance = glm::length(camera.getPosition() - waterMeshPosition);
-    //   waterMeshes.insert({distance, position});
-    // }
-    //
-    // for (std::map<float, ChunkPosition>::reverse_iterator it = waterMeshes.rbegin(); it != waterMeshes.rend(); ++it) {
-    //   const ChunkPosition &chunkPosition = it->second;
-    //   if (chunks.contains(chunkPosition)) {
-    //     auto &chunk = chunks.at(chunkPosition);
-    //     shader.updateModelMatrix(chunk.getModelMatrix());
-    //     chunk.renderBlocks();
-    //     chunk.renderWater();
-    //   }
-    // }
-
-
-
-    // std::map<float, glm::vec3> sorted;
-    // for (auto &[position, chunk]: chunks) {
-    //   static constexpr int halfChunkSize = ChunkSize / 2;
-    //   const glm::vec3 waterMeshPosition = glm::vec3(position.x + halfChunkSize, WaterLevel,
-    //                                                 position.y + halfChunkSize);
-    //   const glm::vec3 chunkPosition = glm::vec3(position.x, MinChunkHeight, position.y);
-    //
-    //   sorted[glm::length(camera.getPosition() - waterMeshPosition)] = chunkPosition;
-    // }
-    //
-    // for (std::map<float, glm::vec3>::reverse_iterator it = sorted.rbegin(); it != sorted.rend(); ++it) {
-    //   const glm::ivec3 &chunkPosition = it->second;
-    //
-    //   if (chunks.contains(ChunkPosition(chunkPosition.x, chunkPosition.z))) {
-    //     std::shared_lock lock(chunkBuilderMutex);
-    //     auto &chunk = chunks.at(ChunkPosition(chunkPosition.x, chunkPosition.z));
-    //     lock.unlock();
-    //
-    //     shader.updateModelMatrix(chunk.getModelMatrix());
-    //     chunk.renderBlocks();
-    //     chunk.renderWater();
-    //   }
-    // }
-
-//     std::vector<ChunkPosition> chunksToDelete;
-//     {
-//       std::unique_lock lock(deleteQueueMutex);
-//       chunksToDelete.swap(deleteQueue);
-//     }
-// //bro why
-//     for (const auto &position: chunksToDelete) {
-//       if (chunkMap.contains(position)) {
-//         chunkMap.at(position).deleteBuffers();
-//         chunkMap.erase(position);
-//       }
-//     }
-//
-//     std::unique_lock lock(chunkBuilderMutex);
-//     for (const auto &position : chunks) {
-//       if (!chunkMap.contains(position))
-//       chunkMap.emplace(position, Chunk(position, generateHeightMap(position / ChunkSize), *this));
-//     }
-//
-//     for (auto &[position, chunk]: chunkMap) {
-//       shader.updateModelMatrix(chunk.getModelMatrix());
-//       chunk.renderBlocks();
-//       chunk.renderWater();
-//     }
-
-    const int minimumX = cameraGridPosition.x - halfRenderDistance;
-    const int maximumX = cameraGridPosition.x + halfRenderDistance;
-    const int minimumZ = cameraGridPosition.y - halfRenderDistance;
-    const int maximumZ = cameraGridPosition.y + halfRenderDistance;
-
-    for (size_t chunkIndex = 0; chunkIndex < RenderDistance * RenderDistance; chunkIndex++) {
-      const int x = cameraGridPosition.x + (chunkIndex % RenderDistance) * ChunkSize - halfRenderDistance;
-      const int z = cameraGridPosition.y + ((chunkIndex / RenderDistance) % RenderDistance) * ChunkSize -
-                    halfRenderDistance;
-      const ChunkPosition position(x, z);
-      if (!chunkMap.contains(position))
-
-        // instead of passing chunk class pass position and construct it when rendering
-        chunkMap.try_emplace(position, Chunk(position, generateHeightMap(position / static_cast<int>(ChunkSize)), *this));
+    if (camera.moving()) {
+      generating = true;
+      buildChunks.notify_all();
+    } else {
+      generating = false;
     }
 
-    for (auto iterator = chunkMap.begin(); iterator != chunkMap.end();) {
-      const auto &position = iterator->first;
-      const auto &chunk = iterator->second;
-      const bool cullChunk = position.x < minimumX || position.x > maximumX || position.y < minimumZ || position.y > maximumZ;
-      if (cullChunk) {
+    std::vector<ChunkPosition> localDeleteQueue;
+    std::unique_lock queueLock(deleteQueueMutex);
+    deleteQueue.swap(localDeleteQueue);
+    queueLock.unlock();
+
+    std::unique_lock renderLock(chunkBuilderMutex);
+    for (auto &position: localDeleteQueue) {
+      if (chunkMap.contains(position)) {
+        auto &chunk = chunkMap.at(position);
         chunk.deleteBuffers();
-        iterator = chunkMap.erase(iterator);
+        chunkMap.erase(position);
       }
-      else
-        iterator++;
     }
 
+    // Not really the most efficient way of sorting but works for now
+    std::multimap<float, ChunkPosition> waterMeshes;
     for (auto &[position, chunk]: chunkMap) {
-      shader.updateModelMatrix(chunk.getModelMatrix());
-      chunk.renderBlocks();
-      chunk.renderWater();
+      static constexpr int halfChunkSize = ChunkSize / 2;
+      const glm::vec3 waterMeshPosition = glm::vec3(
+        position.x + halfChunkSize,
+        WaterLevel,
+        position.y + halfChunkSize
+      );
+      const float distance = glm::length(camera.getPosition() - waterMeshPosition);
+      waterMeshes.insert({distance, position});
+    }
+
+    for (std::map<float, ChunkPosition>::reverse_iterator it = waterMeshes.rbegin(); it != waterMeshes.rend(); ++it) {
+      const ChunkPosition &chunkPosition = it->second;
+      if (chunkMap.contains(chunkPosition)) {
+        auto &chunk = chunkMap.at(chunkPosition);
+        shader.updateModelMatrix(chunk.getModelMatrix());
+        chunk.renderBlocks();
+        chunk.renderWater();
+      }
     }
   }
 
@@ -165,24 +94,28 @@ namespace Game {
       const int minimumZ = cameraGridPosition.y - halfRenderDistance;
       const int maximumZ = cameraGridPosition.y + halfRenderDistance;
 
-      // for (const auto &position : chunkMap) {
-      //   const bool cullChunk = position.x < minimumX || position.x > maximumX || position.y < minimumZ ||
-      //                                      position.y > maximumZ;
-      //   if (cullChunk) {
-      //     std::unique_lock lock(deleteQueueMutex);
-      //     deleteQueue.push_back(position);
-      //   }
-      // }
-      //
-      // for (size_t chunkIndex = 0; chunkIndex < RenderDistance * RenderDistance; chunkIndex++) {
-      //   const int x = cameraGridPosition.x + (chunkIndex % RenderDistance) * ChunkSize - halfRenderDistance;
-      //   const int z = cameraGridPosition.y + ((chunkIndex / RenderDistance) % RenderDistance) * ChunkSize -
-      //                 halfRenderDistance;
-      //   const ChunkPosition position(x, z);
-      //
-      //   std::unique_lock lock(chunkBuilderMutex);
-      //   chunkMap.emplace(position, Chunk(position, generateHeightMap(position / ChunkSize), *this));
-      // }
+      std::unique_lock chunkBuilderLock(chunkBuilderMutex);
+      for (const auto &[position, chunk] : chunkMap) {
+        const bool cullChunk = position.x < minimumX || position.x >= maximumX || position.y < minimumZ || position.y >= maximumZ;
+        if (cullChunk) {
+          std::lock_guard lock(deleteQueueMutex);
+          deleteQueue.push_back(position);
+        }
+      }
+      chunkBuilderLock.unlock();
+
+      for (size_t chunkIndex = 0; chunkIndex < RenderDistance * RenderDistance; chunkIndex++) {
+        const int x = cameraGridPosition.x + (chunkIndex % RenderDistance) * ChunkSize - halfRenderDistance;
+        const int z = cameraGridPosition.y + ((chunkIndex / RenderDistance) % RenderDistance) * ChunkSize -
+                      halfRenderDistance;
+        const ChunkPosition position(x, z);
+
+        if (!chunkMap.contains(position)) {
+          std::this_thread::sleep_for(std::chrono::milliseconds(1));
+          std::lock_guard lock(chunkBuilderMutex);
+          chunkMap.emplace(position, Chunk(position, generateHeightMap(position / static_cast<int>(ChunkSize)), *this));
+        }
+      }
     }
   }
 

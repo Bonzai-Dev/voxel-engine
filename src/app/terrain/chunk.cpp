@@ -16,9 +16,6 @@ namespace Game {
     buildMesh();
   }
 
-  Chunk::~Chunk() {
-  }
-
   void Chunk::renderBlocks() {
     loadMesh();
     Renderer::drawTriangles(
@@ -30,6 +27,9 @@ namespace Game {
   }
 
   void Chunk::renderWater() {
+    if (waterVertexData.empty())
+      return;
+
     loadMesh();
     Renderer::drawTriangles(
       waterVertexArrayObject,
@@ -40,14 +40,19 @@ namespace Game {
   }
 
   void Chunk::deleteBuffers() const {
+    if (!loadedMesh)
+      return;
+
     Renderer::deleteVertexBufferObject(blockVertexBuffer);
     Renderer::deleteElementBufferObject(blockIndexBuffer);
+    Renderer::deleteVertexArrayObject(blockVertexArrayObject);
+
+    if (waterVertexData.empty())
+      return;
 
     Renderer::deleteVertexBufferObject(waterVertexBuffer);
     Renderer::deleteElementBufferObject(waterIndexBuffer);
-
     Renderer::deleteVertexArrayObject(waterVertexArrayObject);
-    Renderer::deleteVertexBufferObject(blockVertexArrayObject);
   }
 
   void Chunk::loadMesh() {
@@ -64,6 +69,9 @@ namespace Game {
     Renderer::setVertexData<std::float_t>(0, 3, 5, false, 0, blockVertexBuffer);
     Renderer::setVertexData<std::float_t>(1, 2, 5, false, 3, blockVertexBuffer);
 
+    if (waterVertexData.empty())
+      return;
+
     waterVertexArrayObject = Renderer::createVertexArrayObject();
     waterVertexBuffer = Renderer::createVertexBufferObject(waterVertexData.data(),
                                                            sizeof(float) * waterVertexData.size());
@@ -71,6 +79,11 @@ namespace Game {
                                                            sizeof(unsigned int) * waterIndices.size());
     Renderer::setVertexData<std::float_t>(0, 3, 5, false, 0, waterVertexBuffer);
     Renderer::setVertexData<std::float_t>(1, 2, 5, false, 3, waterVertexBuffer);
+
+    // std::cout << "Block vertex buffer: " << blockVertexBuffer << '\n';
+    // std::cout << "Block index buffer: " << blockIndexBuffer << '\n';
+    // std::cout << "Water vertex buffer: " << waterVertexBuffer << '\n';
+    // std::cout << "Water index buffer: " << waterIndexBuffer << '\n';
   }
 
   void Chunk::buildMesh() {
@@ -84,29 +97,6 @@ namespace Game {
 
       addBlock({localPosition, blockId});
     }
-
-    // // Not really the most efficient way to do this but it works for now
-    // std::multimap<float, ChunkPosition> waterMeshes;
-    // for (auto &[position, chunk]: chunks) {
-    //   static constexpr int halfChunkSize = ChunkSize / 2;
-    //   const glm::vec3 waterMeshPosition = glm::vec3(
-    //     position.x + halfChunkSize,
-    //     WaterLevel,
-    //     position.y + halfChunkSize
-    //   );
-    //   const float distance = glm::length(camera.getPosition() - waterMeshPosition);
-    //   waterMeshes.insert({distance, position});
-    // }
-    //
-    // for (std::map<float, ChunkPosition>::reverse_iterator it = waterMeshes.rbegin(); it != waterMeshes.rend(); ++it) {
-    //   const ChunkPosition &chunkPosition = it->second;
-    //   if (chunks.contains(chunkPosition)) {
-    //     auto &chunk = chunks.at(chunkPosition);
-    //     shader.updateModelMatrix(chunk.getModelMatrix());
-    //     chunk.renderBlocks();
-    //     chunk.renderWater();
-    //   }
-    // }
 
     for (size_t blockCount = 0; blockCount < TotalChunkBlocks; blockCount++) {
       const int x = blockCount % ChunkSize;

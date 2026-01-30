@@ -4,6 +4,8 @@
 #include "renderer.hpp"
 #include "util/io.hpp"
 
+using namespace Logger;
+
 namespace Renderer {
   void initialize() {
     stbi_set_flip_vertically_on_load(true);
@@ -50,20 +52,37 @@ namespace Renderer {
   }
 
   void useElementBufferObject(unsigned int buffer) {
+    if (buffer == 0) {
+      logWarning(Context::Renderer, "Unable to bind element buffer object of id %d.", buffer);
+      return;
+    }
+
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer);
   }
 
   void useVertexArrayObject(unsigned int object) {
+    if (object == 0) {
+      logWarning(Context::Renderer, "Unable to bind vertex array object of id %d.", object);
+      return;
+    }
+
     glBindVertexArray(object);
   }
 
   void useVertexBufferObject(unsigned int buffer) {
+    if (buffer == 0) {
+      logWarning(Context::Renderer, "Unable to bind vertex buffer object of id %d.", buffer);
+      return;
+    }
+
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
   }
 
   void drawTriangles(unsigned int vertexArrayObject, unsigned int vertexBuffer, unsigned int indexBuffer, size_t indicesSize) {
-    if (indicesSize == 0)
+    if (indicesSize == 0) {
+      logWarning(Context::Renderer, "Unable to draw triangles, size of index buffer %d is 0.", indexBuffer);
       return;
+    }
 
     useVertexArrayObject(vertexArrayObject);
     useVertexBufferObject(vertexBuffer);
@@ -84,16 +103,31 @@ namespace Renderer {
   }
 
   void deleteVertexArrayObject(unsigned int object) {
+    if (object == 0) {
+      logWarning(Context::Renderer, "Attempted to delete an invalid vertex array object of id %d", object);
+      return;
+    }
+
     glDeleteVertexArrays(1, &object);
     object = 0;
   }
 
   void deleteVertexBufferObject(unsigned int buffer) {
+    if (buffer == 0) {
+      logWarning(Context::Renderer, "Attempted to delete an invalid vertex buffer object of id %d", buffer);
+      return;
+    }
+
     glDeleteBuffers(1, &buffer);
     buffer = 0;
   }
 
   void deleteElementBufferObject(unsigned int buffer) {
+    if (buffer == 0) {
+      logWarning(Context::Renderer, "Attempted to delete an invalid element buffer object of id %d", buffer);
+      return;
+    }
+
     glDeleteBuffers(1, &buffer);
     buffer = 0;
   }
@@ -102,7 +136,7 @@ namespace Renderer {
     const std::string uniformKey = name + std::to_string(shaderProgram);
     const GLint uniformLocation = glGetUniformLocation(shaderProgram, name);
     if (uniformLocation == -1) {
-      Logger::logWarning(Logger::Context::Renderer, "Unable to get the uniform location of %s", name);
+      logWarning(Context::Renderer, "Unable to get the uniform location of %s", name);
       return -1;
     }
 
@@ -239,7 +273,7 @@ namespace Renderer {
     int width, height, channelsCount;
     unsigned char *data = stbi_load(filepath, &width, &height, &channelsCount, 0);
     if (!data) {
-      Logger::logError(Logger::Context::Core, "Failed to load image at \"%s\".", filepath);
+      logError(Context::Core, "Failed to load image at \"%s\".", filepath);
       return 0;
     }
 

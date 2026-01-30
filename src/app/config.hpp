@@ -13,7 +13,7 @@ namespace Game::Config {
   constexpr inline int WaterLevel = -2;
 
   // How many chunks to render in front of the camera
-  constexpr inline int RenderDistance = 2;
+  constexpr inline int RenderDistance = 20;
 
   constexpr inline int NoiseHeightOffset = 5;
   constexpr inline int NoiseOctaves = 6;

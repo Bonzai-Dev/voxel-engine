@@ -27,7 +27,7 @@ namespace Util::Json {
     T value;
     auto error = array.at(index).get(value);
     if (error) {
-      Logger::logError(Logger::Context::Core, "Failed to get index %zu: %s", index, simdjson::error_message(error));
+      Logger::logError(Logger::Context::Core, "Failed to get index %u: %s", index, simdjson::error_message(error));
       return T{};
     }
     return value;

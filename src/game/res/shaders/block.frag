@@ -3,6 +3,7 @@
 out vec4 VertexColor;
 in vec2 TextureCoordinates;
 
+uniform vec3 ambientLight;
 uniform sampler2D imageTexture;
 
 void main() {
@@ -11,5 +12,5 @@ void main() {
   if (textureColor.a < 0.1)
     discard;
 
-  VertexColor = textureColor;
+  VertexColor = textureColor * vec4(ambientLight, 1.0f);
 }

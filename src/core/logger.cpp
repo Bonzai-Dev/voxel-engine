@@ -40,9 +40,11 @@ namespace Logger {
     const int size = vsnprintf(nullptr, 0, format, argsSize) + 1;
     va_end(argsSize);
 
+    va_list formatted;
+    va_copy(formatted, args);
     char *message = new char[size];
-    vsnprintf(message, size, format, args);
-    va_end(args);
+    vsnprintf(message, size, format, formatted);
+    va_end(formatted);
 
     std::string_view messageView = message;
     if (messageView.back() == '\n')

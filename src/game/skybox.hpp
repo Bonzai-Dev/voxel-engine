@@ -16,12 +16,12 @@ namespace Game {
 
     private:
       const std::array<std::string_view, 6> faces {
-        "./res/images/skybox/right.jpg",
-        "./res/images/skybox/left.jpg",
-        "./res/images/skybox/top.jpg",
-        "./res/images/skybox/bottom.jpg",
-        "./res/images/skybox/front.jpg",
-        "./res/images/skybox/back.jpg"
+        "./res/images/skybox/right.png",
+        "./res/images/skybox/left.png",
+        "./res/images/skybox/top.png",
+        "./res/images/skybox/bottom.png",
+        "./res/images/skybox/front.png",
+        "./res/images/skybox/back.png"
       };
 
       glm::mat4 transform = glm::mat4(1.0f);

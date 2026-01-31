@@ -264,14 +264,22 @@ namespace Renderer {
       std::string_view filepath = faces[faceIndex];
       unsigned char *data = stbi_load(filepath.data(), &width, &height, &channelsCount, 0);
       if (!data) {
-        logError(Context::Renderer, "Failed to load cube map texture at \"%s\"", faceIndex);
+        logError(Context::Renderer, "Failed to load cube map texture at \"%u\"", faceIndex);
         stbi_image_free(data);
         return 0;
       }
 
+      GLenum format;
+      if (channelsCount == 1)
+        format = GL_RED;
+      else if (channelsCount == 3)
+        format = GL_RGB;
+      else if (channelsCount == 4)
+        format = GL_RGBA;
+
       glTexImage2D(
         GL_TEXTURE_CUBE_MAP_POSITIVE_X + faceIndex,
-        0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data
+        0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data
       );
       stbi_image_free(data);
     }

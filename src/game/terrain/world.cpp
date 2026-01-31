@@ -11,6 +11,7 @@ namespace Game {
     Logger::logInfo(Logger::Context::Game, "Generating terrain with a seed of %d.", seed);
     shader.use();
     shader.updateTexture(Renderer::loadTexture("./res/images/blocks.png"));
+    shader.updateAmbientLight(glm::vec3(255, 255, 255));
 
     for (size_t threadCount = 0; threadCount < 1; threadCount++) {
       std::thread terrainLoader(&World::loadTerrain, this);

@@ -14,5 +14,7 @@ namespace Game::Shader {
       void updateViewMatrix(const glm::mat4 &matrix) const;
 
       void updateTexture(unsigned int texture) const;
+
+      void updateAmbientLight(const glm::vec3 &color) const;
   };
 }

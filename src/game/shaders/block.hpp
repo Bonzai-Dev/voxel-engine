@@ -7,14 +7,18 @@ namespace Game::Shader {
     public:
       Block();
 
-      void updateModelMatrix(const glm::mat4 &matrix) const;
+      void setModelMatrix(const glm::mat4 &matrix) const;
 
-      void updateProjectionMatrix(const glm::mat4 &matrix) const;
+      void setProjectionMatrix(const glm::mat4 &matrix) const;
 
-      void updateViewMatrix(const glm::mat4 &matrix) const;
+      void setViewMatrix(const glm::mat4 &matrix) const;
 
       void updateTexture(unsigned int texture) const;
 
-      void updateAmbientLight(const glm::vec3 &color) const;
+      void setAmbientColor(const glm::vec3 &color) const;
+
+      void setSunDirection(const glm::vec3 &direction) const;
+
+      void setSunColor(const glm::vec3 &color) const;
   };
 }

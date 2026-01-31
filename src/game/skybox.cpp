@@ -18,8 +18,8 @@ namespace Game {
 
     shader.use();
     Renderer::useCubeMap(cubeMap);
-    shader.updateProjectionMatrix(camera.getProjectionMatrix());
-    shader.updateViewMatrix(glm::mat4(glm::mat3(camera.getViewMatrix())));
+    shader.setProjectionMatrix(camera.getProjectionMatrix());
+    shader.setViewMatrix(glm::mat4(glm::mat3(camera.getViewMatrix())));
 
     Renderer::drawTriangles(
       vertexArrayObject,

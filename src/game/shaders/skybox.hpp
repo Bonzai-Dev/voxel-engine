@@ -7,9 +7,9 @@ namespace Game::Shader {
     public:
       Skybox();
 
-      void updateProjectionMatrix(const glm::mat4 &matrix) const;
+      void setProjectionMatrix(const glm::mat4 &matrix) const;
 
-      void updateViewMatrix(const glm::mat4 &matrix) const;
+      void setViewMatrix(const glm::mat4 &matrix) const;
 
       void updateTexture(unsigned int texture) const;
   };

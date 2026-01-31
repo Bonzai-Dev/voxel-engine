@@ -66,8 +66,9 @@ namespace Game {
     blockIndexBuffer = Renderer::createElementBufferObject(blockIndices.data(),
                                                            sizeof(unsigned int) * blockIndices.size());
 
-    Renderer::setVertexData<std::float_t>(0, 3, 5, false, 0, blockVertexBuffer);
-    Renderer::setVertexData<std::float_t>(1, 2, 5, false, 3, blockVertexBuffer);
+    Renderer::setVertexData<std::float_t>(0, 3, 8, false, 0, blockVertexBuffer);
+    Renderer::setVertexData<std::float_t>(1, 3, 8, false, 3, blockVertexBuffer);
+    Renderer::setVertexData<std::float_t>(2, 2, 8, false, 6, blockVertexBuffer);
 
     if (waterVertexData.empty())
       return;
@@ -77,8 +78,9 @@ namespace Game {
                                                            sizeof(float) * waterVertexData.size());
     waterIndexBuffer = Renderer::createElementBufferObject(waterIndices.data(),
                                                            sizeof(unsigned int) * waterIndices.size());
-    Renderer::setVertexData<std::float_t>(0, 3, 5, false, 0, waterVertexBuffer);
-    Renderer::setVertexData<std::float_t>(1, 2, 5, false, 3, waterVertexBuffer);
+    Renderer::setVertexData<std::float_t>(0, 3, 8, false, 0, waterVertexBuffer);
+    Renderer::setVertexData<std::float_t>(1, 3, 8, false, 3, waterVertexBuffer);
+    Renderer::setVertexData<std::float_t>(2, 2, 8, false, 6, waterVertexBuffer);
   }
 
   void Chunk::buildMesh() {
@@ -140,21 +142,26 @@ namespace Game {
       return;
 
     const auto faceIndex = static_cast<unsigned int>(face);
-    const auto &blockVertexData = world.getBlockManager().getBlockMeshData(block.getBlockId()).vertexData;
+    const BlockVertexData &blockVertexData = world.getBlockManager().getBlockMeshData(block.getBlockId()).vertexData;
+    const glm::vec3 normal = FaceNormals[faceIndex];
 
     const unsigned int vertexIndexStart = faceIndex * 4;
     for (unsigned int vertexIndex = vertexIndexStart; vertexIndex < vertexIndexStart + 4; vertexIndex++) {
-      const auto &blockVertex = blockVertexData[vertexIndex];
-
+      const BlockVertex &blockVertex = blockVertexData[vertexIndex];
       vertexData.push_back(blockVertex.position.x + position.x);
       vertexData.push_back(blockVertex.position.y + position.y);
       vertexData.push_back(blockVertex.position.z + position.z);
+
+      vertexData.push_back(normal.x);
+      vertexData.push_back(normal.y);
+      vertexData.push_back(normal.z);
+
       vertexData.push_back(blockVertex.uv.x);
       vertexData.push_back(blockVertex.uv.y);
 
       // Creates indices for the current face
       if (vertexIndex == vertexIndexStart) {
-        const size_t index = vertexData.size() / 5 - 1;
+        const size_t index = vertexData.size() / 8 - 1;
 
         // Top triangle
         indices.push_back(index + 2);

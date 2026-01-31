@@ -14,6 +14,15 @@ namespace Game::Blocks {
     Bottom
   };
 
+  constexpr inline std::array FaceNormals = {
+    glm::vec3(0.0f, 0.0f, 1.0f),   // Front
+    glm::vec3(0.0f, 0.0f, -1.0f),  // Back
+    glm::vec3(-1.0f, 0.0f, 0.0f),  // Left
+    glm::vec3(1.0f, 0.0f, 0.0f),   // Right
+    glm::vec3(0.0f, 1.0f, 0.0f),   // Top
+    glm::vec3(0.0f, -1.0f, 0.0f)   // Bottom
+  };
+
   struct BlockVertex : Renderer::MeshVertex {
     glm::vec2 uv;
   };

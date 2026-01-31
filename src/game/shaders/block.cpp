@@ -11,17 +11,17 @@ namespace Game::Shader {
   Block::Block() : Shader("./res/shaders/block.vert", "./res/shaders/block.frag") {
   }
 
-  void Block::updateModelMatrix(const glm::mat4 &matrix) const {
+  void Block::setModelMatrix(const glm::mat4 &matrix) const {
     const int location = Renderer::getUniform("modelMatrix", program);
     glUniformMatrix4fv(location, 1, false, glm::value_ptr(matrix));
   }
 
-  void Block::updateProjectionMatrix(const glm::mat4 &matrix) const {
+  void Block::setProjectionMatrix(const glm::mat4 &matrix) const {
     const int location = Renderer::getUniform("projectionMatrix", program);
     glUniformMatrix4fv(location, 1, false, glm::value_ptr(matrix));
   }
 
-  void Block::updateViewMatrix(const glm::mat4 &matrix) const {
+  void Block::setViewMatrix(const glm::mat4 &matrix) const {
     const int location = Renderer::getUniform("viewMatrix", program);
     glUniformMatrix4fv(location, 1, false, glm::value_ptr(matrix));
   }
@@ -33,8 +33,18 @@ namespace Game::Shader {
     glUniform1i(location, 0);
   }
 
-  void Block::updateAmbientLight(const glm::vec3 &color) const {
+  void Block::setAmbientColor(const glm::vec3 &color) const {
     const int location = Renderer::getUniform("ambientLight", program);
+    glUniform3fv(location, 1, glm::value_ptr(Util::Graphics::normalizeColor(glm::vec4(color, 1.0f))));
+  }
+
+  void Block::setSunDirection(const glm::vec3 &direction) const {
+    const int location = Renderer::getUniform("sunDirection", program);
+    glUniform3fv(location, 1, glm::value_ptr(glm::normalize(direction)));
+  }
+
+  void Block::setSunColor(const glm::vec3 &color) const {
+    const int location = Renderer::getUniform("sunColor", program);
     glUniform3fv(location, 1, glm::value_ptr(Util::Graphics::normalizeColor(glm::vec4(color, 1.0f))));
   }
 }

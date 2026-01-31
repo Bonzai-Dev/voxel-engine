@@ -11,7 +11,9 @@ namespace Game {
     Logger::logInfo(Logger::Context::Game, "Generating terrain with a seed of %d.", seed);
     shader.use();
     shader.updateTexture(Renderer::loadTexture("./res/images/blocks.png"));
-    shader.updateAmbientLight(AmbientLightColor);
+    shader.setAmbientColor(AmbientLightColor);
+    shader.setSunDirection({0.5f, -1.0f, 0});
+    shader.setSunColor({99, 77, 52});
 
     for (size_t threadCount = 0; threadCount < 1; threadCount++) {
       std::thread terrainLoader(&World::loadTerrain, this);
@@ -32,8 +34,8 @@ namespace Game {
 
   void World::render() {
     shader.use();
-    shader.updateProjectionMatrix(camera.getProjectionMatrix());
-    shader.updateViewMatrix(camera.getViewMatrix());
+    shader.setProjectionMatrix(camera.getProjectionMatrix());
+    shader.setViewMatrix(camera.getViewMatrix());
 
     if (camera.moving()) {
       generating = true;
@@ -75,7 +77,7 @@ namespace Game {
       const ChunkPosition &chunkPosition = it->second;
       if (chunkMap.contains(chunkPosition)) {
         auto &chunk = chunkMap.at(chunkPosition);
-        shader.updateModelMatrix(chunk.getModelMatrix());
+        shader.setModelMatrix(chunk.getModelMatrix());
         chunk.renderBlocks();
         chunk.renderWater();
       }

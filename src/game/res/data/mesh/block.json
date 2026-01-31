@@ -1,6 +1,6 @@
 {
   "$schema": "mesh.schema.json",
-  "meshId": 1,
+  "meshId": 2,
   "faces": {
     "front": {
       "bottomLeft": [0, 0, 1],

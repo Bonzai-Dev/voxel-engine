@@ -15,12 +15,14 @@ namespace Game::Blocks {
 
   enum class MeshId {
     None = 0,
-    Default = 1,
+    Skybox = 1,
+    Block = 2,
   };
 
   // Filepaths must be specified in order to the id
   constexpr inline std::array MeshDataFilepaths = {
-    "./res/data/mesh/default.json"
+    "./res/data/mesh/block.json",
+    "./res/data/mesh/skybox.json",
   };
 
   constexpr inline std::array BlockDataFilepaths = {

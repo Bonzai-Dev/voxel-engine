@@ -1,0 +1,42 @@
+{
+  "$schema": "mesh.schema.json",
+  "meshId": 1,
+  "faces": {
+    "front": {
+      "bottomLeft": [-1, 1, 1],
+      "bottomRight": [1, 1, 1],
+      "topRight": [1, -1, 1],
+      "topLeft": [-1, -1, 1]
+    },
+    "back": {
+      "bottomLeft": [1, 1, -1],
+      "bottomRight": [-1, 1, -1],
+      "topRight": [-1, -1, -1],
+      "topLeft": [1, -1, -1]
+    },
+    "left": {
+      "bottomLeft": [-1, 1, -1],
+      "bottomRight": [-1, 1, 1],
+      "topRight": [-1, -1, 1],
+      "topLeft": [-1, -1, -1]
+    },
+    "right": {
+      "bottomLeft": [1, 1, 1],
+      "bottomRight": [1, 1, -1],
+      "topRight": [1, -1, -1],
+      "topLeft": [1, -1, 1]
+    },
+    "top": {
+      "bottomLeft": [-1, 1, -1],
+      "bottomRight": [1, 1, -1],
+      "topRight": [1, 1, 1],
+      "topLeft": [-1, 1, 1]
+    },
+    "bottom": {
+      "bottomLeft": [-1, -1, 1],
+      "bottomRight": [1, -1, 1],
+      "topRight": [1, -1, -1],
+      "topLeft": [-1, -1, -1]
+    }
+  }
+}

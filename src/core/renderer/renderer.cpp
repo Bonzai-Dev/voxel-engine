@@ -8,11 +8,9 @@ using namespace Logger;
 
 namespace Renderer {
   void initialize() {
-    stbi_set_flip_vertically_on_load(true);
-
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
+    // glEnable(GL_CULL_FACE);
+    // glCullFace(GL_BACK);
 
     // Enables debugging for OpenGL
     glDebugMessageCallback(debugMessageCallback, nullptr);
@@ -256,6 +254,7 @@ namespace Renderer {
   }
 
   unsigned int loadCubeMap(const std::array<std::string_view, 6> &faces) {
+    stbi_set_flip_vertically_on_load(false);
     unsigned int texture;
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_CUBE_MAP, texture);
@@ -267,11 +266,12 @@ namespace Renderer {
       if (!data) {
         logError(Context::Renderer, "Failed to load cube map texture at \"%s\"", faceIndex);
         stbi_image_free(data);
+        return 0;
       }
 
       glTexImage2D(
         GL_TEXTURE_CUBE_MAP_POSITIVE_X + faceIndex,
-              0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data
+        0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data
       );
       stbi_image_free(data);
     }
@@ -285,7 +285,9 @@ namespace Renderer {
     return texture;
   }
 
-  unsigned int loadPng(const char *filepath) {
+  unsigned int loadTexture(const char *filepath) {
+    stbi_set_flip_vertically_on_load(true);
+
     int width, height, channelsCount;
     unsigned char *data = stbi_load(filepath, &width, &height, &channelsCount, 0);
     if (!data) {
@@ -305,10 +307,17 @@ namespace Renderer {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    GLenum format;
+    if (channelsCount == 1)
+      format = GL_RED;
+    else if (channelsCount == 3)
+      format = GL_RGB;
+    else if (channelsCount == 4)
+      format = GL_RGBA;
+
+    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
     stbi_image_free(data);
-
     return texture;
   }
 }

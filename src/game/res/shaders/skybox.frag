@@ -1,9 +1,11 @@
 #version 460 core
 
 out vec4 VertexColor;
+in vec3 TextureCoordinates;
 
 uniform samplerCube cubeMap;
 
 void main() {
-  VertexColor = vec4(1, 1, 1, 1);
+  vec4 textureColor = texture(cubeMap, TextureCoordinates);
+  VertexColor = textureColor;
 }

@@ -112,5 +112,5 @@ namespace Renderer {
 
   unsigned int loadCubeMap(const std::array<std::string_view, 6> &faces);
 
-  unsigned int loadPng(const char *filepath);
+  unsigned int loadTexture(const char *filepath);
 }

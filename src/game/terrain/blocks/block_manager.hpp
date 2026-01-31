@@ -13,9 +13,9 @@ namespace Game::Blocks {
 
       void loadBlocks();
 
-      void loadMesh(MeshId meshId);
+      void loadMesh(MeshId meshId) const;
 
-      void serializeBlockData(BlockId blockId);
+      void serializeBlockData(BlockId blockId) const;
 
       void loadBlockMesh(BlockId blockId, MeshId meshId);
 

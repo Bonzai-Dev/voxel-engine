@@ -2,12 +2,12 @@
 
 layout (location = 0) in vec3 vertexPosition;
 
-out vec2 TextureCoordinates;
+out vec3 TextureCoordinates;
 
-uniform mat4 modelMatrix;
 uniform mat4 viewMatrix;
 uniform mat4 projectionMatrix;
 
 void main() {
-  gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(vertexPosition, 1.0);
+  TextureCoordinates = vertexPosition;
+  gl_Position = projectionMatrix * viewMatrix * vec4(vertexPosition, 1.0);
 }

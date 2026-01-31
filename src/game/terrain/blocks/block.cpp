@@ -6,6 +6,6 @@
 using namespace Logger;
 
 namespace Game::Blocks {
-  Block::Block(const glm::vec3 &position, BlockId blockId) : blockId(blockId), position(position), meshId(MeshId::Default) {
+  Block::Block(const glm::vec3 &position, BlockId blockId) : blockId(blockId), position(position), meshId(MeshId::Block) {
   }
 }

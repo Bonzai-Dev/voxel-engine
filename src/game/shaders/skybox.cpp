@@ -19,8 +19,8 @@ namespace Game::Shader {
 
   void Skybox::updateTexture(unsigned int texture) const {
     const int location = Renderer::getUniform("cubeMap", program);
-    glActiveTexture(GL_TEXTURE0);
+    glActiveTexture(GL_TEXTURE1);
     Renderer::useCubeMap(texture);
-    glUniform1i(location, 0);
+    glUniform1i(location, 1);
   }
 }

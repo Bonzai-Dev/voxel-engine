@@ -12,7 +12,7 @@ namespace Game {
 
       ~Skybox() = default;
 
-      void render() const;
+      void render(const Camera &camera) const;
 
     private:
       const std::array<std::string_view, 6> faces {
@@ -26,7 +26,7 @@ namespace Game {
 
       glm::mat4 transform = glm::mat4(1.0f);
 
-      unsigned int texture;
+      unsigned int cubeMap;
 
       unsigned int vertexArrayObject;
       unsigned int vertexBuffer;

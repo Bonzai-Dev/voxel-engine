@@ -59,7 +59,7 @@ namespace Game::Blocks {
     blockMesh.indices = mesh.indices;
   }
 
-  void BlockManager::serializeBlockData(BlockId blockId) {
+  void BlockManager::serializeBlockData(BlockId blockId) const {
     if (blockId == BlockId::Air)
       return;
 
@@ -90,7 +90,7 @@ namespace Game::Blocks {
     }
   }
 
-  void BlockManager::loadMesh(MeshId meshId) {
+  void BlockManager::loadMesh(MeshId meshId) const {
     if (meshId == MeshId::None)
       return;
 

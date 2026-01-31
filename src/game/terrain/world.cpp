@@ -7,10 +7,10 @@
 using namespace Game::Config;
 
 namespace Game {
-  World::World(const Camera &camera) : camera(camera), skybox(blockManager.getMeshData(Blocks::MeshId::Default)) {
+  World::World(const Camera &camera) : camera(camera), skybox(blockManager.getMeshData(Blocks::MeshId::Skybox)) {
     Logger::logInfo(Logger::Context::Game, "Generating terrain with a seed of %d.", seed);
     shader.use();
-    shader.updateTexture(Renderer::loadPng("./res/images/blocks.png"));
+    shader.updateTexture(Renderer::loadTexture("./res/images/blocks.png"));
 
     for (size_t threadCount = 0; threadCount < 1; threadCount++) {
       std::thread terrainLoader(&World::loadTerrain, this);
@@ -30,8 +30,6 @@ namespace Game {
   }
 
   void World::render() {
-    skybox.render();
-
     shader.use();
     shader.updateProjectionMatrix(camera.getProjectionMatrix());
     shader.updateViewMatrix(camera.getViewMatrix());
@@ -81,6 +79,7 @@ namespace Game {
         chunk.renderWater();
       }
     }
+    skybox.render(camera);
   }
 
   void World::loadTerrain() {

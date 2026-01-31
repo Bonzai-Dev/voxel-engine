@@ -14,17 +14,19 @@ namespace Game {
   }
 
   void Skybox::render(const Camera &camera) const {
+    glDepthFunc(GL_LEQUAL);
+
     shader.use();
+    Renderer::useCubeMap(cubeMap);
     shader.updateProjectionMatrix(camera.getProjectionMatrix());
     shader.updateViewMatrix(glm::mat4(glm::mat3(camera.getViewMatrix())));
 
-    glDepthMask(false);
     Renderer::drawTriangles(
       vertexArrayObject,
       vertexBuffer,
       indexBuffer,
       mesh.indices.size()
     );
-    glDepthMask(true);
+    glDepthFunc(GL_LESS);
   }
 }

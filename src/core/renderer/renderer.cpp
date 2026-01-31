@@ -9,8 +9,8 @@ using namespace Logger;
 namespace Renderer {
   void initialize() {
     glEnable(GL_DEPTH_TEST);
-    // glEnable(GL_CULL_FACE);
-    // glCullFace(GL_BACK);
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
 
     // Enables debugging for OpenGL
     glDebugMessageCallback(debugMessageCallback, nullptr);

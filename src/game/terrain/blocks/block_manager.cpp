@@ -127,15 +127,16 @@ namespace Game::Blocks {
       }
 
       const unsigned int index = faceIndex * 4;
+      // Currently only generates flipped mesh as chunks are done separately
       // Top triangle
       mesh.indices.push_back(index + 2);
+      mesh.indices.push_back(index);
       mesh.indices.push_back(index + 3);
-      mesh.indices.push_back(index + 1);
 
       // Bottom triangle
-      mesh.indices.push_back(index + 3);
-      mesh.indices.push_back(index);
+      mesh.indices.push_back(index + 2);
       mesh.indices.push_back(index + 1);
+      mesh.indices.push_back(index);
     }
   }
 

@@ -8,6 +8,10 @@
       "type": "number",
       "description": "Mesh identifier."
     },
+    "flipped": {
+      "type": "boolean",
+      "description": "Indicates if the mesh normals are flipped inwards."
+    },
     "faces": {
       "type": "object",
       "description": "Faces of the mesh.",

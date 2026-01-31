@@ -99,5 +99,7 @@ namespace Game {
       static int generateSeed();
 
       int seed = generateSeed();
+
+      static int randomInt(int minimum, int maximum);
   };
 }

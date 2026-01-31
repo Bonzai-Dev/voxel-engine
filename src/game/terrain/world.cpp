@@ -11,7 +11,7 @@ namespace Game {
     Logger::logInfo(Logger::Context::Game, "Generating terrain with a seed of %d.", seed);
     shader.use();
     shader.updateTexture(Renderer::loadTexture("./res/images/blocks.png"));
-    shader.updateAmbientLight(glm::vec3(255, 255, 255));
+    shader.updateAmbientLight(AmbientLightColor);
 
     for (size_t threadCount = 0; threadCount < 1; threadCount++) {
       std::thread terrainLoader(&World::loadTerrain, this);
@@ -64,7 +64,7 @@ namespace Game {
       static constexpr int halfChunkSize = ChunkSize / 2;
       const glm::vec3 waterMeshPosition = glm::vec3(
         position.x + halfChunkSize,
-        WaterLevel,
+        SeaLevel,
         position.y + halfChunkSize
       );
       const float distance = glm::length(camera.getPosition() - waterMeshPosition);
@@ -100,8 +100,9 @@ namespace Game {
       const int minimumZ = cameraGridPosition.y - halfRenderDistance;
       const int maximumZ = cameraGridPosition.y + halfRenderDistance;
 
-      for (const auto &[position, chunk] : chunkMap) {
-        const bool cullChunk = position.x < minimumX || position.x > maximumX || position.y < minimumZ || position.y > maximumZ;
+      for (const auto &[position, chunk]: chunkMap) {
+        const bool cullChunk = position.x < minimumX || position.x > maximumX || position.y < minimumZ || position.y >
+                               maximumZ;
         if (cullChunk) {
           std::lock_guard lock(deleteQueueMutex);
           deleteQueue.push_back(position);
@@ -129,30 +130,31 @@ namespace Game {
   }
 
   Blocks::BlockId World::evaluateBlockType(int y, int noiseHeight) {
+    using namespace Blocks;
     const bool inChunkHeight = y >= MinChunkHeight && y < MaxChunkHeight;
     if (!inChunkHeight)
-      return Blocks::BlockId::Air;
+      return BlockId::Air;
 
+    BlockId blockId = BlockId::Air;
     if (y == MinChunkHeight)
-      return Blocks::BlockId::Bedrock;
+      return BlockId::Bedrock;
 
-    if (y == MinChunkHeight + 1)
-      return Blocks::BlockId::Dirt;
+    if (y == MinChunkHeight + 1 || y < noiseHeight)
+      blockId = BlockId::Dirt;
 
     if (y == noiseHeight)
-      return Blocks::BlockId::Grass;
+      blockId = BlockId::Grass;
 
-    if (y < noiseHeight) {
-      if (y <= noiseHeight - 10)
-        return Blocks::BlockId::Stone;
+    if (y < SeaLevel && blockId == BlockId::Air)
+      blockId = BlockId::Water;
+    else if (y > SandLevel - randomInt(5, 6) && y < SandLevel + randomInt(0, 1) && (blockId == BlockId::Dirt || blockId == BlockId::Grass))
+      blockId = BlockId::Sand;
+    else if (y > MinChunkHeight && y < SeaLevel - randomInt(0, 2) && blockId == BlockId::Dirt)
+      blockId = BlockId::Gravel;
+    else if (y > MinChunkHeight && y < SeaLevel)
+      blockId = BlockId::Dirt;
 
-      return Blocks::BlockId::Dirt;
-    }
-
-    if (y == WaterLevel)
-      return Blocks::BlockId::Water;
-
-    return Blocks::BlockId::Air;
+    return blockId;
   }
 
   std::vector<int> World::generateHeightMap(const glm::ivec2 &position) {
@@ -169,7 +171,7 @@ namespace Game {
   int World::generateSeed() {
     srand(time(nullptr));
     static constexpr long seedRange = static_cast<long>(10e8);
-    return rand() % (2 * seedRange + 1) - seedRange;
+    return randomInt(-seedRange, seedRange);
   }
 
   int World::terrainNoise(const glm::ivec2 &position) const {
@@ -189,5 +191,15 @@ namespace Game {
     const auto x = static_cast<double>(position.x);
     const auto y = static_cast<double>(position.y);
     return static_cast<int>(ceilf(noiseGenerator.eval(x * scale.x, y * scale.y) * amplitude));
+  }
+
+  int World::randomInt(int minimum, int maximum) {
+    static bool seeded = false;
+    if (!seeded && Config::randomize) {
+      srand(time(nullptr));
+      seeded = true;
+    }
+
+    return rand() % (maximum - minimum + 1) + minimum;
   }
 }

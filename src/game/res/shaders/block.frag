@@ -4,6 +4,7 @@ out vec4 VertexColor;
 in vec2 TextureCoordinates;
 in vec3 VertexNormal;
 
+uniform float sunBrightness;
 uniform vec3 sunDirection;
 uniform vec3 sunColor;
 uniform vec3 ambientLight;
@@ -18,5 +19,6 @@ void main() {
   if (textureColor.a < 0.1)
     discard;
 
-  VertexColor = textureColor * vec4((ambientLight + diffuse(VertexNormal, sunDirection, sunColor)), 1.0f);
+  vec4 brightness = vec4(sunBrightness, sunBrightness, sunBrightness, 1.0f);
+  VertexColor = textureColor * vec4((ambientLight + diffuse(VertexNormal, -sunDirection, sunColor)), 1.0f) * brightness;
 }

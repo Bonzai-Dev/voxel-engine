@@ -72,7 +72,6 @@ namespace Game {
 
     private:
       Blocks::BlockManager blockManager;
-      Core::OpenSimplexNoise::Noise noiseGenerator = Core::OpenSimplexNoise::Noise(getSeed());
       const Camera &camera;
       Shader::Block shader;
 
@@ -101,5 +100,7 @@ namespace Game {
       int seed = generateSeed();
 
       static int randomInt(int minimum, int maximum);
+
+      Core::OpenSimplexNoise::Noise noiseGenerator = Core::OpenSimplexNoise::Noise(getSeed());
   };
 }

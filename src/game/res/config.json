@@ -1,0 +1,25 @@
+{
+  "$schema": "config.schema.json",
+  "AmbientLightColor": [100, 99, 96],
+  "SunDirection": [0.25, -1.0, 0.15],
+  "SunColor": [100, 80, 43],
+  "SunBrightness": 1.4,
+
+  "CameraSensitivity": 0.25,
+  "CameraSpeed": 50.0,
+
+  "Randomize": true,
+
+  "MaxChunkHeight": 50,
+  "MinChunkHeight": -10,
+  "ChunkSize": 16,
+  "SeaLevel": -2,
+  "SandLevel": 0,
+
+  "RenderDistance": 50,
+
+  "NoiseHeightOffset": 5,
+  "NoiseOctaves": 6,
+  "NoiseBaseScale": 0.003,
+  "NoiseBaseAmplitude": 50
+}

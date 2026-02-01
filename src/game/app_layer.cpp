@@ -17,6 +17,9 @@ void AppLayer::render() {
   if (application.keyDown(Core::Inputs::KeyboardKey::KeyO, Core::Inputs::Keycode))
     wireframe = false;
 
+  if (application.keyDown(Core::Inputs::KeyboardKey::KeyEscape, Core::Inputs::Keycode))
+    application.stop();
+
   if (wireframe)
     Renderer::setFillMode(Renderer::MeshFillMode::Wireframe);
   if (!wireframe)

@@ -11,6 +11,7 @@ class AppLayer : public Core::RenderLayer {
 
   private:
     bool wireframe = false;
+    Game::Config config;
     Game::Camera camera;
     Game::World world;
 };

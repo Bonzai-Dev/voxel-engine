@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "AmbientLightColor": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {
+        "type": "number"
+      }
+    },
+    "SunDirection": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {
+        "type": "number"
+      }
+    },
+    "SunColor": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {
+        "type": "number"
+      }
+    },
+    "SunBrightness": {
+      "type": "number"
+    },
+    "CameraSensitivity": {
+      "type": "number"
+    },
+    "CameraSpeed": {
+      "type": "number"
+    },
+    "Randomize": {
+      "type": "boolean"
+    },
+    "MaxChunkHeight": {
+      "type": "integer"
+    },
+    "MinChunkHeight": {
+      "type": "integer"
+    },
+    "ChunkSize": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "SeaLevel": {
+      "type": "integer"
+    },
+    "SandLevel": {
+      "type": "integer"
+    },
+    "RenderDistance": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "NoiseHeightOffset": {
+      "type": "integer"
+    },
+    "NoiseOctaves": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "NoiseBaseScale": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "NoiseBaseAmplitude": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "AmbientLightColor",
+    "SunDirection",
+    "SunColor",
+    "SunBrightness",
+    "CameraSensitivity",
+    "CameraSpeed",
+    "Randomize",
+    "MaxChunkHeight",
+    "MinChunkHeight",
+    "ChunkSize",
+    "SeaLevel",
+    "SandLevel",
+    "RenderDistance",
+    "NoiseHeightOffset",
+    "NoiseOctaves",
+    "NoiseBaseScale",
+    "NoiseBaseAmplitude"
+  ]
+}

@@ -1,27 +1,78 @@
 #pragma once
+#include <glm/glm.hpp>
 
-namespace Game::Config {
-  constexpr inline glm::vec3 AmbientLightColor = glm::vec3(100, 82, 63);
-  constexpr inline float CameraSensitivity = 0.25f;
-  constexpr inline float CameraSpeed = 50.0f;
+namespace Game {
+  class Config {
+    public:
+      Config();
 
-  // Whether to randomize the world seed on each launch
-  constexpr inline bool randomize = true;
+      ~Config() = default;
 
-  // Cannot build above MaxChunkHeight and below MinChunkHeight
-  constexpr inline int MaxChunkHeight = 50;
-  constexpr inline int MinChunkHeight = -10;
-  constexpr inline size_t ChunkSize = 16;
-  constexpr inline size_t ChunkHeight = MaxChunkHeight - MinChunkHeight;
-  constexpr inline size_t TotalChunkBlocks = ChunkSize * ChunkSize * ChunkHeight;
-  constexpr inline int SeaLevel = -2;
-  constexpr inline int SandLevel = SeaLevel + 2;
+      static const glm::vec3 &getAmbientLightColor() { return ambientLightColor; }
 
-  // How many chunks to render in front of the camera
-  constexpr inline int RenderDistance = 30;
+      static float getCameraSensitivity() { return cameraSensitivity; }
 
-  constexpr inline int NoiseHeightOffset = 5;
-  constexpr inline int NoiseOctaves = 6;
-  constexpr inline float NoiseBaseScale = 0.007f;
-  constexpr inline float NoiseBaseAmplitude = 50.0f;
+      static float getCameraSpeed() { return cameraSpeed; }
+
+      static bool randomizeSeed() { return randomize; }
+
+      static int getMaxChunkHeight() { return maxChunkHeight; }
+
+      static int getMinChunkHeight() { return minChunkHeight; }
+
+      static size_t getChunkSize() { return chunkSize; }
+
+      static size_t getChunkHeight() { return chunkHeight; }
+
+      static size_t getTotalChunkBlocks() { return totalChunkBlocks; }
+
+      static int getSeaLevel() { return seaLevel; }
+
+      static int getSandLevel() { return sandLevel; }
+
+      static int getRenderDistance() { return renderDistance; }
+
+      static int getNoiseHeightOffset() { return noiseHeightOffset; }
+
+      static int getNoiseOctaves() { return noiseOctaves; }
+
+      static float getNoiseBaseScale() { return noiseBaseScale; }
+
+      static float getNoiseBaseAmplitude() { return noiseBaseAmplitude; }
+
+      static const glm::vec3 &getSunDirection() { return sunDirection; }
+
+      static const glm::vec3 &getSunColor() { return sunColor; }
+
+      static float getSunBrightness() { return sunBrightness; }
+
+    private:
+      static inline glm::vec3 sunDirection;
+      static inline glm::vec3 ambientLightColor;
+      static inline glm::vec3 sunColor;
+      static inline float sunBrightness;
+
+      static inline float cameraSensitivity;
+      static inline float cameraSpeed;
+
+      // Whether to randomize the world seed on each launch
+      static inline bool randomize;
+
+      // Cannot build above MaxChunkHeight and below MinChunkHeight
+      static inline int maxChunkHeight;
+      static inline int minChunkHeight;
+      static inline size_t chunkSize;
+      static inline size_t chunkHeight;
+      static inline size_t totalChunkBlocks;
+      static inline int seaLevel;
+      static inline int sandLevel;
+
+      // How many chunks to render in front of the camera
+      static inline int renderDistance;
+
+      static inline int noiseHeightOffset;
+      static inline int noiseOctaves;
+      static inline float noiseBaseScale;
+      static inline float noiseBaseAmplitude;
+  };
 }

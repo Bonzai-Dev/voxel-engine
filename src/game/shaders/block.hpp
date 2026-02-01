@@ -20,5 +20,7 @@ namespace Game::Shader {
       void setSunDirection(const glm::vec3 &direction) const;
 
       void setSunColor(const glm::vec3 &color) const;
+
+      void setSunBrightness(float brightness) const;
   };
 }

@@ -16,8 +16,8 @@ namespace Game {
   void Camera::update() {
     if (application.mouseMoving()) {
       const auto mouseDelta = application.getMouseDelta();
-      rotation.y += mouseDelta.x * Config::CameraSensitivity;
-      rotation.x = glm::clamp(rotation.x - mouseDelta.y * Config::CameraSensitivity, -89.9f, 89.9f);
+      rotation.y += mouseDelta.x * Config::getCameraSensitivity();
+      rotation.x = glm::clamp(rotation.x - mouseDelta.y * Config::Config::getCameraSensitivity(), -89.9f, 89.9f);
     }
 
     auto inputDirection = glm::zero<glm::vec3>();
@@ -31,7 +31,7 @@ namespace Game {
 
     glm::vec3 moveDirection = forward * inputDirection.x + right * inputDirection.z;
     moveDirection += glm::vec3(0, inputDirection.y, 0);
-    position += moveDirection * static_cast<float>(application.getDeltaTime()) * Config::CameraSpeed;
+    position += moveDirection * static_cast<float>(application.getDeltaTime()) * Config::getCameraSpeed();
     isMoving = glm::length(moveDirection) != 0;
 
     const glm::vec3 direction(

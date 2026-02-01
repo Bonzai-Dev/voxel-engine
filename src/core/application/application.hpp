@@ -13,8 +13,6 @@ namespace Core {
     public:
       explicit Application(const char *name);
 
-      void quit() const;
-
       void run();
 
       void pollInputs();
@@ -35,7 +33,11 @@ namespace Core {
 
       const bool &mouseMoving() const { return isMouseMoving; }
 
+      void stop() const { running = false; }
+
     private:
+      void quit() const;
+
       double deltaTime = 0;
       glm::vec2 mouseDelta = glm::zero<glm::vec2>();
       bool isMouseMoving = false;
@@ -45,6 +47,6 @@ namespace Core {
       mutable std::unordered_map<Inputs::KeyboardKey, SDL_KeyboardEvent> pressedKeys;
 
       double lastFrameTime = 0;
-      bool running;
+      mutable bool running;
   };
 }

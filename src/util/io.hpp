@@ -16,7 +16,7 @@ namespace Util::Json {
     T value;
     auto error = document[name.data()].get(value);
     if (error) {
-      Logger::logError(Logger::Context::Core, "Failed to get \"%s\", %s", name, simdjson::error_message(error));
+      Logger::logError(Logger::Context::Core, "Failed to get \"%s\", %s", name.data(), simdjson::error_message(error));
       return T{};
     }
     return value;

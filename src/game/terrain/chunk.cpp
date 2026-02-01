@@ -7,7 +7,6 @@
 
 using namespace Logger;
 using namespace Game::Blocks;
-using namespace Game::Config;
 
 namespace Game {
   Chunk::Chunk(const glm::ivec2 &position, std::vector<int> heightMap, World &world) : world(world),
@@ -84,10 +83,14 @@ namespace Game {
   }
 
   void Chunk::buildMesh() {
-    for (size_t blockCount = 0; blockCount < TotalChunkBlocks; blockCount++) {
-      const int x = blockCount % ChunkSize;
-      const int y = blockCount / (ChunkSize * ChunkSize) + MinChunkHeight;
-      const int z = (blockCount / ChunkSize) % ChunkSize;
+    static const size_t chunkSize = Config::getChunkSize();
+    static const size_t totalChunkBlocks = Config::getTotalChunkBlocks();
+    static const int minChunkHeight = Config::getMinChunkHeight();
+
+    for (size_t blockCount = 0; blockCount < totalChunkBlocks; blockCount++) {
+      const int x = blockCount % chunkSize;
+      const int y = blockCount / (chunkSize * chunkSize) + minChunkHeight;
+      const int z = (blockCount / chunkSize) % chunkSize;
       const auto &localPosition = glm::ivec3(x, y, z);
       const auto noiseHeight = getNoise(glm::ivec2(localPosition.x, localPosition.z));
       const BlockId blockId = world.evaluateBlockType(localPosition.y, noiseHeight);
@@ -95,10 +98,10 @@ namespace Game {
       addBlock({localPosition, blockId});
     }
 
-    for (size_t blockCount = 0; blockCount < TotalChunkBlocks; blockCount++) {
-      const int x = blockCount % ChunkSize;
-      const int y = blockCount / (ChunkSize * ChunkSize) + MinChunkHeight;
-      const int z = (blockCount / ChunkSize) % ChunkSize;
+    for (size_t blockCount = 0; blockCount < totalChunkBlocks; blockCount++) {
+      const int x = blockCount % chunkSize;
+      const int y = blockCount / (chunkSize * chunkSize) + minChunkHeight;
+      const int z = (blockCount / chunkSize) % chunkSize;
       const auto &position = glm::ivec3(x, y, z);
       const auto blockId = getBlockLocal(position).getBlockId();
 
@@ -191,9 +194,13 @@ namespace Game {
   }
 
   bool Chunk::outOfBounds(const glm::ivec3 &position) {
-    const bool xOut = position.x < 0 || position.x >= ChunkSize;
-    const bool yOut = position.y < MinChunkHeight || position.y >= MaxChunkHeight;
-    const bool zOut = position.z < 0 || position.z >= ChunkSize;
+    static const size_t chunkSize = Config::getChunkSize();
+    static const int minChunkHeight = Config::getMinChunkHeight();
+    static const int maxChunkHeight = Config::getMaxChunkHeight();
+
+    const bool xOut = position.x < 0 || position.x >= chunkSize;
+    const bool yOut = position.y < minChunkHeight || position.y >= maxChunkHeight;
+    const bool zOut = position.z < 0 || position.z >= chunkSize;
     if (xOut || yOut || zOut)
       return true;
 
@@ -220,11 +227,11 @@ namespace Game {
   }
 
   int Chunk::getNoise(const glm::ivec2 &position) const {
-    return heightMap[position.x + position.y * ChunkSize];
+    return heightMap[position.x + position.y * Config::getChunkSize()];
   }
 
   size_t Chunk::getBlockIndex(const glm::ivec3 &position) {
-    return position.x + (position.y - MinChunkHeight) * ChunkSize * ChunkSize + position.z *
-           ChunkSize;
+    static const size_t chunkSize = Config::getChunkSize();
+    return position.x + (position.y - Config::getMinChunkHeight()) * chunkSize * chunkSize + position.z * chunkSize;
   }
 }

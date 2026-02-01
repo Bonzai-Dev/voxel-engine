@@ -1,10 +1,12 @@
 #pragma once
 #include <vector>
 #include "blocks/block.hpp"
-#include <game/config.hpp>
+#include "game/config.hpp"
 
 namespace Game {
   class World;
+
+  class Config;
 
   class Chunk {
     public:
@@ -48,7 +50,7 @@ namespace Game {
 
       // 3D array flattened to 1D that stores all the chunk's block
       // Stores as 2 byte uint to save memory
-      std::vector<std::uint16_t> blocks = std::vector(Config::TotalChunkBlocks, static_cast<std::uint16_t>(Blocks::BlockId::Air));
+      std::vector<std::uint16_t> blocks = std::vector(Config::getTotalChunkBlocks(), static_cast<std::uint16_t>(Blocks::BlockId::Air));
 
       void loadMesh();
 

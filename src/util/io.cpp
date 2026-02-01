@@ -30,12 +30,12 @@ namespace Util::Json {
   using namespace simdjson;
 
   dom::element parseJson(std::string_view filepath) {
-    // logInfo(Context::Core, "Reading JSON file at \"%s\".", filepath.data());
+    logInfo(Context::Core, "Reading JSON file at \"%s\".", filepath.data());
     static dom::parser parser;
     dom::element document;
     auto error = parser.load(filepath).get(document);
     if (error) {
-      // logError(Context::Core, "Failed to parse JSON file at %s: %s.", filepath.data(), error_message(error));
+      logError(Context::Core, "Failed to parse JSON file at %s: %s.", filepath.data(), error_message(error));
       return {};
     }
     return document;

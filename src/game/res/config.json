@@ -22,5 +22,9 @@
   "NoiseOctaves": 6,
   "NoiseBaseScale": 0.003,
   "NoiseBaseAmplitude": 50,
-  "SnowHeight": 90
+  "SnowHeight": 90,
+
+  "FogNear": 100,
+  "FogFar": 180,
+  "FogColor": [223, 227, 228]
 }

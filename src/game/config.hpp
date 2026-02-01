@@ -48,6 +48,12 @@ namespace Game {
 
       static int getSnowHeight() { return snowHeight; }
 
+      static const glm::vec3 &getFogColor() { return fogColor; }
+
+      static float getFogNear() { return fogNear; }
+
+      static float getFogFar() { return fogFar; }
+
     private:
       static inline glm::vec3 sunDirection;
       static inline glm::vec3 ambientLightColor;
@@ -77,5 +83,9 @@ namespace Game {
       static inline float noiseBaseScale;
       static inline float noiseBaseAmplitude;
       static inline int snowHeight;
+
+      static inline glm::vec3 fogColor;
+      static inline float fogNear;
+      static inline float fogFar;
   };
 }

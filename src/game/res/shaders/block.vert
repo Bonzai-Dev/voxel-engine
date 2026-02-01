@@ -6,6 +6,7 @@ layout (location = 2) in vec2 textureCoordinates;
 
 out vec2 TextureCoordinates;
 out vec3 VertexNormal;
+out vec4 ViewTransform;
 
 uniform mat4 modelMatrix;
 uniform mat4 viewMatrix;
@@ -14,5 +15,6 @@ uniform mat4 projectionMatrix;
 void main() {
   TextureCoordinates = textureCoordinates;
   VertexNormal = vertexNormal;
-  gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(vertexPosition, 1.0);
+  ViewTransform = viewMatrix * modelMatrix * vec4(vertexPosition, 1.0);
+  gl_Position = projectionMatrix * ViewTransform;
 }

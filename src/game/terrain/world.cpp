@@ -12,9 +12,8 @@ namespace Game {
     shader.use();
     shader.updateTexture(Renderer::loadTexture("./res/images/blocks.png"));
     shader.setAmbientColor(Config::getAmbientLightColor());
-    shader.setSunDirection(Config::getSunDirection());
-    shader.setSunColor(Config::getSunColor());
-    shader.setSunBrightness(Config::getSunBrightness());
+    shader.updateSun(Config::getSunDirection(), Config::getSunColor(), Config::getSunBrightness());
+    shader.updateLinearFog(Config::getFogColor(), Config::getFogNear(), Config::getFogFar());
 
     for (size_t threadCount = 0; threadCount < 1; threadCount++) {
       std::thread terrainLoader(&World::loadTerrain, this);

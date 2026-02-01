@@ -29,27 +29,32 @@ namespace Game {
     cameraSensitivity = static_cast<float>(getData<double>("CameraSensitivity", data));
     sunBrightness = static_cast<float>(getData<double>("SunBrightness", data));
 
-    const auto ambientLightColorData = getData<dom::array>("AmbientLightColor", data);
     ambientLightColor = glm::vec3(
-      getIndexValue<double>(0, ambientLightColorData),
-      getIndexValue<double>(1, ambientLightColorData),
-      getIndexValue<double>(2, ambientLightColorData)
+      getIndexValue<double>(0, getData<dom::array>("AmbientLightColor", data)),
+      getIndexValue<double>(1, getData<dom::array>("AmbientLightColor", data)),
+      getIndexValue<double>(2, getData<dom::array>("AmbientLightColor", data))
     );
-    const auto sunDirectionData = getData<dom::array>("SunDirection", data);
     sunDirection = glm::vec3(
-      getIndexValue<double>(0, sunDirectionData),
-      getIndexValue<double>(1, sunDirectionData),
-      getIndexValue<double>(2, sunDirectionData)
+      getIndexValue<double>(0, getData<dom::array>("SunDirection", data)),
+      getIndexValue<double>(1, getData<dom::array>("SunDirection", data)),
+      getIndexValue<double>(2, getData<dom::array>("SunDirection", data))
     );
 
-    const auto sunColorData = getData<dom::array>("SunColor", data);
     sunColor = glm::vec3(
-      getIndexValue<double>(0, sunColorData),
-      getIndexValue<double>(1, sunColorData),
-      getIndexValue<double>(2, sunColorData)
+      getIndexValue<double>(0, getData<dom::array>("SunColor", data)),
+      getIndexValue<double>(1, getData<dom::array>("SunColor", data)),
+      getIndexValue<double>(2, getData<dom::array>("SunColor", data))
     );
 
     snowHeight = static_cast<int>(getData<std::int64_t>("SnowHeight", data));
+
+    fogFar = static_cast<float>(getData<double>("FogFar", data));
+    fogNear = static_cast<float>(getData<double>("FogNear", data));
+    fogColor = glm::vec3(
+      getIndexValue<double>(0, getData<dom::array>("FogColor", data)),
+      getIndexValue<double>(1, getData<dom::array>("FogColor", data)),
+      getIndexValue<double>(2, getData<dom::array>("FogColor", data))
+    );
 
     Logger::logInfo(Logger::Context::Game, "Loaded configurations.");
   }

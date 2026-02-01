@@ -71,6 +71,20 @@
     },
     "NoiseBaseAmplitude": {
       "type": "number"
+    },
+    "FogNear": {
+      "type": "number"
+    },
+    "FogFar": {
+      "type": "number"
+    },
+    "FogColor": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {
+        "type": "number"
+      }
     }
   },
   "required": [
@@ -90,6 +104,9 @@
     "NoiseHeightOffset",
     "NoiseOctaves",
     "NoiseBaseScale",
-    "NoiseBaseAmplitude"
+    "NoiseBaseAmplitude",
+    "FogNear",
+    "FogFar",
+    "FogColor"
   ]
 }

@@ -143,6 +143,7 @@ namespace Game {
     static const int maxChunkHeight = Config::getMaxChunkHeight();
     static const int seaLevel = Config::getSeaLevel();
     static const int sandLevel = Config::getSandLevel();
+    static const int snowHeight = Config::getSnowHeight();
 
     using namespace Blocks;
     const bool inChunkHeight = y >= minChunkHeight && y < maxChunkHeight;
@@ -167,6 +168,11 @@ namespace Game {
       blockId = BlockId::Gravel;
     else if (y > minChunkHeight && y < seaLevel)
       blockId = BlockId::Dirt;
+
+    if (y > snowHeight - randomInt(0, 12) && y <= noiseHeight && (blockId == BlockId::Grass || blockId == BlockId::Dirt))
+      blockId = BlockId::Snow;
+    else if (y > snowHeight - 20 - randomInt(0, 8) && y <= noiseHeight && (blockId == BlockId::Grass || blockId == BlockId::Dirt))
+      blockId = BlockId::Stone;
 
     return blockId;
   }

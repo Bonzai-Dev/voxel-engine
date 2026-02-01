@@ -46,6 +46,8 @@ namespace Game {
 
       static float getSunBrightness() { return sunBrightness; }
 
+      static int getSnowHeight() { return snowHeight; }
+
     private:
       static inline glm::vec3 sunDirection;
       static inline glm::vec3 ambientLightColor;
@@ -74,5 +76,6 @@ namespace Game {
       static inline int noiseOctaves;
       static inline float noiseBaseScale;
       static inline float noiseBaseAmplitude;
+      static inline int snowHeight;
   };
 }

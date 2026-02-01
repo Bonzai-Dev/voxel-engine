@@ -49,6 +49,8 @@ namespace Game {
       getIndexValue<double>(2, sunColorData)
     );
 
+    snowHeight = static_cast<int>(getData<std::int64_t>("SnowHeight", data));
+
     Logger::logInfo(Logger::Context::Game, "Loaded configurations.");
   }
 }

@@ -16,10 +16,11 @@
   "SeaLevel": -2,
   "SandLevel": 0,
 
-  "RenderDistance": 50,
+  "RenderDistance": 20,
 
   "NoiseHeightOffset": 5,
   "NoiseOctaves": 6,
   "NoiseBaseScale": 0.003,
-  "NoiseBaseAmplitude": 50
+  "NoiseBaseAmplitude": 50,
+  "SnowHeight": 90
 }

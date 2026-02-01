@@ -11,6 +11,7 @@ namespace Game::Blocks {
     Water = 5,
     Sand = 6,
     Gravel = 7,
+    Snow = 8
   };
 
   enum class MeshId {
@@ -33,5 +34,6 @@ namespace Game::Blocks {
     "./res/data/block/water.json",
     "./res/data/block/sand.json",
     "./res/data/block/gravel.json",
+    "./res/data/block/snow.json",
   };
 }

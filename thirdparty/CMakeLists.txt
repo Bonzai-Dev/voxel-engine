@@ -1,4 +1,4 @@
-# set the output directory for built objects.
+# Set the output directory for built objects.
 # This makes sure that the dynamic library goes into the build directory automatically.
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/$<CONFIGURATION>")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/$<CONFIGURATION>")
@@ -23,6 +23,10 @@ target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE glm::glm)
 #simdjson
 add_subdirectory(simdjson)
 target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE simdjson)
+
+# spdlog
+add_subdirectory(spdlog)
+target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE spdlog)
 
 # Vulkan
 if(WIN32)
@@ -51,3 +55,19 @@ set_target_properties(
     Vulkan::Vulkan PROPERTIES IMPORTED_LOCATION ${VULKAN_LIBRARY} INTERFACE_INCLUDE_DIRECTORIES ${VULKAN_INCLUDE_DIRECTORY}
 )
 target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE Vulkan::Vulkan)
+
+# NVRHI
+if (WIN32)
+    set(NVRHI_WITH_DX11 ON CACHE BOOL "" FORCE)
+    set(NVRHI_WITH_DX12 ON CACHE BOOL "" FORCE)
+    set(NVRHI_WITH_VULKAN ON CACHE BOOL "" FORCE)
+else ()
+    set(NVRHI_WITH_DX11 OFF CACHE BOOL "" FORCE)
+    set(NVRHI_WITH_DX12 OFF CACHE BOOL "" FORCE)
+    set(NVRHI_WITH_VULKAN ON CACHE BOOL "" FORCE)
+endif ()
+
+add_subdirectory(nvrhi)
+target_link_libraries(
+    ${CMAKE_PROJECT_NAME} PRIVATE nvrhi ${nvrhi_d3d11_target} ${nvrhi_d3d12_target} ${nvrhi_vulkan_target}
+)

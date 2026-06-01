@@ -13,3 +13,6 @@
 [submodule "thirdparty/NVRHI"]
 	path = thirdparty/NVRHI
 	url = https://github.com/NVIDIA-RTX/NVRHI.git
+[submodule "thirdparty/spdlog"]
+	path = thirdparty/spdlog
+	url = https://github.com/gabime/spdlog.git

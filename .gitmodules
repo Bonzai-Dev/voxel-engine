@@ -7,3 +7,9 @@
 [submodule "thirdparty/simdjson"]
 	path = thirdparty/simdjson
 	url = https://github.com/simdjson/simdjson.git
+[submodule "thirdparty/slang"]
+	path = thirdparty/slang
+	url = https://github.com/shader-slang/slang.git
+[submodule "thirdparty/NVRHI"]
+	path = thirdparty/NVRHI
+	url = https://github.com/NVIDIA-RTX/NVRHI.git

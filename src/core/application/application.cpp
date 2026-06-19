@@ -3,7 +3,8 @@
 #include <core/events/application_events.hpp>
 #include <core/events/window_events.hpp>
 #include <core/events/input_events.hpp>
-// #include <core/renderer/vulkan/vulkan_rendering_device.hpp>
+#include <core/renderer/rendering_device.hpp>
+#include <core/renderer/vulkan/vulkan_rendering_device.hpp>
 #include "application.hpp"
 
 namespace Core {
@@ -30,23 +31,28 @@ namespace Core {
 
     EventDispatcher::listen<ApplicationQuit>([&](const ApplicationQuit &event) { quit(); });
 
-    // switch (graphicsBackend) {
-    //   case Graphics::Backend::Vulkan:
-    //     renderingDevice = std::make_unique<Graphics::VulkanRenderingDevice>(name, displayInfo);
-    //     break;
-    //
-    //   case Graphics::Backend::None:
-    //     LOG_CORE_CRITICAL("No graphics backend selected. Select a backend to render graphics");
-    //     break;
-    //
-    //   default:
-    //     LOG_CORE_CRITICAL("Unsupported graphics backend selected");
-    //     break;
-    // }
+    switch (graphicsBackend) {
+      case Graphics::Backend::Vulkan:
+        renderingDevice = std::make_unique<Graphics::VulkanRenderingDevice>(name, displayInfo);
+        break;
+
+      case Graphics::Backend::None:
+        LOG_CORE_CRITICAL("No graphics backend selected. Select a backend to render graphics");
+        break;
+
+      default:
+        LOG_CORE_CRITICAL("Unsupported graphics backend selected");
+        break;
+    }
   }
 
   Application::~Application() {
     quit();
+  }
+
+  Graphics::Backend Application::selectGraphicsBackend() const {
+    // TODO: Implement graphics backend selection based on platform and availability
+    return Graphics::Backend::Vulkan;
   }
 
   void Application::run() const {

@@ -1,5 +1,5 @@
 #pragma once
-#include "../pointers.hpp"
+#include "../memory.hpp"
 
 namespace Core {
   class Resource: public RefCounted {

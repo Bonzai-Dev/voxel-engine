@@ -8,8 +8,8 @@ using namespace Core::Events;
 namespace Core::Graphics {
   enum class Backend {
     None,
-    DirectX11,
-    DirectX12,
+    Direct11,
+    Direct12,
     Vulkan
   };
 

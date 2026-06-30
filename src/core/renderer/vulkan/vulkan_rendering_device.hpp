@@ -2,6 +2,7 @@
 #include <core/memory.hpp>
 #include <core/renderer/rendering_device.hpp>
 #include "volk.h"
+#include "vulkan_context.hpp"
 
 namespace Core::Graphics {
   inline std::string vulkanResultToString(VkResult result) {
@@ -47,17 +48,8 @@ namespace Core::Graphics {
 
       void render() override;
 
-      const std::vector<const char*> &getExtensions() { return extensions; }
-
-      const std::vector<const char*> &getInstanceLayers() { return instanceLayers; }
-
     private:
-      std::vector<const char*> extensions;
-      std::vector <const char*> instanceLayers;
-      bool validationLayersEnabled = false;
-
-      VkInstance instance = VK_NULL_HANDLE;
-      VkDebugUtilsMessengerEXT debugMessenger = VK_NULL_HANDLE;
+      VulkanContext vulkanContext;
   };
 
   #define VULKAN_CHECK(vulkanCall) { \

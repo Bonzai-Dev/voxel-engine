@@ -67,6 +67,8 @@ else ()
     set(NVRHI_WITH_VULKAN ON CACHE BOOL "" FORCE)
 endif ()
 
+set(NVRHI_FETCH_VULKAN_HEADERS OFF CACHE BOOL "" FORCE)
+
 add_subdirectory(NVRHI)
 target_link_libraries(
     ${CMAKE_PROJECT_NAME} PRIVATE nvrhi ${nvrhi_d3d11_target} ${nvrhi_d3d12_target} ${nvrhi_vulkan_target}

@@ -1,110 +1,98 @@
 #pragma once
-#include <thread>
+#include <cstdint>
+#include <atomic>
 
 namespace Core {
-  // Class that is used as a base class for resources that needs reference counting
   class RefCounted {
     public:
-      RefCounted() = default;
-
       virtual ~RefCounted() = default;
 
-      void incrementReference() const {
+      void incrementReferenceCount() const {
         ++referenceCount;
       }
 
-      void decrementReference() const {
+      void decrementReferenceCount() const {
         --referenceCount;
       }
 
-      unsigned long getReferenceCount() const {
-        return referenceCount.load();
-      }
+      uint32_t getReferenceCount() const { return referenceCount.load(); }
 
     private:
-      mutable std::atomic<unsigned long> referenceCount = 0;
+      mutable std::atomic<uint32_t> referenceCount = 0;
   };
 
-  template<typename T>
-  class RefCountedPointer {
+  template <typename T>
+  class RefCountedPtr {
     public:
-      RefCountedPointer() : instance(nullptr) {
+      RefCountedPtr(): instance(nullptr) {
       }
 
-      RefCountedPointer(std::nullptr_t) : instance(nullptr) {
+      RefCountedPtr(std::nullptr_t): instance(nullptr) {
       }
 
-      RefCountedPointer(T *other) : instance(other) {
-        static_assert(std::is_base_of_v<RefCounted, T>, "Class does not inherit ReferenceCounted");
+      RefCountedPtr(T *instance): instance(instance) {
+        static_assert(std::is_base_of<RefCounted, T>::value, "Class is not a base of RefCounted");
         increment();
       }
 
-      RefCountedPointer(const RefCountedPointer<T> &other) : instance(other.instance) {
+      template <typename U>
+      RefCountedPtr(const RefCountedPtr<U> &other) {
+        instance = (T*)other.instance;
         increment();
       }
 
-      // Copy constructor that allows to instantiate class when U* is convertible to T*
-      template<typename U>
-      requires(std::is_base_of_v<U, T> || std::is_base_of_v<T, U>)
-      RefCountedPointer(const RefCountedPointer<U> &other) : instance(other.instance) {
-        increment();
-      }
-
-      // Move constructor that allows to instantiate class when U* is convertible to T*
-      template<typename U>
-      RefCountedPointer(RefCountedPointer<U> &&other) : instance(other.instance) {
+      template <typename U>
+      RefCountedPtr(RefCountedPtr<U> &&other) {
+        instance = (T*)other.instance;
         other.instance = nullptr;
       }
 
-      ~RefCountedPointer() {
+      ~RefCountedPtr() {
         decrement();
       }
 
-      RefCountedPointer &operator=(const RefCountedPointer<T> &other) {
-        if (this == other)
+      RefCountedPtr(const RefCountedPtr<T> &other)
+        : instance(other.instance) {
+        increment();
+      }
+
+      RefCountedPtr &operator=(std::nullptr_t) {
+        decrement();
+        instance = nullptr;
+        return *this;
+      }
+
+      RefCountedPtr &operator=(const RefCountedPtr<T> &other) {
+        if (this == &other)
           return *this;
 
         other.increment();
         decrement();
+
         instance = other.instance;
         return *this;
       }
 
-      RefCountedPointer &operator=(RefCountedPointer<T> &&other)  noexcept {
-        decrement();
-        instance = other.instance;
-        other.instance = nullptr;
-        return *this;
-      }
-
-      // Assignment constructors when U is convertible to T
-      template<typename U>
-      RefCountedPointer &operator=(const RefCountedPointer<U> &other) {
+      template <typename U>
+      RefCountedPtr &operator=(const RefCountedPtr<U> &other) {
         other.increment();
         decrement();
+
         instance = other.instance;
         return *this;
       }
 
-      template<typename U>
-      RefCountedPointer &operator=(RefCountedPointer<U> &&other) {
+      template <typename U>
+      RefCountedPtr &operator=(RefCountedPtr<U> &&other) {
         decrement();
+
         instance = other.instance;
         other.instance = nullptr;
         return *this;
       }
 
-      unsigned long getReferenceCount() const {
-        return instance->getReferenceCount();
-      }
-
-      bool operator==(const RefCountedPointer<T> & other) const {
-        return instance == other.instance;
-      }
-
-      bool operator!=(const RefCountedPointer<T> & other) const {
-        return !(instance == other.instance);
-      }
+      operator bool() { return instance != nullptr; }
+      operator bool() const { return instance != nullptr; }
 
       T *operator->() { return instance; }
       const T *operator->() const { return instance; }
@@ -112,28 +100,43 @@ namespace Core {
       T &operator*() { return *instance; }
       const T &operator*() const { return *instance; }
 
-      T *get() { return instance; }
-      const T *get() const { return instance; }
+      T *raw() { return instance; }
+      const T *raw() const { return instance; }
 
-      void reset(T *instance = nullptr) {
+      void reset(T *other = nullptr) {
         decrement();
-        this->instance = instance;
+        instance = other;
       }
 
-      template<typename ... Args>
-      static RefCountedPointer<T> create(Args &&... args) {
-        return RefCountedPointer<T>(new T(std::forward<Args>(args)...));
+      template <typename U>
+      RefCountedPtr<U> as() const {
+        return RefCountedPtr<U>(*this);
+      }
+
+      template <typename... Args>
+      static RefCountedPtr<T> create(Args &&... args) {
+        return RefCountedPtr<T>(new T(std::forward<Args>(args)...));
+      }
+
+      bool operator==(const RefCountedPtr<T> &other) const {
+        return instance == other.instance;
+      }
+
+      bool operator!=(const RefCountedPtr<T> &other) const {
+        return !(*this == other);
       }
 
     private:
       void increment() const {
-        if (instance)
-          instance->incrementReference();
+        if (instance) {
+          instance->incrementReferenceCount();
+        }
       }
 
       void decrement() const {
         if (instance) {
-          instance->decrementReference();
+          instance->decrementReferenceCount();
+
           if (instance->getReferenceCount() == 0) {
             delete instance;
             instance = nullptr;
@@ -141,9 +144,8 @@ namespace Core {
         }
       }
 
-      template<class U>
-      friend class RefCountedPointer;
-
-      mutable T *instance = nullptr;
+      template <class U>
+      friend class RefCountedPtr;
+      mutable T *instance;
   };
 }

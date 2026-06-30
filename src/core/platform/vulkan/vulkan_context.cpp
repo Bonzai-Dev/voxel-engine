@@ -2,6 +2,7 @@
 #include <core/application/application.hpp>
 #include <SDL3/SDL_vulkan.h>
 #include "volk.h"
+#include "vulkan_rendering_device.hpp"
 #include "vulkan_context.hpp"
 
 namespace Core::Graphics {

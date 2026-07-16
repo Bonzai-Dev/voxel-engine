@@ -20,7 +20,9 @@ namespace Core::Graphics {
 
       bool extensionSupported(const std::string &extension) const;
 
-      VkPhysicalDevice physicalDevice;
+      VkFormat getDepthFormat() const;
+
+      const VkPhysicalDevice physicalDevice =  VK_NULL_HANDLE;
       const VkPhysicalDeviceFeatures deviceFeatures;
       const VkPhysicalDeviceMemoryProperties deviceMemoryProperties;
       const VkPhysicalDeviceProperties deviceProperties;
@@ -45,8 +47,11 @@ namespace Core::Graphics {
 
       void destroy();
 
-    private:
+      RefCountedPtr<VulkanPhysicalDevice> getPhysicalDevice() const { return physicalDevice; }
+
       VkDevice logicalDevice = VK_NULL_HANDLE;
+
+    private:
       RefCountedPtr<VulkanPhysicalDevice> physicalDevice;
 
       VkQueue graphicsQueue = VK_NULL_HANDLE;

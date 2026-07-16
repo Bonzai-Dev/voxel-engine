@@ -1,9 +1,10 @@
 #include <core/application/logger.hpp>
 #include <core/application/application.hpp>
 #include <SDL3/SDL_vulkan.h>
-#include "volk.h"
 #include "vulkan_rendering_device.hpp"
 #include "vulkan_context.hpp"
+#include "volk.h"
+#include "vk_mem_alloc.h"
 
 namespace Core::Graphics {
   static VkBool32 vulkanDebugUtilsMessengerCallback(
@@ -14,19 +15,19 @@ namespace Core::Graphics {
   ) {
     switch (messageSeverity) {
       case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
-        LOG_CORE_TRACE("Vulkan {}.", callbackData->pMessage);
+        LOG_CORE_TRACE("{}", callbackData->pMessage);
         break;
 
       case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
-        LOG_CORE_INFO("Vulkan {}.", callbackData->pMessage);
+        LOG_CORE_INFO("Vulkan {}", callbackData->pMessage);
         break;
 
       case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
-        LOG_CORE_WARNING("Vulkan {}.", callbackData->pMessage);
+        LOG_CORE_WARNING("Vulkan {}", callbackData->pMessage);
         break;
 
       case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
-        LOG_CORE_ERROR("Vulkan {}.", callbackData->pMessage);
+        LOG_CORE_ERROR("Vulkan {}", callbackData->pMessage);
         break;
 
       default:
@@ -43,30 +44,44 @@ namespace Core::Graphics {
     }
 
     uint32_t extensionCount = 0;
-    char const *const*sdlExtensions = SDL_Vulkan_GetInstanceExtensions(&extensionCount);
-    extensions.assign(sdlExtensions, sdlExtensions + extensionCount);
+    VULKAN_CHECK(vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr));
+    supportedExtensions.resize(extensionCount);
+    VULKAN_CHECK(vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, supportedExtensions.data()));
 
-    if (Application::debugEnabled) {
-      extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-      extensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
-    };
+    uint32_t sdlExtensionCount = 0;
+    char const *const*sdlExtensions = SDL_Vulkan_GetInstanceExtensions(&sdlExtensionCount);
+    for (std::uint32_t extensionIndex = 0; extensionIndex < sdlExtensionCount; extensionIndex++) {
+      const char *sdlExtension = sdlExtensions[extensionIndex];
+      auto findExtension = [&](const VkExtensionProperties &vulkanExtension)-> bool {
+        return strcmp(vulkanExtension.extensionName, sdlExtension) == 0;
+      };
 
-    if (Application::debugEnabled) {
-      for (auto &extension : extensions)
-        LOG_CORE_DEBUG("Found instance extension \"{}\"", extension);
+      if (std::find_if(supportedExtensions.begin(), supportedExtensions.end(), findExtension) == supportedExtensions.end()) {
+        LOG_CORE_CRITICAL("Vulkan instance extension \"{}\" is required but not available", sdlExtension);
+      }
+
+      addExtension(sdlExtension);
+    }
+
+    if constexpr (Application::debugEnabled) {
+      addExtension(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+      addExtension(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
+
+      for (auto &extension : supportedExtensions)
+        LOG_CORE_DEBUG("Found instance extension \"{}\"", extension.extensionName);
     }
 
     VkApplicationInfo applicationInfo{};
     applicationInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
     applicationInfo.pApplicationName = appName;
-    applicationInfo.apiVersion = VK_API_VERSION_1_3; // NVRHI only supports 1.3
+    applicationInfo.apiVersion = VK_API_VERSION_1_3;
 
     VkInstanceCreateInfo instanceCreateInfo{};
     instanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     instanceCreateInfo.pNext = nullptr;
     instanceCreateInfo.pApplicationInfo = &applicationInfo;
-    instanceCreateInfo.enabledExtensionCount = extensions.size();
-    instanceCreateInfo.ppEnabledExtensionNames = extensions.data();
+    instanceCreateInfo.enabledExtensionCount = enabledExtensions.size();
+    instanceCreateInfo.ppEnabledExtensionNames = enabledExtensions.data();
 
     // Getting instance layers
     const char *validationLayer = "VK_LAYER_KHRONOS_validation";
@@ -141,22 +156,81 @@ namespace Core::Graphics {
       LOG_CORE_DEBUG("Found possible rendering device: {}", device->deviceProperties.deviceName);
     }
 
-    for (const RefCountedPtr<VulkanPhysicalDevice> &device: physicalDevices) {
-      if (device->deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU && !selectedPhysicalDevice) {
-        selectedPhysicalDevice = device;
-        LOG_CORE_INFO("Selected {} as rendering device", selectedPhysicalDevice->deviceProperties.deviceName);
+    for (const RefCountedPtr<VulkanPhysicalDevice> &device : physicalDevices) {
+      if (device->deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU && !selectedDevice) {
+        selectedDevice = RefCountedPtr<VulkanDevice>::create(device);
+        LOG_CORE_INFO("Selected {} as rendering device",
+                      selectedDevice->getPhysicalDevice()->deviceProperties.deviceName);
       }
     }
 
-    device = RefCountedPtr<VulkanDevice>::create(selectedPhysicalDevice);
-
     // Setting VMA
+    VmaVulkanFunctions vulkanFunctions{};
+    vulkanFunctions.vkGetInstanceProcAddr = vkGetInstanceProcAddr;
+    vulkanFunctions.vkGetDeviceProcAddr = vkGetDeviceProcAddr;
+    vulkanFunctions.vkGetPhysicalDeviceProperties = vkGetPhysicalDeviceProperties;
+    vulkanFunctions.vkGetPhysicalDeviceMemoryProperties = vkGetPhysicalDeviceMemoryProperties;
+    vulkanFunctions.vkAllocateMemory = vkAllocateMemory;
+    vulkanFunctions.vkFreeMemory = vkFreeMemory;
+    vulkanFunctions.vkMapMemory = vkMapMemory;
+    vulkanFunctions.vkUnmapMemory = vkUnmapMemory;
+    vulkanFunctions.vkFlushMappedMemoryRanges = vkFlushMappedMemoryRanges;
+    vulkanFunctions.vkInvalidateMappedMemoryRanges = vkInvalidateMappedMemoryRanges;
+    vulkanFunctions.vkBindBufferMemory = vkBindBufferMemory;
+    vulkanFunctions.vkBindImageMemory = vkBindImageMemory;
+    vulkanFunctions.vkGetBufferMemoryRequirements = vkGetBufferMemoryRequirements;
+    vulkanFunctions.vkGetImageMemoryRequirements = vkGetImageMemoryRequirements;
+    vulkanFunctions.vkCreateBuffer = vkCreateBuffer;
+    vulkanFunctions.vkDestroyBuffer = vkDestroyBuffer;
+    vulkanFunctions.vkCreateImage = vkCreateImage;
+    vulkanFunctions.vkDestroyImage = vkDestroyImage;
+    vulkanFunctions.vkCmdCopyBuffer = vkCmdCopyBuffer;
 
+    VmaAllocatorCreateInfo allocatorCreateInfo{};
+    allocatorCreateInfo.instance = instance;
+    allocatorCreateInfo.device = selectedDevice->logicalDevice;
+    allocatorCreateInfo.physicalDevice = selectedDevice->getPhysicalDevice()->physicalDevice;
+    allocatorCreateInfo.pVulkanFunctions = &vulkanFunctions;
+    vmaCreateAllocator(&allocatorCreateInfo, &vmaAllocator);
   }
 
   VulkanContext::~VulkanContext() {
-    device->destroy();
+    for (auto &[windowId, swapChain] : swapChains) {
+      swapChain.destroy();
+    }
+
+    vmaDestroyAllocator(vmaAllocator);
+
+    selectedDevice->destroy();
     vkDestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
     vkDestroyInstance(instance, nullptr);
+  }
+
+  void VulkanContext::addExtension(const char *extension) {
+    auto extensionSupported = [&](const VkExtensionProperties &vulkanExtension)-> bool {
+      return strcmp(vulkanExtension.extensionName, extension) == 0;
+    };
+
+    if (std::find_if(supportedExtensions.begin(), supportedExtensions.end(), extensionSupported) == supportedExtensions.
+      end()) {
+      LOG_CORE_ERROR("Extension \"{}\" is not supported", extension);
+      return;
+    }
+
+    if (std::find(enabledExtensions.begin(), enabledExtensions.end(), extension) != enabledExtensions.end()) {
+      LOG_CORE_ERROR("Extension \"{}\" is already enabled", extension);
+      return;
+    }
+
+    enabledExtensions.push_back(extension);
+  }
+
+  void VulkanContext::createSwapChain(
+    SDL_Window *const window,
+    std::uint32_t windowId,
+    std::uint32_t width,
+    std::uint32_t height
+  ) const {
+    swapChains.emplace(windowId, VulkanSwapChain(instance, selectedDevice, window, width, height));
   }
 }

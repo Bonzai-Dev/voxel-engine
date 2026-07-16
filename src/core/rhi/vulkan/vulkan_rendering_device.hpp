@@ -1,8 +1,9 @@
 #pragma once
-#include <core/memory.hpp>
-#include <core/renderer/rendering_device.hpp>
+#include <core/renderer/renderer.hpp>
+#include <core/application/window.hpp>
 #include "volk.h"
 #include "vulkan_context.hpp"
+#include "vulkan_swapchain.hpp"
 
 namespace Core::Graphics {
   inline std::string vulkanResultToString(VkResult result) {
@@ -40,16 +41,21 @@ namespace Core::Graphics {
     }
   }
 
-  class VulkanRenderingDevice : public RenderingDevice {
+  class VulkanRenderingDevice {
     public:
-      VulkanRenderingDevice(const char *appName, const DisplayInfo &displayInfo);
+      VulkanRenderingDevice(Backend backend, const char *appName, const DisplayInfo &displayInfo);
 
-      ~VulkanRenderingDevice() override;
+      ~VulkanRenderingDevice() = default;
 
-      void render() override;
+      const VulkanContext &getContext() const { return vulkanContext; }
+
+      const std::uint32_t framesInFlight = 3;
 
     private:
+      Backend backend;
       VulkanContext vulkanContext;
+      const char *appName;
+      const DisplayInfo &displayInfo;
   };
 
   #define VULKAN_CHECK(vulkanCall) { \

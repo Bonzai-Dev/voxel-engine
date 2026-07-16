@@ -2,8 +2,10 @@
 #include <SDL3/SDL_mouse.h>
 #include <core/events/window_events.hpp>
 #include "window.hpp"
+#include "logger.hpp"
+#include "core/rhi/vulkan/vulkan_rendering_device.hpp"
 
-namespace Core::Graphics {
+namespace Core {
   Window::Window(
     const DisplayInfo &displayInfo,
     const WindowOptions &windowOptions
@@ -31,15 +33,6 @@ namespace Core::Graphics {
     }
 
     SDL_SetWindowRelativeMouseMode(window, options.mouseLocked);
-  }
-
-  Window::Window(Window &&other) noexcept :
-    mouseFocused(other.mouseFocused),
-    keyboardFocused(other.keyboardFocused),
-    displayInfo(other.displayInfo),
-    window(other.window),
-    windowFlags(other.windowFlags) {
-    other.window = nullptr;
   }
 
   Window::~Window() {

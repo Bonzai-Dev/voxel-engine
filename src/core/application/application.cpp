@@ -3,8 +3,9 @@
 #include <core/events/application_events.hpp>
 #include <core/events/window_events.hpp>
 #include <core/events/input_events.hpp>
-#include <core/renderer/rendering_device.hpp>
-#include <core/renderer/vulkan/vulkan_rendering_device.hpp>
+#include <core/renderer/renderer.hpp>
+#include <core/rhi/vulkan/vulkan_rendering_device.hpp>
+#include <core/rhi/vulkan/vulkan_window.hpp>
 #include "application.hpp"
 
 namespace Core {
@@ -31,9 +32,28 @@ namespace Core {
 
     EventDispatcher::listen<ApplicationQuit>([&](const ApplicationQuit &event) { quit(); });
 
+    EventDispatcher::listen<WindowShown>([&](const WindowShown &event) { onWindowShow(event); });
+    EventDispatcher::listen<WindowHidden>([&](const WindowHidden &event) { onWindowHide(event); });
+    EventDispatcher::listen<WindowResized>([&](const WindowResized &event) { onWindowResize(event); });
+
+    EventDispatcher::listen<WindowMouseEnter>([&](const WindowMouseEnter &event) { onWindowMouseEnter(event); });
+    EventDispatcher::listen<WindowMouseLeave>([&](const WindowMouseLeave &event) { onWindowMouseLeave(event); });
+    EventDispatcher::listen<WindowMouseMotion>([&](const WindowMouseMotion &event) { onWindowMouseMotion(event); });
+
+    EventDispatcher::listen<WindowFocusGained>([&](const WindowFocusGained &event) { onWindowFocusGained(event); });
+    EventDispatcher::listen<WindowFocusLost>([&](const WindowFocusLost &event) { onWindowFocusLost(event); });
+    EventDispatcher::listen<WindowMinimized>([&](const WindowMinimized &event) { onWindowMinimized(event); });
+    EventDispatcher::listen<WindowMaximized>([&](const WindowMaximized &event) { onWindowMaximized(event); });
+    EventDispatcher::listen<WindowRestored>([&](const WindowRestored &event) { onWindowRestored(event); });
+    EventDispatcher::listen<WindowClosed>([&](const WindowClosed &event) { onWindowClose(event); });
+    EventDispatcher::listen<WindowExposed>([&](const WindowExposed &event) { onWindowExposed(event); });
+
+    EventDispatcher::listen<KeyPressedEvent>([&](const KeyPressedEvent &event) { onKeyPressed(event); });
+    EventDispatcher::listen<KeyReleasedEvent>([&](const KeyReleasedEvent &event) { onKeyReleased(event); });
+
     switch (graphicsBackend) {
       case Graphics::Backend::Vulkan:
-        renderingDevice = std::make_unique<Graphics::VulkanRenderingDevice>(name, displayInfo);
+        renderingDevice = std::make_unique<Graphics::VulkanRenderingDevice>(graphicsBackend, name, displayInfo);
         break;
 
       case Graphics::Backend::None:
@@ -67,18 +87,16 @@ namespace Core {
       eventDispatcher.process();
 
       pollInputs();
-      renderingDevice->render();
     }
   }
 
-  // Graphics::Backend Application::selectGraphicsBackend() const {
-  //   // TODO: Implement graphics backend selection based on platform and availability
-  //   const Graphics::Backend backend = Graphics::Backend::Vulkan;
-  //   return backend;
-  // }
-
-  void Application::createWindow(const Graphics::WindowOptions &options) const {
-    // renderingDevice->createWindow(options);
+  void Application::createWindow(const WindowOptions &options) const {
+    RefCountedPtr<Graphics::VulkanWindow> window = RefCountedPtr<Graphics::VulkanWindow>::create(
+      renderingDevice->getContext(),
+      displayInfo,
+      options
+    );
+    windows.emplace(window->getId(), window);
   }
 
   void Application::quit() const {

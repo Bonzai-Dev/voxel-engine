@@ -3,8 +3,9 @@
 #include <SDL3/SDL_video.h>
 #include <SDL3/SDL_mouse.h>
 #include <core/events/window_events.hpp>
+#include <core/memory.hpp>
 
-namespace Core::Graphics {
+namespace Core {
   struct WindowOptions {
     bool mouseLocked = false;
     bool fullScreen = false;
@@ -24,7 +25,7 @@ namespace Core::Graphics {
     std::uint32_t height;
   };
 
-  class Window {
+  class Window: public RefCounted {
     public:
       explicit Window(
         const DisplayInfo &displayInfo,
@@ -37,13 +38,12 @@ namespace Core::Graphics {
 
       Window &operator=(const Window &other) = delete;
 
-      Window(Window &&other) noexcept;
+      Window(Window &&other) = delete;
+
 
       Window &operator=(Window &&other) = delete;
 
-      virtual ~Window();
-
-      virtual void render() const {}
+      ~Window() override;
 
       void show() { shown = true; }
 

@@ -36,7 +36,7 @@ namespace Core::Graphics {
       static inline VkInstance instance = VK_NULL_HANDLE;
       VkDebugUtilsMessengerEXT debugMessenger = VK_NULL_HANDLE;
 
-      VmaAllocator vmaAllocator;
+      VmaAllocator vmaAllocator = nullptr;
 
       std::vector<RefCountedPtr<VulkanPhysicalDevice>> physicalDevices;
       RefCountedPtr<VulkanDevice> selectedDevice;

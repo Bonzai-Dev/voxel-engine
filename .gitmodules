@@ -10,9 +10,9 @@
 [submodule "thirdparty/slang"]
 	path = thirdparty/slang
 	url = https://github.com/shader-slang/slang.git
-[submodule "thirdparty/NVRHI"]
-	path = thirdparty/NVRHI
-	url = https://github.com/NVIDIA-RTX/NVRHI.git
 [submodule "thirdparty/spdlog"]
 	path = thirdparty/spdlog
 	url = https://github.com/gabime/spdlog.git
+[submodule "thirdparty/ShaderMake"]
+	path = thirdparty/ShaderMake
+	url = https://github.com/NVIDIA-RTX/ShaderMake.git

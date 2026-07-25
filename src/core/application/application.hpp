@@ -107,7 +107,8 @@ namespace Core {
 
       mutable std::vector<std::unique_ptr<Layer>> layers;
 
-      mutable double deltaTime = 0;
+      // Delta time in ms
+      mutable std::uint64_t deltaTime = 0;
       mutable bool running = true;
 
       DisplayInfo displayInfo{};

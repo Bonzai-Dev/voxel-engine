@@ -109,6 +109,9 @@ namespace Core::Graphics {
     instanceCreateInfo.enabledLayerCount = instanceLayers.size();
     instanceCreateInfo.ppEnabledLayerNames = instanceLayers.data();
 
+    VULKAN_CHECK(vkCreateInstance(&instanceCreateInfo, nullptr, &instance));
+    volkLoadInstanceOnly(instance);
+
     VkDebugUtilsMessengerCreateInfoEXT debugMessengerCreateInfo{};
     if (validationLayersEnabled) {
       debugMessengerCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
@@ -123,12 +126,8 @@ namespace Core::Graphics {
       debugMessengerCreateInfo.pUserData = nullptr;
 
       instanceCreateInfo.pNext = &debugMessengerCreateInfo;
+      VULKAN_CHECK(vkCreateDebugUtilsMessengerEXT(instance, &debugMessengerCreateInfo, nullptr, &debugMessenger));
     }
-
-    VULKAN_CHECK(vkCreateInstance(&instanceCreateInfo, nullptr, &instance));
-    volkLoadInstanceOnly(instance);
-
-    VULKAN_CHECK(vkCreateDebugUtilsMessengerEXT(instance, &debugMessengerCreateInfo, nullptr, &debugMessenger));
 
     // Getting GPUs
     std::uint32_t deviceCount = 0;
@@ -156,11 +155,10 @@ namespace Core::Graphics {
       LOG_CORE_DEBUG("Found possible rendering device: {}", device->deviceProperties.deviceName);
     }
 
-    for (const RefCountedPtr<VulkanPhysicalDevice> &device : physicalDevices) {
+    for (RefCountedPtr<VulkanPhysicalDevice> device : physicalDevices) {
       if (device->deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU && !selectedDevice) {
         selectedDevice = RefCountedPtr<VulkanDevice>::create(device);
-        LOG_CORE_INFO("Selected {} as rendering device",
-                      selectedDevice->getPhysicalDevice()->deviceProperties.deviceName);
+        LOG_CORE_INFO("Selected {} as rendering device", selectedDevice->getPhysicalDevice()->deviceProperties.deviceName);
       }
     }
 
@@ -202,7 +200,9 @@ namespace Core::Graphics {
     vmaDestroyAllocator(vmaAllocator);
 
     selectedDevice->destroy();
-    vkDestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
+    if (debugMessenger)
+      vkDestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
+
     vkDestroyInstance(instance, nullptr);
   }
 

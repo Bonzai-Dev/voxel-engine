@@ -2,6 +2,7 @@
 #include <unordered_set>
 #include <string>
 #include <core/memory.hpp>
+#include <slang/slang.h>
 #include "volk.h"
 
 namespace Core::Graphics {

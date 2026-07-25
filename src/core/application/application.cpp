@@ -81,11 +81,9 @@ namespace Core {
     while (running) {
       lastFrameTime = currentFrameTime;
       currentFrameTime = SDL_GetPerformanceCounter();
-      deltaTime = static_cast<double>(currentFrameTime - lastFrameTime) * 1000 /
-        static_cast<double>(SDL_GetPerformanceFrequency());
+      deltaTime = currentFrameTime - lastFrameTime;
 
       eventDispatcher.process();
-
       pollInputs();
     }
   }

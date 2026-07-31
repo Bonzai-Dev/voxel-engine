@@ -12,13 +12,34 @@ namespace Core::Graphics {
 
     deviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 
+    if (physicalDevice->extensionSupported(VK_KHR_SHADER_DRAW_PARAMETERS_EXTENSION_NAME)) {
+      deviceExtensions.push_back(VK_KHR_SHADER_DRAW_PARAMETERS_EXTENSION_NAME);
+    }
+
+    VkPhysicalDeviceVulkan12Features enabledVk12Features {
+      .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES,
+      .descriptorIndexing = true,
+      .shaderSampledImageArrayNonUniformIndexing = true,
+      .descriptorBindingVariableDescriptorCount = true,
+      .runtimeDescriptorArray = true,
+      .bufferDeviceAddress = true
+    };
+
+    VkPhysicalDeviceVulkan13Features enabledVk13Features {
+      .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES,
+      .pNext = &enabledVk12Features,
+      .synchronization2 = true,
+      .dynamicRendering = true,
+    };
+
     VkDeviceCreateInfo deviceCreateInfo = {};
     deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
     deviceCreateInfo.queueCreateInfoCount = static_cast<std::uint32_t>(physicalDevice->queueCreateInfos.size());;
     deviceCreateInfo.pQueueCreateInfos = physicalDevice->queueCreateInfos.data();
     deviceCreateInfo.pEnabledFeatures = &physicalDevice->deviceFeatures;
+    deviceCreateInfo.pNext = &enabledVk13Features;
 
-    if (deviceExtensions.size() > 0) {
+    if (!deviceExtensions.empty()) {
       deviceCreateInfo.enabledExtensionCount = static_cast<std::uint32_t>(deviceExtensions.size());
       deviceCreateInfo.ppEnabledExtensionNames = deviceExtensions.data();
     }

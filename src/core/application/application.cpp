@@ -85,6 +85,8 @@ namespace Core {
 
       eventDispatcher.process();
       pollInputs();
+
+      renderingDevice->aquireNextImage();
     }
   }
 

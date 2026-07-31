@@ -16,7 +16,9 @@ namespace Core::Graphics {
 
       VkInstance getInstance() const { return instance; }
 
-      RefCountedPtr<VulkanPhysicalDevice> getDevice() const { return selectedDevice; }
+      RefCountedPtr<VulkanDevice> getDevice() const { return selectedDevice; }
+
+      const std::unordered_map<std::uint32_t, VulkanSwapChain> &getSwapChains() const { return swapChains; }
 
       void createSwapChain(
         SDL_Window *window, std::uint32_t windowId,

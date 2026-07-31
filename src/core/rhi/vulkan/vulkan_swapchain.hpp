@@ -14,11 +14,17 @@ namespace Core::Graphics {
         std::uint32_t height
       );
 
+      VkSurfaceFormatKHR getSurfaceFormat() const { return surfaceFormat; }
+
       ~VulkanSwapChain() = default;
 
       void destroy();
 
+      void present(VkPipeline pipeline, VkPipelineLayout pipelineLayout) const;
+
     private:
+      std::uint32_t acquireNextImage() const;
+
       SDL_Window * const window = nullptr;
 
       const VkInstance &instance;
@@ -26,10 +32,29 @@ namespace Core::Graphics {
 
       VkSurfaceKHR surface = VK_NULL_HANDLE;
       VkSwapchainKHR swapChain = VK_NULL_HANDLE;
-      VkSurfaceCapabilitiesKHR surfaceCapabilities{};
-      VkSurfaceFormatKHR surfaceFormat;
+      VkSurfaceCapabilitiesKHR surfaceCapabilities {};
+      VkSurfaceFormatKHR surfaceFormat {};
+
+      struct SwapChainCommandBuffer {
+        VkCommandPool commandPool = nullptr;
+        VkCommandBuffer commandBuffer = nullptr;
+      };
+
+      std::vector<SwapChainCommandBuffer> commandBuffers;
+
+      std::vector<VkSemaphore> imageAvailableSemaphores;
+      std::vector<VkSemaphore> renderFinishedSemaphores;
+      std::vector<VkFence> waitFences;
 
       std::vector<VkImage> images;
       std::vector<VkImageView> imageViews;
+
+      mutable std::uint32_t currentFrameIndex = 0;
+      mutable std::uint32_t imageIndex = 0;
+
+      mutable bool flash = false;
+
+      mutable VkPipeline pipeline = nullptr;
+      mutable VkPipelineLayout pipelineLayout = nullptr;
   };
 }

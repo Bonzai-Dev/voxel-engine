@@ -6,6 +6,16 @@
 #include "vulkan_swapchain.hpp"
 
 namespace Core::Graphics {
+  enum class PrimitiveTopology {
+    None = 0,
+    Points,
+    Lines,
+    Triangles,
+    LineStrip,
+    TriangleStrip,
+    TriangleFan
+  };
+
   inline std::string vulkanResultToString(VkResult result) {
     switch (result) {
       case VK_SUCCESS: return "VK_SUCCESS";
@@ -45,17 +55,23 @@ namespace Core::Graphics {
     public:
       VulkanRenderingDevice(Backend backend, const char *appName, const DisplayInfo &displayInfo);
 
-      ~VulkanRenderingDevice() = default;
+      ~VulkanRenderingDevice();
+
+      void aquireNextImage();
 
       const VulkanContext &getContext() const { return vulkanContext; }
 
-      const std::uint32_t framesInFlight = 3;
+      static constexpr std::uint32_t framesInFlight = 3;
 
     private:
       Backend backend;
       VulkanContext vulkanContext;
       const char *appName;
       const DisplayInfo &displayInfo;
+
+      VkDescriptorSetLayout descriptorSetLayoutTex;
+      VkPipeline pipeline = VK_NULL_HANDLE;
+      VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;
   };
 
   #define VULKAN_CHECK(vulkanCall) { \

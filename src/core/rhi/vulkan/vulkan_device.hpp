@@ -4,8 +4,15 @@
 #include <core/memory.hpp>
 #include <slang/slang.h>
 #include "volk.h"
+#include "glm/vec2.hpp"
+#include "glm/vec3.hpp"
+#include "glm/vec4.hpp"
 
 namespace Core::Graphics {
+  struct Vertex {
+    glm::vec4 pos;
+  };
+
   class VulkanPhysicalDevice: public RefCounted {
     public:
       VulkanPhysicalDevice(
@@ -18,6 +25,8 @@ namespace Core::Graphics {
       ~VulkanPhysicalDevice() = default;
 
       const std::unordered_set<std::string> &getExtensions() const { return supportedExtensions; }
+
+      int32_t getGraphicsQueueIndex() const { return graphicsQueueIndex; }
 
       bool extensionSupported(const std::string &extension) const;
 
@@ -49,6 +58,8 @@ namespace Core::Graphics {
       void destroy();
 
       RefCountedPtr<VulkanPhysicalDevice> getPhysicalDevice() const { return physicalDevice; }
+
+      VkQueue getGraphicsQueue() const { return graphicsQueue; }
 
       VkDevice logicalDevice = VK_NULL_HANDLE;
 

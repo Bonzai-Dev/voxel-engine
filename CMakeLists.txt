@@ -19,6 +19,28 @@ add_subdirectory(thirdparty)
 set(RESOURCE_DIRECTORY "${CMAKE_BINARY_DIR}/$<CONFIG>/resources")
 set(SHADERS_DIRECTORY "${RESOURCE_DIRECTORY}/shaders")
 
+target_compile_definitions(
+    ${CMAKE_PROJECT_NAME} PRIVATE
+    $<$<CONFIG:Debug>:ENGINE_DEBUG>
+    $<$<CONFIG:Release>:ENGINE_RELEASE>
+)
+
+if(WIN32)
+    target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE ENGINE_PLATFORM_WINDOWS)
+elseif(UNIX)
+    target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE ENGINE_PLATFORM_LINUX)
+elseif(APPLE)
+    target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE ENGINE_PLATFORM_APPLE)
+endif()
+
+if (${MSVC})
+    target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE ENGINE_COMPILER_MSVC)
+elseif (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+    target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE ENGINE_COMPILER_GCC)
+elseif (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang") # TODO: validate
+    target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE ENGINE_COMPILER_CLANG)
+endif()
+
 # Compiling shaders
 file(GLOB_RECURSE SHADER_SOURCE_FILES CONFIGURE_DEPENDS "src/*.slang" "src/*.slangh")
 foreach(SHADER_SOURCE IN LISTS SHADER_SOURCE_FILES)

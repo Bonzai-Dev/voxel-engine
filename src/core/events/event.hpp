@@ -4,7 +4,7 @@
 #include <map>
 #include <queue>
 #include <typeindex>
-#include <core/application/logger.hpp>
+#include <core/logger.hpp>
 
 namespace Core::Events {
   enum class EventType {

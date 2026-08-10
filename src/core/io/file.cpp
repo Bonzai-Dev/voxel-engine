@@ -1,7 +1,7 @@
 #include <vector>
 #include <iosfwd>
 #include <fstream>
-#include <core/application/logger.hpp>
+#include <core/logger.hpp>
 #include "file.hpp"
 
 namespace Core {

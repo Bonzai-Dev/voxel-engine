@@ -1,4 +1,4 @@
-#include <core/application/application.hpp>
+#include <core/application.hpp>
 #include "app_layer.hpp"
 
 int main() {

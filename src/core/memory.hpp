@@ -167,23 +167,35 @@ namespace Core {
       virtual ~RefCounted() = default;
 
       virtual unsigned long addRef() {
-        return ++m_refCount;
+        return ++referenceCount;
       }
 
       virtual unsigned long release() {
-        unsigned long result = --m_refCount;
+        unsigned long result = --referenceCount;
         if (result == 0) {
           delete this;
         }
         return result;
       }
 
+      // virtual unsigned long addRef(std::memory_order memoryOrder) {
+      //   return ++referenceCount;
+      // }
+      //
+      // virtual unsigned long release(std::memory_order memoryOrder) {
+      //   unsigned long result = --referenceCount;
+      //   if (result == 0) {
+      //     delete this;
+      //   }
+      //   return result;
+      // }
+
       virtual unsigned long getRefCount() {
-        return m_refCount.load();
+        return referenceCount.load();
       }
 
     private:
-      mutable std::atomic<unsigned long> m_refCount = 1;
+      mutable std::atomic<unsigned long> referenceCount = 1;
   };
 
   //////////////////////////////////////////////////////////////////////////
@@ -205,22 +217,22 @@ namespace Core {
       // };
 
     protected:
-      InterfaceType *ptr_;
+      InterfaceType *instance;
       template<class U>
       friend class RefCountedPtr;
 
       void internalAddRef() const noexcept {
-        if (ptr_ != nullptr) {
-          ptr_->addRef();
+        if (instance != nullptr) {
+          instance->addRef();
         }
       }
 
       unsigned long internalRelease() noexcept {
         unsigned long ref = 0;
-        T *temp = ptr_;
+        T *temp = instance;
 
         if (temp != nullptr) {
-          ptr_ = nullptr;
+          instance = nullptr;
           ref = temp->release();
         }
 
@@ -228,30 +240,30 @@ namespace Core {
       }
 
     public:
-      RefCountedPtr() noexcept: ptr_(nullptr) {
+      RefCountedPtr() noexcept: instance(nullptr) {
       }
 
-      RefCountedPtr(std::nullptr_t) noexcept: ptr_(nullptr) {
+      RefCountedPtr(std::nullptr_t) noexcept: instance(nullptr) {
       }
 
       template<class U>
-      RefCountedPtr(U *other) noexcept: ptr_(other) {
+      RefCountedPtr(U *other) noexcept: instance(other) {
         internalAddRef();
       }
 
-      RefCountedPtr(const RefCountedPtr &other) noexcept: ptr_(other.ptr_) {
+      RefCountedPtr(const RefCountedPtr &other) noexcept: instance(other.instance) {
         internalAddRef();
       }
 
       // copy ctor that allows to instantiate class when U* is convertible to T*
       template<class U>
       RefCountedPtr(const RefCountedPtr<U> &other, std::enable_if_t<std::is_convertible_v<U *, T *>, void *> * = nullptr)
-        noexcept: ptr_(
-        other.ptr_) {
+        noexcept: instance(
+        other.instance) {
         internalAddRef();
       }
 
-      RefCountedPtr(RefCountedPtr &&other) noexcept: ptr_(nullptr) {
+      RefCountedPtr(RefCountedPtr &&other) noexcept: instance(nullptr) {
         if (this != reinterpret_cast<RefCountedPtr *>(&reinterpret_cast<unsigned char &>(other))) {
           swap(other);
         }
@@ -260,9 +272,9 @@ namespace Core {
       // Move ctor that allows instantiation of a class when U* is convertible to T*
       template<class U>
       RefCountedPtr(RefCountedPtr<U> &&other, std::enable_if_t<std::is_convertible_v<U *, T *>, void *> * = nullptr)
-        noexcept: ptr_(
-        other.ptr_) {
-        other.ptr_ = nullptr;
+        noexcept: instance(
+        other.instance) {
+        other.instance = nullptr;
       }
 
       ~RefCountedPtr() noexcept {
@@ -275,7 +287,7 @@ namespace Core {
       }
 
       RefCountedPtr &operator=(T *other) noexcept {
-        if (ptr_ != other) {
+        if (instance != other) {
           RefCountedPtr(other).swap(*this);
         }
         return *this;
@@ -289,7 +301,7 @@ namespace Core {
 
       RefCountedPtr &operator=(const RefCountedPtr &other) noexcept // NOLINT(bugprone-unhandled-self-assignment)
       {
-        if (ptr_ != other.ptr_) {
+        if (instance != other.instance) {
           RefCountedPtr(other).swap(*this);
         }
         return *this;
@@ -313,27 +325,27 @@ namespace Core {
       }
 
       void swap(RefCountedPtr &&r) noexcept {
-        T *tmp = ptr_;
-        ptr_ = r.ptr_;
-        r.ptr_ = tmp;
+        T *tmp = instance;
+        instance = r.instance;
+        r.instance = tmp;
       }
 
       void swap(RefCountedPtr &r) noexcept {
-        T *tmp = ptr_;
-        ptr_ = r.ptr_;
-        r.ptr_ = tmp;
+        T *tmp = instance;
+        instance = r.instance;
+        r.instance = tmp;
       }
 
       [[nodiscard]] T *get() const noexcept {
-        return ptr_;
+        return instance;
       }
 
       operator T *() const {
-        return ptr_;
+        return instance;
       }
 
       InterfaceType *operator->() const noexcept {
-        return ptr_;
+        return instance;
       }
 
       T **operator&() // NOLINT(google-runtime-operator)
@@ -342,36 +354,36 @@ namespace Core {
       }
 
       [[nodiscard]] T *const*getAddressOf() const noexcept {
-        return &ptr_;
+        return &instance;
       }
 
       [[nodiscard]] T **getAddressOf() noexcept {
-        return &ptr_;
+        return &instance;
       }
 
       [[nodiscard]] T **releaseAndGetAddressOf() noexcept {
         internalRelease();
-        return &ptr_;
+        return &instance;
       }
 
       T *detach() noexcept {
-        T *ptr = ptr_;
-        ptr_ = nullptr;
+        T *ptr = instance;
+        instance = nullptr;
         return ptr;
       }
 
       // Set the pointer while keeping the object's reference count unchanged
       void attach(InterfaceType *other) {
-        if (ptr_ != nullptr) {
-          auto ref = ptr_->release();
+        if (instance != nullptr) {
+          auto ref = instance->release();
           (void) ref;
 
           // attaching to the same object only works if duplicate references are being coalesced. Otherwise
           // re-attaching will cause the pointer to be released and may cause a crash on a subsequent dereference.
-          assert(ref != 0 || ptr_ != other);
+          assert(ref != 0 || instance != other);
         }
 
-        ptr_ = other;
+        instance = other;
       }
 
       // Create a wrapper around a raw object while keeping the object's reference count unchanged

@@ -30,3 +30,4 @@
   #define ENGINE_ASSERT(condition, ...)
   #define ENGINE_STATIC_ASSERT(condition, ...)
 #endif
+

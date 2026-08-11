@@ -1,8 +1,16 @@
-#pragma once
+
+//          Copyright Oliver Kowalke 2014.
+// Distributed under the Boost Software License, Version 1.0.
+//    (See accompanying file LICENSE_1_0.txt or copy at
+//          http://www.boost.org/LICENSE_1_0.txt)
+
+#ifndef BOOST_CONTEXT_DETAIL_CONFIG_H
+#define BOOST_CONTEXT_DETAIL_CONFIG_H
 
 // required for SD-6 compile-time integer sequences
 #include <utility>
 
+#include <boost/config.hpp>
 #include <boost/detail/workaround.hpp>
 
 #ifdef BOOST_CONTEXT_DECL
@@ -11,10 +19,10 @@
 
 #if (defined(BOOST_ALL_DYN_LINK) || defined(BOOST_CONTEXT_DYN_LINK) ) && ! defined(BOOST_CONTEXT_STATIC_LINK)
 # if defined(BOOST_CONTEXT_SOURCE)
-#  define BOOST_SYMBOL_EXPORT
+#  define BOOST_CONTEXT_DECL BOOST_SYMBOL_EXPORT
 #  define BOOST_CONTEXT_BUILD_DLL
 # else
-#  define BOOST_SYMBOL_IMPORT
+#  define BOOST_CONTEXT_DECL BOOST_SYMBOL_IMPORT
 # endif
 #endif
 
@@ -120,3 +128,5 @@ static constexpr std::size_t prefetch_stride{ 4 * cacheline_length };
 // stacks need mmap(2) with MAP_STACK
 # define BOOST_CONTEXT_USE_MAP_STACK
 #endif
+
+#endif // BOOST_CONTEXT_DETAIL_CONFIG_H

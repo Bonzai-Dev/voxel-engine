@@ -1,24 +1,18 @@
-//          Copyright Oliver Kowalke 2014.
-// Distributed under the Boost Software License, Version 1.0.
-//    (See accompanying file LICENSE_1_0.txt or copy at
-//          http://www.boost.org/LICENSE_1_0.txt)
-
-#ifndef BOOST_CONTEXT_POOLED_pooled_fixedsize_H
-#define BOOST_CONTEXT_POOLED_pooled_fixedsize_H
+#pragma once
 
 #include <atomic>
 #include <cstddef>
 #include <cstdlib>
 #include <new>
 
-#include <boost/assert.hpp>
+#include <core/assert.hpp>
 #include <boost/config.hpp>
 #include <boost/intrusive_ptr.hpp>
 #include <boost/pool/pool.hpp>
 
-#include <boost/context/detail/config.hpp>
-#include <boost/context/stack_context.hpp>
-#include <boost/context/stack_traits.hpp>
+// #include <core/threading/context/detail/config.hpp>
+#include <core/threading/context/stack_context.hpp>
+#include <core/threading/context/stack_traits.hpp>
 
 #if defined(BOOST_CONTEXT_USE_MAP_STACK)
 extern "C" {
@@ -31,12 +25,12 @@ extern "C" {
 #include <valgrind/valgrind.h>
 #endif
 
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include BOOST_ABI_PREFIX
-#endif
+// #ifdef BOOST_HAS_ABI_HEADERS
+// #  include BOOST_ABI_PREFIX
+// #endif
 
-namespace boost {
-  namespace context {
+namespace Core {
+  namespace Context {
 #if defined(BOOST_CONTEXT_USE_MAP_STACK)
     namespace detail {
       template<typename traitsT>
@@ -72,9 +66,9 @@ namespace boost {
             std::atomic<std::size_t> use_count_;
             std::size_t stack_size_;
 #if defined(BOOST_CONTEXT_USE_MAP_STACK)
-            boost::pool<detail::map_stack_allocator<traitsT> > storage_;
+            Core::pool<detail::map_stack_allocator<traitsT> > storage_;
 #else
-            boost::pool<boost::default_user_allocator_malloc_free> storage_;
+            Core::pool<Core::default_user_allocator_malloc_free> storage_;
 #endif
 
           public:
@@ -98,7 +92,7 @@ namespace boost {
               return sctx;
             }
 
-            void deallocate(stack_context &sctx) BOOST_NOEXCEPT_OR_NOTHROW {
+            void deallocate(stack_context &sctx) noexcept {
               BOOST_ASSERT(sctx.sp);
               BOOST_ASSERT(traits_type::is_unbounded() || (traits_type::maximum_size() >= sctx.size));
 
@@ -127,7 +121,7 @@ namespace boost {
 
         basic_pooled_fixedsize_stack(std::size_t stack_size = traits_type::default_size(),
                                      std::size_t next_size = 32,
-                                     std::size_t max_size = 0) BOOST_NOEXCEPT_OR_NOTHROW: storage_(
+                                     std::size_t max_size = 0) noexcept: storage_(
           new storage(stack_size, next_size, max_size)) {
         }
 
@@ -135,7 +129,7 @@ namespace boost {
           return storage_->allocate();
         }
 
-        void deallocate(stack_context &sctx) BOOST_NOEXCEPT_OR_NOTHROW {
+        void deallocate(stack_context &sctx) noexcept {
           storage_->deallocate(sctx);
         }
     };
@@ -144,8 +138,6 @@ namespace boost {
   }
 }
 
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include BOOST_ABI_SUFFIX
-#endif
-
-#endif // BOOST_CONTEXT_POOLED_pooled_fixedsize_H
+// #ifdef BOOST_HAS_ABI_HEADERS
+// #  include BOOST_ABI_SUFFIX
+// #endif

@@ -18,7 +18,7 @@ extern "C" {
 #include <cstring>
 #include <stdexcept>
 
-#include <boost/assert.hpp>
+#include <core/assert.hpp>
 #include <boost/context/detail/config.hpp>
 
 #include <boost/context/stack_context.hpp>
@@ -43,7 +43,7 @@ extern "C" {
 
 namespace {
 
-std::size_t pagesize() BOOST_NOEXCEPT_OR_NOTHROW {
+std::size_t pagesize() noexcept {
     SYSTEM_INFO si;
     ::GetSystemInfo(&si);
     return static_cast< std::size_t >( si.dwPageSize );
@@ -51,34 +51,34 @@ std::size_t pagesize() BOOST_NOEXCEPT_OR_NOTHROW {
 
 }
 
-namespace boost {
-namespace context {
+namespace Core {
+namespace Context {
 
 // Windows seams not to provide a limit for the stacksize
 // libcoco uses 32k+4k bytes as minimum
 BOOST_CONTEXT_DECL
 bool
-stack_traits::is_unbounded() BOOST_NOEXCEPT_OR_NOTHROW {
+stack_traits::is_unbounded() noexcept {
     return true;
 }
 
 BOOST_CONTEXT_DECL
 std::size_t
-stack_traits::page_size() BOOST_NOEXCEPT_OR_NOTHROW {
+stack_traits::page_size() noexcept {
     static std::size_t size = pagesize();
     return size;
 }
 
 BOOST_CONTEXT_DECL
 std::size_t
-stack_traits::default_size() BOOST_NOEXCEPT_OR_NOTHROW {
+stack_traits::default_size() noexcept {
     return 128 * 1024;
 }
 
 // because Windows seams not to provide a limit for minimum stacksize
 BOOST_CONTEXT_DECL
 std::size_t
-stack_traits::minimum_size() BOOST_NOEXCEPT_OR_NOTHROW {
+stack_traits::minimum_size() noexcept {
     return MIN_STACKSIZE;
 }
 
@@ -86,7 +86,7 @@ stack_traits::minimum_size() BOOST_NOEXCEPT_OR_NOTHROW {
 // maximum_size() can never be called (pre-condition ! is_unbounded() )
 BOOST_CONTEXT_DECL
 std::size_t
-stack_traits::maximum_size() BOOST_NOEXCEPT_OR_NOTHROW {
+stack_traits::maximum_size() noexcept {
     BOOST_ASSERT( ! is_unbounded() );
     return  1 * 1024 * 1024 * 1024; // 1GB
 }

@@ -34,8 +34,8 @@ void __splitstack_block_signals_context( void * [BOOST_CONTEXT_SEGMENTS],
                                          int * new_value, int * old_value);
 }
 
-namespace boost {
-namespace context {
+namespace Core {
+namespace Context {
 
 template< typename traitsT >
 class basic_segmented_stack {
@@ -45,7 +45,7 @@ private:
 public:
     typedef traitsT traits_type;
 
-    basic_segmented_stack( std::size_t size = traits_type::default_size() ) BOOST_NOEXCEPT_OR_NOTHROW :
+    basic_segmented_stack( std::size_t size = traits_type::default_size() ) noexcept :
         size_( size) {
     }
 
@@ -63,7 +63,7 @@ public:
         return sctx;
     }
 
-    void deallocate( stack_context & sctx) BOOST_NOEXCEPT_OR_NOTHROW {
+    void deallocate( stack_context & sctx) noexcept {
         __splitstack_releasecontext( sctx.segments_ctx);
     }
 };

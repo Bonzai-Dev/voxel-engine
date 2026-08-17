@@ -47,8 +47,8 @@ void explore( std::vector< boost::fibers::numa::node > & topo, lgrp_cookie_t coo
 
 }
 
-namespace boost {
-namespace fibers {
+namespace Core {
+namespace Fibers {
 namespace numa {
 
 BOOST_FIBERS_DECL

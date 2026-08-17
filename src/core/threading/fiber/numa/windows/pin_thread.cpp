@@ -17,8 +17,8 @@ extern "C" {
 # include BOOST_ABI_PREFIX
 #endif
 
-namespace boost {
-namespace fibers {
+namespace Core {
+namespace Fibers {
 namespace numa {
 
 BOOST_FIBERS_DECL

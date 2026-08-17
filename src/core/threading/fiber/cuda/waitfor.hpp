@@ -1,11 +1,5 @@
-
-//          Copyright Oliver Kowalke 2017.
-// Distributed under the Boost Software License, Version 1.0.
-//    (See accompanying file LICENSE_1_0.txt or copy at
-//          http://www.boost.org/LICENSE_1_0.txt)
-
-#ifndef BOOST_FIBERS_CUDA_WAITFOR_H
-#define BOOST_FIBERS_CUDA_WAITFOR_H
+#if 0
+#pragma once
 
 #include <initializer_list>
 #include <mutex>
@@ -14,22 +8,22 @@
 #include <tuple>
 #include <vector>
 
-#include <boost/assert.hpp>
-#include <boost/config.hpp>
+#include <core/assert.hpp>
+// #include <boost/config.hpp>
 
 #include <cuda.h>
 
-#include <boost/fiber/detail/config.hpp>
-#include <boost/fiber/detail/is_all_same.hpp>
-#include <boost/fiber/condition_variable.hpp>
-#include <boost/fiber/mutex.hpp>
+#include <core/threading/fiber/detail/config.hpp>
+#include <core/threading/fiber/detail/is_all_same.hpp>
+#include <core/threading/fiber/condition_variable.hpp>
+#include <core/threading/fiber/mutex.hpp>
 
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include BOOST_ABI_PREFIX
-#endif
+// #ifdef BOOST_HAS_ABI_HEADERS
+// #  include BOOST_ABI_PREFIX
+// #endif
 
-namespace boost {
-namespace fibers {
+namespace Core {
+namespace Fibers {
 namespace cuda {
 namespace detail {
 
@@ -125,15 +119,14 @@ std::tuple< cudaStream_t, cudaError_t > waitfor_all( cudaStream_t st) {
 
 template< typename ... STP >
 std::vector< std::tuple< cudaStream_t, cudaError_t > > waitfor_all( cudaStream_t st0, STP ... stx) {
-    static_assert( boost::fibers::detail::is_all_same< cudaStream_t, STP ...>::value, "all arguments must be of type `CUstream*`.");
+    static_assert( Core::Fibers::detail::is_all_same< cudaStream_t, STP ...>::value, "all arguments must be of type `CUstream*`.");
     detail::many_streams_rendezvous rendezvous{ st0, stx ... };
     return rendezvous.wait();
 }
 
 }}}
 
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include BOOST_ABI_SUFFIX
+// #ifdef BOOST_HAS_ABI_HEADERS
+// #  include BOOST_ABI_SUFFIX
+// #endif
 #endif
-
-#endif // BOOST_FIBERS_CUDA_WAITFOR_H

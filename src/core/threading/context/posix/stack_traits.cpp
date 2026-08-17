@@ -18,7 +18,7 @@ extern "C" {
 #include <algorithm>
 #include <cmath>
 
-#include <boost/assert.hpp>
+#include <core/assert.hpp>
 #include <boost/config.hpp>
 
 #if !defined (SIGSTKSZ)
@@ -37,51 +37,51 @@ extern "C" {
 
 namespace {
 
-std::size_t pagesize() BOOST_NOEXCEPT_OR_NOTHROW {
+std::size_t pagesize() noexcept {
     // conform to POSIX.1-2001
     return static_cast<std::size_t>(::sysconf( _SC_PAGESIZE));
 }
 
-rlim_t stacksize_limit_() BOOST_NOEXCEPT_OR_NOTHROW {
+rlim_t stacksize_limit_() noexcept {
     rlimit limit;
     // conforming to POSIX.1-2001
     ::getrlimit( RLIMIT_STACK, & limit);
     return limit.rlim_max;
 }
 
-rlim_t stacksize_limit() BOOST_NOEXCEPT_OR_NOTHROW {
+rlim_t stacksize_limit() noexcept {
     static rlim_t limit = stacksize_limit_();
     return limit;
 }
 
 }
 
-namespace boost {
-namespace context {
+namespace Core {
+namespace Context {
 
 bool
-stack_traits::is_unbounded() BOOST_NOEXCEPT_OR_NOTHROW {
+stack_traits::is_unbounded() noexcept {
     return RLIM_INFINITY == stacksize_limit();
 }
 
 std::size_t
-stack_traits::page_size() BOOST_NOEXCEPT_OR_NOTHROW {
+stack_traits::page_size() noexcept {
     static std::size_t size = pagesize();
     return size;
 }
 
 std::size_t
-stack_traits::default_size() BOOST_NOEXCEPT_OR_NOTHROW {
+stack_traits::default_size() noexcept {
     return 128 * 1024;
 }
 
 std::size_t
-stack_traits::minimum_size() BOOST_NOEXCEPT_OR_NOTHROW {
+stack_traits::minimum_size() noexcept {
     return static_cast<std::size_t>(MINSIGSTKSZ);
 }
 
 std::size_t
-stack_traits::maximum_size() BOOST_NOEXCEPT_OR_NOTHROW {
+stack_traits::maximum_size() noexcept {
     BOOST_ASSERT( ! is_unbounded() );
     return static_cast< std::size_t >( stacksize_limit() );
 }

@@ -1,37 +1,31 @@
-//          Copyright Oliver Kowalke 2013.
-// Distributed under the Boost Software License, Version 1.0.
-//    (See accompanying file LICENSE_1_0.txt or copy at
-//          http://www.boost.org/LICENSE_1_0.txt)
-
-#ifndef BOOST_FIBERS_ALGO_ALGORITHM_H
-#define BOOST_FIBERS_ALGO_ALGORITHM_H
+#pragma once
 
 #include <atomic>
 #include <chrono>
 #include <cstddef>
 
-#include <boost/assert.hpp>
-#include <boost/config.hpp>
-#include <boost/intrusive_ptr.hpp>
+#include <core/assert.hpp>
+// #include <boost/config.hpp>
+#include <core/memory.hpp>
 
-#include <boost/fiber/properties.hpp>
-#include <boost/fiber/detail/config.hpp>
+#include <core/threading/fiber/properties.hpp>
+#include <core/threading/fiber/detail/config.hpp>
 
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include BOOST_ABI_PREFIX
-#endif
+// #ifdef BOOST_HAS_ABI_HEADERS
+// #  include BOOST_ABI_PREFIX
+// #endif
 
-namespace boost {
-  namespace fibers {
+namespace Core {
+  namespace Fibers {
     class context;
 
     namespace algo {
-      class BOOST_FIBERS_DECL algorithm {
+      class algorithm: public RefCounted {
         private:
           std::atomic<std::size_t> use_count_{0};
 
         public:
-          typedef intrusive_ptr<algorithm> ptr_t;
+          typedef RefCountedPtr<algorithm> ptr_t;
 
           virtual ~algorithm() = default;
 
@@ -46,14 +40,14 @@ namespace boost {
           virtual void notify() noexcept = 0;
 
 #if !defined(BOOST_EMBTC)
-
+// TODO: implement this with our own intrusive pointer
           friend void intrusive_ptr_add_ref(algorithm *algo) noexcept {
-            BOOST_ASSERT(nullptr != algo);
+            ENGINE_ASSERT(nullptr != algo, "");
             algo->use_count_.fetch_add(1, std::memory_order_relaxed);
           }
 
           friend void intrusive_ptr_release(algorithm *algo) noexcept {
-            BOOST_ASSERT(nullptr != algo);
+            ENGINE_ASSERT(nullptr != algo, "");
             if (1 == algo->use_count_.fetch_sub(1, std::memory_order_release)) {
               std::atomic_thread_fence(std::memory_order_acquire);
               delete algo;
@@ -85,7 +79,7 @@ namespace boost {
 
 #endif
 
-      class BOOST_FIBERS_DECL algorithm_with_properties_base: public algorithm {
+      class algorithm_with_properties_base: public algorithm {
         public:
           // called by fiber_properties::notify() -- don't directly call
           virtual void property_change_(context *ctx, fiber_properties *props) noexcept = 0;
@@ -106,15 +100,14 @@ namespace boost {
         // with: algorithm_with_properties<PROPS>::awakened(fb);
         void awakened(context *ctx) noexcept final {
           fiber_properties *props = super::get_properties(ctx);
-          if (BOOST_LIKELY(nullptr == props)) {
+          if (nullptr == props) [[likely]] {
             // TODO: would be great if PROPS could be allocated on the new
             // fiber's stack somehow
             props = new_properties(ctx);
             // It is not good for new_properties() to return 0.
-            BOOST_ASSERT_MSG(props, "new_properties() must return non-NULL");
+            ENGINE_ASSERT(props, "new_properties() must return non-NULL");
             // new_properties() must return instance of (a subclass of) PROPS
-            BOOST_ASSERT_MSG(dynamic_cast<PROPS *>(props),
-                             "new_properties() must return properties class");
+            ENGINE_ASSERT(dynamic_cast<PROPS *>(props), "new_properties() must return properties class");
             super::set_properties(ctx, props);
           }
           // Set algo_ again every time this fiber becomes READY. That
@@ -154,8 +147,6 @@ namespace boost {
   }
 }
 
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include BOOST_ABI_SUFFIX
-#endif
-
-#endif // BOOST_FIBERS_ALGO_ALGORITHM_H
+// #ifdef BOOST_HAS_ABI_HEADERS
+// #  include BOOST_ABI_SUFFIX
+// #endif

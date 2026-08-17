@@ -15,7 +15,7 @@ extern "C" {
 #include <system_error>
 #include <vector>
 
-#include <boost/assert.hpp>
+#include <core/assert.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 # include BOOST_ABI_PREFIX
@@ -100,8 +100,8 @@ std::set< std::uint32_t > compute_cpu_set( WORD group_id, KAFFINITY mask) {
 
 }
 
-namespace boost {
-namespace fibers {
+namespace Core {
+namespace Fibers {
 namespace numa {
 
 std::vector< node > topology() {

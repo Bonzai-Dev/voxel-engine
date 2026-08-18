@@ -1,18 +1,26 @@
-#pragma once
-// #include <boost/config.hpp>
-#include <core/threading/context/pooled_fixedsize_stack.hpp>
-#include <core/threading/fiber/detail/config.hpp>
 
-// #ifdef BOOST_HAS_ABI_HEADERS
-// #  include BOOST_ABI_PREFIX
-// #endif
+//          Copyright Oliver Kowalke 2014.
+// Distributed under the Boost Software License, Version 1.0.
+//    (See accompanying file LICENSE_1_0.txt or copy at
+//          http://www.boost.org/LICENSE_1_0.txt)
 
-namespace Core {
-  namespace Fibers {
-    using pooled_fixedsize_stack = Core::Context::pooled_fixedsize_stack;
-  }
-}
+#ifndef BOOST_FIBERS_POOLED_FIXEDSIZE_STACK_H
+#define BOOST_FIBERS_POOLED_FIXEDSIZE_STACK_H
 
-// #ifdef BOOST_HAS_ABI_HEADERS
-// #  include BOOST_ABI_SUFFIX
-// #endif
+#include <boost/config.hpp>
+#include <boost/context/pooled_fixedsize_stack.hpp>
+
+#include <boost/fiber/detail/config.hpp>
+
+
+
+namespace boost {
+namespace fibers {
+
+using pooled_fixedsize_stack = boost::context::pooled_fixedsize_stack;
+
+}}
+
+
+
+#endif // BOOST_FIBERS_POOLED_FIXEDSIZE_STACK_H

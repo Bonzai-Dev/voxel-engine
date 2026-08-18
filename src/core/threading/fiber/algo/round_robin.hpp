@@ -1,59 +1,65 @@
-#pragma once
+//          Copyright Oliver Kowalke 2013.
+// Distributed under the Boost Software License, Version 1.0.
+//    (See accompanying file LICENSE_1_0.txt or copy at
+//          http://www.boost.org/LICENSE_1_0.txt)
+
+#ifndef BOOST_FIBERS_ALGO_ROUND_ROBIN_H
+#define BOOST_FIBERS_ALGO_ROUND_ROBIN_H
+
 #include <condition_variable>
 #include <chrono>
 #include <mutex>
-// #include <boost/config.hpp>
-#include <core/threading/fiber/algo/algorithm.hpp>
-#include <core/threading/fiber/context.hpp>
-#include <core/threading/fiber/detail/config.hpp>
-#include <core/threading/fiber/scheduler.hpp>
-#include "algorithm.hpp"
 
-// #ifdef BOOST_HAS_ABI_HEADERS
-// #  include BOOST_ABI_PREFIX
-// #endif
+#include <boost/config.hpp>
 
-#ifdef ENGINE_COMPILER_MSVC
-#pragma warning(push)
-#pragma warning(disable:4251)
+#include <boost/fiber/algo/algorithm.hpp>
+#include <boost/fiber/context.hpp>
+#include <boost/fiber/detail/config.hpp>
+#include <boost/fiber/scheduler.hpp>
+
+
+
+#ifdef _MSC_VER
+# pragma warning(push)
+# pragma warning(disable:4251)
 #endif
 
-namespace Core {
-  namespace Fibers {
-    namespace algo {
-      class round_robin: public algorithm {
-        private:
-          typedef scheduler::ready_queue_type rqueue_type;
+namespace boost {
+namespace fibers {
+namespace algo {
 
-          rqueue_type rqueue_{};
-          std::mutex mtx_{};
-          std::condition_variable cnd_{};
-          bool flag_{false};
+class BOOST_FIBERS_DECL round_robin : public algorithm {
+private:
+    typedef scheduler::ready_queue_type rqueue_type;
 
-        public:
-          round_robin() = default;
+    rqueue_type                 rqueue_{};
+    std::mutex                  mtx_{};
+    std::condition_variable     cnd_{};
+    bool                        flag_{ false };
 
-          round_robin(round_robin const &) = delete;
-          round_robin &operator=(round_robin const &) = delete;
+public:
+    round_robin() = default;
 
-          void awakened(context *) noexcept override;
+    round_robin( round_robin const&) = delete;
+    round_robin & operator=( round_robin const&) = delete;
 
-          context *pick_next() noexcept override;
+    void awakened( context *) noexcept override;
 
-          bool has_ready_fibers() const noexcept override;
+    context * pick_next() noexcept override;
 
-          void suspend_until(std::chrono::steady_clock::time_point const &) noexcept override;
+    bool has_ready_fibers() const noexcept override;
 
-          void notify() noexcept override;
-      };
-    }
-  }
-}
+    void suspend_until( std::chrono::steady_clock::time_point const&) noexcept override;
 
-#ifdef ENGINE_COMPILER_MSVC
-#pragma warning(pop)
+    void notify() noexcept override;
+};
+
+}}}
+
+#ifdef _MSC_VER
+# pragma warning(pop)
 #endif
 
-// #ifdef BOOST_HAS_ABI_HEADERS
-// #  include BOOST_ABI_SUFFIX
-// #endif
+
+
+#endif // BOOST_FIBERS_ALGO_ROUND_ROBIN_H

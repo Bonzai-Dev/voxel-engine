@@ -16,9 +16,7 @@
 #include <boost/context/stack_context.hpp>
 #include <boost/context/stack_traits.hpp>
 
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include BOOST_ABI_PREFIX
-#endif
+
 
 // forward declaration for splitstack-functions defined in libgcc
 extern "C" {
@@ -34,8 +32,8 @@ void __splitstack_block_signals_context( void * [BOOST_CONTEXT_SEGMENTS],
                                          int * new_value, int * old_value);
 }
 
-namespace Core {
-namespace Context {
+namespace boost {
+namespace context {
 
 template< typename traitsT >
 class basic_segmented_stack {
@@ -45,7 +43,7 @@ private:
 public:
     typedef traitsT traits_type;
 
-    basic_segmented_stack( std::size_t size = traits_type::default_size() ) noexcept :
+    basic_segmented_stack( std::size_t size = traits_type::default_size() ) BOOST_NOEXCEPT_OR_NOTHROW :
         size_( size) {
     }
 
@@ -63,7 +61,7 @@ public:
         return sctx;
     }
 
-    void deallocate( stack_context & sctx) noexcept {
+    void deallocate( stack_context & sctx) BOOST_NOEXCEPT_OR_NOTHROW {
         __splitstack_releasecontext( sctx.segments_ctx);
     }
 };
@@ -75,8 +73,6 @@ typedef segmented_stack default_stack;
 
 }}
 
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include BOOST_ABI_SUFFIX
-#endif
+
 
 #endif // BOOST_CONTEXT_SEGMENTED_H

@@ -1,44 +1,50 @@
-#pragma once
 
-// #include <boost/config.hpp>
+//          Copyright Oliver Kowalke 2013.
+// Distributed under the Boost Software License, Version 1.0.
+//    (See accompanying file LICENSE_1_0.txt or copy at
+//          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <core/threading/fiber/detail/config.hpp>
-#include <core/threading/fiber/detail/spinlock.hpp>
+#ifndef BOOST_FIBERS_DETAIL_DATA_H
+#define BOOST_FIBERS_DETAIL_DATA_H
 
-// #ifdef BOOST_HAS_ABI_HEADERS
-// #  include BOOST_ABI_PREFIX
-// #endif
+#include <boost/config.hpp>
 
-namespace Core {
-  namespace Fibers {
-    class context;
+#include <boost/fiber/detail/config.hpp>
+#include <boost/fiber/detail/spinlock.hpp>
 
-    namespace detail {
-      struct data_t {
-        spinlock_lock *lk{nullptr};
-        context *ctx{nullptr};
-        context *from;
 
-        explicit data_t(context *from_) noexcept:
-          from{from_} {
-        }
 
-        explicit data_t(spinlock_lock *lk_,
-                        context *from_) noexcept:
-          lk{lk_},
-          from{from_} {
-        }
+namespace boost {
+namespace fibers {
 
-        explicit data_t(context *ctx_,
-                        context *from_) noexcept:
-          ctx{ctx_},
-          from{from_} {
-        }
-      };
+class context;
+
+namespace detail {
+
+struct data_t {
+    spinlock_lock   *   lk{ nullptr };
+    context         *   ctx{ nullptr };
+    context         *   from;
+
+    explicit data_t( context * from_) noexcept :
+        from{ from_ } {
     }
-  }
-}
 
-// #ifdef BOOST_HAS_ABI_HEADERS
-// #  include BOOST_ABI_SUFFIX
-// #endif
+    explicit data_t( spinlock_lock * lk_,
+                     context * from_) noexcept :
+        lk{ lk_ },
+        from{ from_ } {
+    }
+
+    explicit data_t( context * ctx_,
+                     context * from_) noexcept :
+        ctx{ ctx_ },
+        from{ from_ } {
+    }
+};
+
+}}}
+
+
+
+#endif // BOOST_FIBERS_DETAIL_DATA_H

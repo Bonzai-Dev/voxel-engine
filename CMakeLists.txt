@@ -5,14 +5,11 @@ set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
 
 include(tools/cmake/shaders.cmake)
 
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/$<CONFIGURATION>")
+
 add_custom_target(PROJECT_SHADERS)
 file(GLOB_RECURSE PROJECT_SOURCES CONFIGURE_DEPENDS "src/*.h" "src/*.c" "src/*.hpp" "src/*.cpp")
 add_executable(${CMAKE_PROJECT_NAME} ${PROJECT_SOURCES})
-set_target_properties(
-    ${CMAKE_PROJECT_NAME} PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/$<CONFIG>"
-    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/$<CONFIG>"
-)
 target_include_directories(${CMAKE_PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 add_subdirectory(thirdparty)
 
@@ -42,9 +39,9 @@ elseif (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang") # TODO: validate
 endif()
 
 # Compiling shaders
-file(GLOB_RECURSE SHADER_SOURCE_FILES CONFIGURE_DEPENDS "src/*.slang" "src/*.slangh")
-foreach(SHADER_SOURCE IN LISTS SHADER_SOURCE_FILES)
-    add_slang_shader_target(${SHADER_SOURCE} ${SHADERS_DIRECTORY} PROJECT_SHADERS)
-endforeach()
-
-add_dependencies(${CMAKE_PROJECT_NAME} PROJECT_SHADERS)
+#file(GLOB_RECURSE SHADER_SOURCE_FILES CONFIGURE_DEPENDS "src/*.slang" "src/*.slangh")
+#foreach(SHADER_SOURCE IN LISTS SHADER_SOURCE_FILES)
+#    add_slang_shader_target(${SHADER_SOURCE} ${SHADERS_DIRECTORY} PROJECT_SHADERS)
+#endforeach()
+#
+#add_dependencies(${CMAKE_PROJECT_NAME} PROJECT_SHADERS)

@@ -1,20 +1,30 @@
-#pragma once
-// #ifdef BOOST_HAS_ABI_HEADERS
-// #  include BOOST_ABI_PREFIX
-// #endif
+//          Copyright Oliver Kowalke 2013.
+// Distributed under the Boost Software License, Version 1.0.
+//    (See accompanying file LICENSE_1_0.txt or copy at
+//          http://www.boost.org/LICENSE_1_0.txt)
 
-namespace Core {
-  namespace Fibers {
-    enum class channel_op_status {
-      success = 0,
-      empty,
-      full,
-      closed,
-      timeout
-    };
-  }
-}
+#ifndef BOOST_FIBERS_CHANNEL_OP_STATUS_H
+#define BOOST_FIBERS_CHANNEL_OP_STATUS_H
 
-// #ifdef BOOST_HAS_ABI_HEADERS
-// #  include BOOST_ABI_SUFFIX
-// #endif
+#include <boost/config.hpp>
+
+#include <boost/fiber/detail/config.hpp>
+
+
+
+namespace boost {
+namespace fibers {
+
+enum class channel_op_status {
+    success = 0,
+    empty,
+    full,
+    closed,
+    timeout
+};
+
+}}
+
+
+
+#endif // BOOST_FIBERS_CHANNEL_OP_STATUS_H

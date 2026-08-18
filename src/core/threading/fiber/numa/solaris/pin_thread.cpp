@@ -15,12 +15,10 @@ extern "C" {
 
 #include <system_error>
 
-#ifdef BOOST_HAS_ABI_HEADERS
-# include BOOST_ABI_PREFIX
-#endif
 
-namespace Core {
-namespace Fibers {
+
+namespace boost {
+namespace fibers {
 namespace numa {
 
 BOOST_FIBERS_DECL
@@ -42,6 +40,4 @@ void pin_thread( std::uint32_t cpuid, std::thread::native_handle_type h) {
 
 }}}
 
-#ifdef BOOST_HAS_ABI_HEADERS
-# include BOOST_ABI_SUFFIX
-#endif
+

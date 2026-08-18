@@ -6,8 +6,8 @@
   #define ENGINE_DEBUG_BREAK() __debugbreak()
 #elif ENGINE_COMPILER_CLANG
   #define ENGINE_DEBUG_BREAK() __builtin_debugtrap()
-# elif ENGINE_COMPILER_GCC // TODO: NEEDS TESTING
-  #include <signal.h>
+# elif ENGINE_COMPILER_GCC
+  #include <csignal>
   #define ENGINE_DEBUG_BREAK() raise(SIGTRAP)
 #else
   #define ENGINE_DEBUG_BREAK()

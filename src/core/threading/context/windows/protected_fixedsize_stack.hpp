@@ -15,7 +15,7 @@ extern "C" {
 #include <cstddef>
 #include <new>
 
-#include <core/assert.hpp>
+#include <boost/assert.hpp>
 #include <boost/config.hpp>
 #include <boost/core/ignore_unused.hpp>
 
@@ -23,12 +23,10 @@ extern "C" {
 #include <boost/context/stack_context.hpp>
 #include <boost/context/stack_traits.hpp>
 
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include BOOST_ABI_PREFIX
-#endif
 
-namespace Core {
-namespace Context {
+
+namespace boost {
+namespace context {
 
 template< typename traitsT >
 class basic_protected_fixedsize_stack {
@@ -38,7 +36,7 @@ private:
 public:
     typedef traitsT traits_type;
 
-    basic_protected_fixedsize_stack( std::size_t size = traits_type::default_size() ) noexcept :
+    basic_protected_fixedsize_stack( std::size_t size = traits_type::default_size() ) BOOST_NOEXCEPT_OR_NOTHROW :
         size_( size) {
     }
 
@@ -54,7 +52,7 @@ public:
         DWORD old_options;
         const BOOL result = ::VirtualProtect(
             vp, traits_type::page_size(), PAGE_READWRITE | PAGE_GUARD /*PAGE_NOACCESS*/, & old_options);
-        Core::ignore_unused(result);
+        boost::ignore_unused(result);
         BOOST_ASSERT( FALSE != result);
 
         stack_context sctx;
@@ -63,7 +61,7 @@ public:
         return sctx;
     }
 
-    void deallocate( stack_context & sctx) noexcept {
+    void deallocate( stack_context & sctx) BOOST_NOEXCEPT_OR_NOTHROW {
         BOOST_ASSERT( sctx.sp);
 
         void * vp = static_cast< char * >( sctx.sp) - sctx.size;
@@ -75,8 +73,6 @@ typedef basic_protected_fixedsize_stack< stack_traits > protected_fixedsize_stac
 
 }}
 
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include BOOST_ABI_SUFFIX
-#endif
+
 
 #endif // BOOST_CONTEXT_PROTECTED_FIXEDSIZE_H

@@ -5,6 +5,8 @@
 #include "logger.hpp"
 #include "application.hpp"
 
+#include "assert.hpp"
+
 namespace Core {
   using namespace Events;
 

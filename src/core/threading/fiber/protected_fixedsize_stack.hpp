@@ -1,17 +1,26 @@
-#pragma once
 
-// #include <boost/config.hpp>
-#include <core/threading/context/protected_fixedsize_stack.hpp>
-#include <core/threading/fiber/detail/config.hpp>
+//          Copyright Oliver Kowalke 2014.
+// Distributed under the Boost Software License, Version 1.0.
+//    (See accompanying file LICENSE_1_0.txt or copy at
+//          http://www.boost.org/LICENSE_1_0.txt)
 
-// #ifdef BOOST_HAS_ABI_HEADERS
-// #  include BOOST_ABI_PREFIX
-// #endif
+#ifndef BOOST_FIBERS_PROTECTED_FIXEDSIZE_STACK_H
+#define BOOST_FIBERS_PROTECTED_FIXEDSIZE_STACK_H
 
-namespace Core:: Fibers {
-  using protected_fixedsize_stack = Core::Context::protected_fixedsize_stack;
-}
+#include <boost/config.hpp>
+#include <boost/context/protected_fixedsize_stack.hpp>
 
-// #ifdef BOOST_HAS_ABI_HEADERS
-// #  include BOOST_ABI_SUFFIX
-// #endif
+#include <boost/fiber/detail/config.hpp>
+
+
+
+namespace boost {
+namespace fibers {
+
+using protected_fixedsize_stack = boost::context::protected_fixedsize_stack;
+
+}}
+
+
+
+#endif // BOOST_FIBERS_PROTECTED_FIXEDSIZE_STACK_H

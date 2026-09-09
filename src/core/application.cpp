@@ -17,7 +17,7 @@ namespace Core {
     }
 
     displays = SDL_GetDisplays(&displayCount);
-    if (displayCount > 0)
+    if (displayCount > 0 && displays)
       LOG_CORE_INFO("Found {} display(s)", displayCount);
     else
       LOG_CORE_WARNING("No displays found");
@@ -63,6 +63,8 @@ namespace Core {
     //     LOG_CORE_CRITICAL("Unsupported graphics backend selected");
     //     break;
     // }
+
+    renderer = std::make_unique<Renderer::Renderer3D>();
   }
 
   Application::~Application() {
@@ -104,6 +106,11 @@ namespace Core {
 
     // TODO: remove listeners?
     running = false;
+
+    for (auto &[id, window] : windows) {
+      window->close();
+    }
+
     SDL_free(displays);
     SDL_Quit();
   }

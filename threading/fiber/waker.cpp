@@ -1,0 +1,69 @@
+//          Copyright Oliver Kowalke 2013.
+// Distributed under the Boost Software License, Version 1.0.
+//    (See accompanying file LICENSE_1_0.txt or copy at
+//          http://www.boost.org/LICENSE_1_0.txt)
+
+#include <core/assert.hpp>
+#include "waker.hpp"
+#include "context.hpp"
+#include "detail/spinlock.hpp"
+
+namespace boost::fibers {
+  bool waker::wake() const noexcept {
+    ENGINE_ASSERT(epoch_ > 0, "");
+    ENGINE_ASSERT(ctx_ != nullptr, "");
+
+    return ctx_->wake(epoch_);
+  }
+
+  void wait_queue::suspend_and_wait(detail::spinlock_lock &lk, context *active_ctx) {
+    waker_with_hook w{active_ctx->create_waker()};
+    slist_.push_back(w);
+    // suspend this fiber
+    active_ctx->suspend(lk);
+    ENGINE_ASSERT(!w.is_linked(), "");
+  }
+
+  bool wait_queue::suspend_and_wait_until(detail::spinlock_lock &lk, context *active_ctx, std::chrono::steady_clock::time_point const &timeout_time) {
+    waker_with_hook w{active_ctx->create_waker()};
+    slist_.push_back(w);
+    // suspend this fiber
+    if (!active_ctx->wait_until(timeout_time, lk, waker(w))) {
+      // relock local lk
+      for (;;) {
+        if (lk.try_lock())
+          break;
+        active_ctx->yield();
+      }
+      // remove from waiting-queue
+      if (w.is_linked()) {
+        slist_.remove(w);
+      }
+      lk.unlock();
+      return false;
+    }
+    return true;
+  }
+
+  void wait_queue::notify_one() {
+    while (!slist_.empty()) {
+      waker &w = slist_.front();
+      slist_.pop_front();
+      if (w.wake()) {
+        break;
+      }
+    }
+  }
+
+  void wait_queue::notify_all() {
+    while (!slist_.empty()) {
+      waker &w = slist_.front();
+      slist_.pop_front();
+      w.wake();
+    }
+  }
+
+  bool wait_queue::empty() const {
+    return slist_.empty();
+  }
+}

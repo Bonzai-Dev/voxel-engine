@@ -34,6 +34,7 @@ namespace Core {
   }
 
   Window::~Window() {
-    SDL_DestroyWindow(window);
+    if (window)
+      SDL_DestroyWindow(window);
   }
 }

@@ -13,3 +13,12 @@
 [submodule "thirdparty/spdlog"]
 	path = thirdparty/spdlog
 	url = https://github.com/gabime/spdlog.git
+[submodule "thirdparty/vulkan/VulkanMemoryAllocator"]
+	path = thirdparty/vulkan/VulkanMemoryAllocator
+	url = https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
+[submodule "thirdparty/vulkan/volk"]
+	path = thirdparty/vulkan/volk
+	url = https://github.com/zeux/volk.git
+[submodule "thirdparty/vulkan/Vulkan-Headers"]
+	path = thirdparty/vulkan/Vulkan-Headers
+	url = https://github.com/KhronosGroup/Vulkan-Headers.git

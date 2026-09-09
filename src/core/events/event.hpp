@@ -1,3 +1,7 @@
+// Event system based off https://github.com/KyrietS/tinyevents
+// License: MIT
+//
+
 #pragma once
 #include <cstdint>
 #include <functional>

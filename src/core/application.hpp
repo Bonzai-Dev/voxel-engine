@@ -1,18 +1,10 @@
 #pragma once
 #include <memory>
+#include <core/renderer/renderer.hpp>
 #include <core/logger.hpp>
 #include <core/events/input_events.hpp>
 #include "window.hpp"
 #include "layer.hpp"
-
-#if defined(ENGINE_COMPILER_MSVC)
-  #define ENGINE_FORCE_INLINE __forceinline
-#elif defined(ENGINE_COMPILER_GCC) && __GNUC__ > 3
-  // Clang also defines __GNUC__ (as 4)
-  #define ENGINE_FORCE_INLINE inline __attribute__ ((__always_inline__))
-#else
-  #define ENGINE_FORCE_INLINE inline
-#endif
 
 namespace Core {
   using namespace Events;
@@ -104,10 +96,11 @@ namespace Core {
 
       void pollInputs() const;
 
+      Logger logger;
+
       // Graphics::Backend selectGraphicsBackend() const;
       // mutable std::unique_ptr<Graphics::VulkanRenderingDevice> renderingDevice;
-
-      Logger logger;
+      std::unique_ptr<Renderer::Renderer3D> renderer;
 
       const char *name;
       mutable Events::EventDispatcher eventDispatcher;
@@ -123,6 +116,6 @@ namespace Core {
       int displayCount = 0;
       mutable SDL_DisplayID *displays{};
       const SDL_DisplayMode *currentDisplay{};
-      mutable std::unordered_map<std::uint32_t, RefCountedPtr<Window> > windows;
+      mutable std::unordered_map<std::uint32_t, IntrusivePtr<Window> > windows;
   };
 }

@@ -10,7 +10,13 @@ namespace Core::RHI {
       vkDestroySemaphore(device, semaphore, &device.vulkanAllocationCallbacks);
   }
 
-  void VulkanFence::wait(uint64_t value) {
+  uint64_t VulkanFence::getFenceValue() const {
+    uint64_t value;
+    vkGetSemaphoreCounterValue(device, semaphore, &value);
+    return value;
+  }
+
+  void VulkanFence::wait(uint64_t value) const {
     VkSemaphoreWaitInfo semaphoreWaitInfo = {VK_STRUCTURE_TYPE_SEMAPHORE_WAIT_INFO};
     semaphoreWaitInfo.semaphoreCount = 1;
     semaphoreWaitInfo.pSemaphores = &semaphore;
@@ -21,8 +27,8 @@ namespace Core::RHI {
 
   Result VulkanFence::create(uint64_t initialValue) {
     VkSemaphoreTypeCreateInfo semaphoreTypeCreateInfo = {VK_STRUCTURE_TYPE_SEMAPHORE_TYPE_CREATE_INFO};
-    // semaphoreTypeCreateInfo.semaphoreType = initialValue == SWAPCHAIN_SEMAPHORE ? VK_SEMAPHORE_TYPE_BINARY : VK_SEMAPHORE_TYPE_TIMELINE;
-    // semaphoreTypeCreateInfo.initialValue = initialValue == SWAPCHAIN_SEMAPHORE ? 0 : initialValue;
+    semaphoreTypeCreateInfo.semaphoreType = initialValue == swapChainSemaphore ? VK_SEMAPHORE_TYPE_BINARY : VK_SEMAPHORE_TYPE_TIMELINE;
+    semaphoreTypeCreateInfo.initialValue = initialValue == swapChainSemaphore ? 0 : initialValue;
 
     VkSemaphoreCreateInfo semaphoreCreateInfo = {VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO};
     semaphoreCreateInfo.pNext = &semaphoreTypeCreateInfo;

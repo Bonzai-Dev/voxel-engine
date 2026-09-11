@@ -4,6 +4,9 @@
 #include <core/core.hpp>
 
 namespace Core::RHI {
+  // Special "initialValue" for "CreateFence" needed to create swap chain related semaphores
+  static constexpr uint64_t swapChainSemaphore = static_cast<uint64_t>(-1);
+
   class Queue;
 
   // Color space:

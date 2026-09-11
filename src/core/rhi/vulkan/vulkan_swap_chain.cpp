@@ -1,4 +1,5 @@
 #include <SDL3/SDL_vulkan.h>
+#include <core/math/math.hpp>
 #include <core/rhi/rhi.hpp>
 #include "vulkan_backend.hpp"
 
@@ -31,6 +32,20 @@ namespace {
 
 namespace Core::RHI {
   VulkanSwapChain::VulkanSwapChain(VulkanDevice &device): device(device), textures(device.stdAllocator) {
+  }
+
+  VulkanSwapChain::~VulkanSwapChain() {
+    // TODO: use "vkReleaseSwapchainImagesEXT" to release acquired but not presented images?
+    for (auto &texture: textures)
+      vkDestroyImage(device, texture, &device.vulkanAllocationCallbacks);
+
+    device.allocationCallbacks.free(device.allocationCallbacks.userArg, latencyFence);
+
+    if (swapChain)
+      vkDestroySwapchainKHR(device, swapChain, &device.vulkanAllocationCallbacks);
+
+    if (surface)
+      vkDestroySurfaceKHR(device, surface, &device.vulkanAllocationCallbacks);
   }
 
   Result VulkanSwapChain::create(const SwapChainInfo &swapChainInfo) {
@@ -66,8 +81,7 @@ namespace Core::RHI {
       PNEXT_CHAIN_DECLARE(surfaceCaps2.pNext);
       PNEXT_CHAIN_APPEND_STRUCT(latencySurfaceCaps);
 
-      VkResult vkResult = vkGetPhysicalDeviceSurfaceCapabilities2KHR(device, &surfaceInfo, &surfaceCaps2);
-      // NRI_RETURN_ON_BAD_VKRESULT(&device, vkResult, "vkGetPhysicalDeviceSurfaceCapabilities2KHR");
+      VULKAN_CHECK(vkGetPhysicalDeviceSurfaceCapabilities2KHR(device, &surfaceInfo, &surfaceCaps2));
     }
 
     // Surface format
@@ -77,15 +91,13 @@ namespace Core::RHI {
       surfaceInfo.surface = surface;
 
       uint32_t formatNum = 0;
-      VkResult vkResult = vkGetPhysicalDeviceSurfaceFormats2KHR(device, &surfaceInfo, &formatNum, nullptr);
-      // NRI_RETURN_ON_BAD_VKRESULT(&device, vkResult, "vkGetPhysicalDeviceSurfaceFormats2KHR");
+      VULKAN_CHECK(vkGetPhysicalDeviceSurfaceFormats2KHR(device, &surfaceInfo, &formatNum, nullptr));
 
       Scratch<VkSurfaceFormat2KHR> surfaceFormats = NRI_ALLOCATE_SCRATCH(device, VkSurfaceFormat2KHR, formatNum);
       for (uint32_t i = 0; i < formatNum; i++)
         surfaceFormats[i] = {VK_STRUCTURE_TYPE_SURFACE_FORMAT_2_KHR};
 
-      vkResult = vkGetPhysicalDeviceSurfaceFormats2KHR(device, &surfaceInfo, &formatNum, surfaceFormats);
-      // NRI_RETURN_ON_BAD_VKRESULT(&device, vkResult, "vkGetPhysicalDeviceSurfaceFormats2KHR");
+      VULKAN_CHECK(vkGetPhysicalDeviceSurfaceFormats2KHR(device, &surfaceInfo, &formatNum, surfaceFormats));
 
       auto priority_BT709_G22_16BIT = [](const VkSurfaceFormat2KHR &s) -> uint32_t {
         if (s.surfaceFormat.format != VK_FORMAT_R16G16B16A16_SFLOAT)
@@ -385,22 +397,6 @@ namespace Core::RHI {
 
       textures.resize(imageNum);
       for (uint32_t i = 0; i < imageNum; i++) {
-        // VulkanTextureInfo desc = {};
-        // desc.vkImage = (VKNonDispatchableHandle)imageHandles[i];
-        // desc.vkFormat = surfaceFormat.surfaceFormat.format;
-        // desc.vkImageType = VK_IMAGE_TYPE_2D;
-        // desc.vkImageUsageFlags = swapchainImageUsageFlags;
-        // desc.width = swapChainInfo.width;
-        // desc.height = swapChainInfo.height;
-        // desc.depth = 1;
-        // desc.mipNum = 1;
-        // desc.layerNum = 1;
-        // desc.sampleNum = 1;
-        //
-        // VulkanTexture *texture = allocate<VulkanTexture>(device.allocationCallbacks, device);
-        // texture->create(desc);
-        // textures[i] = texture;
-
         VkImage image = imageHandles[i];
         VkFormat imageFormat = surfaceFormat.surfaceFormat.format;
         VkImageType imageType = VK_IMAGE_TYPE_2D;
@@ -457,9 +453,9 @@ namespace Core::RHI {
     // Acquire next image (signal)
     VkAcquireNextImageInfoKHR acquireInfo = {VK_STRUCTURE_TYPE_ACQUIRE_NEXT_IMAGE_INFO_KHR};
     acquireInfo.swapchain = swapChain;
-    // acquireInfo.timeout = MsToUs(NRI_TIMEOUT_PRESENT);
+    acquireInfo.timeout = Math::Units::msToUs(NRI_TIMEOUT_PRESENT);
     acquireInfo.semaphore = acquireSemaphore;
-    // acquireInfo.deviceMask = NODE_MASK;
+    acquireInfo.deviceMask = NODE_MASK;
 
     VULKAN_CHECK(vkAcquireNextImage2KHR(device, &acquireInfo, &this->textureIndex));
 

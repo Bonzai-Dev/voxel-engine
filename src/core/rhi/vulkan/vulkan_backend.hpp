@@ -261,6 +261,8 @@ namespace Core::RHI {
     public:
       VulkanSwapChain(VulkanDevice &device);
 
+      ~VulkanSwapChain();
+
       Result create(const SwapChainInfo &swapChainInfo);
 
       ENGINE_FORCE_INLINE Result acquireNextImage(VulkanFence &acquireSemaphore, uint32_t &textureIndex);
@@ -420,7 +422,9 @@ namespace Core::RHI {
 
       Result create(uint64_t initialValue);
 
-      void wait(uint64_t value);
+      uint64_t getFenceValue() const;
+
+      void wait(uint64_t value) const;
 
     private:
       VulkanDevice &device;

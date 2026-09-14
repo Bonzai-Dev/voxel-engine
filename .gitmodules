@@ -22,3 +22,6 @@
 [submodule "thirdparty/vulkan/Vulkan-Headers"]
 	path = thirdparty/vulkan/Vulkan-Headers
 	url = https://github.com/KhronosGroup/Vulkan-Headers.git
+[submodule "thirdparty/NRI"]
+	path = thirdparty/NRI
+	url = https://github.com/NVIDIA-RTX/NRI.git

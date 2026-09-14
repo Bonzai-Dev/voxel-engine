@@ -45,8 +45,12 @@ Implicit:
 */
 
 namespace Core::RHI {
+  struct SwapChainInfo;
+  class SwapChain;
+
   constexpr uint32_t invalidQueueFamilyIndex = static_cast<uint32_t>(-1);
   constexpr uint32_t maxPhysicalDevicesCount = 32;
+  constexpr uint32_t presentTimeout = 1000u; // 1 second
   constexpr uint32_t fenceTimeout = 5000u;
 
 /* clang-format off */
@@ -239,17 +243,6 @@ namespace Core::RHI {
     void *userArg;
   };
 
-  class Device {
-    public:
-      Device(const CallbackInterface& callbacks, const AllocationCallbacks& allocationCallbacks);
-
-      virtual ~Device() = default;
-
-      CallbackInterface callbackInterface;
-      AllocationCallbacks allocationCallbacks;
-      StdAllocator<uint8_t> stdAllocator;
-  };
-
   // https://docs.vulkan.org/refpages/latest/refpages/source/VkQueueFlagBits.html
   // https://learn.microsoft.com/en-us/windows/win32/api/d3d12/ne-d3d12-d3d12_command_list_type
   enum class QueueType: uint8_t {
@@ -277,11 +270,7 @@ namespace Core::RHI {
     bool opticalFlow;
   };
 
-  class Queue: public Resource {
-    public:
-      Queue() = default;
-
-      ~Queue() override = default;
+  class Queue {
   };
 
   ENGINE_FORCE_INLINE QueueType selectSuitableQueueType(
@@ -379,7 +368,7 @@ namespace Core::RHI {
   };
 
   struct DeviceCreateInfo {
-    // GraphicsBackend graphicsBackend = GraphicsBackend::None;
+    GraphicsBackend graphicsBackend = GraphicsBackend::None;
     Robustness robustness{};
     PhysicalDeviceInfo *physicalDeviceInfo{};
     CallbackInterface callbackInterface{};
@@ -873,8 +862,6 @@ namespace Core::RHI {
   }
 
   Result getPhysicalDevices();
-
-  Result createDevice(DeviceCreateInfo createInfo, Device*& device);
 #pragma endregion
 
 //============================================================================================================================================================================================
@@ -1299,4 +1286,46 @@ namespace Core::RHI {
   };
 #pragma endregion
   /* clang-format on */
+
+  class Device {
+    public:
+      Device(const CallbackInterface &callbacks, const AllocationCallbacks &allocationCallbacks);
+
+      virtual ~Device() = default;
+
+      // Returns one of the pre-created queues (see "DeviceCreationDesc" or wrapper extensions)
+      // Return codes: "UNSUPPORTED" (no queues of "queueType") or "INVALID_ARGUMENT" (if "queueIndex" is out of bounds).
+      // Getting "COMPUTE" and/or "COPY" queues switches VK sharing mode to "VK_SHARING_MODE_CONCURRENT" for resources created without "queueExclusive" flag.
+      // This approach is used to minimize number of "queue ownership transfers", but also adds a requirement to "get" all async queues BEFORE creation of
+      // resources participating into multi-queue activities. Explicit use of "queueExclusive" removes any restrictions.
+      virtual Result getQueue(QueueType type, uint32_t queueIndex, Queue *&queue) = 0;
+
+      // Swap chain
+      virtual Result createSwapChain(const SwapChainInfo &swapChainInfo, SwapChain *&swapChain) = 0;
+      // Nri(Result)             (NRI_CALL *CreateSwapChain)         (NriRef(Device) device, const NriRef(SwapChainDesc) swapChainDesc, NriOut NriRef(SwapChain*) swapChain);
+      // void                    (NRI_CALL *DestroySwapChain)        (NriPtr(SwapChain) swapChain);
+      // NriPtr(Texture) const*  (NRI_CALL *GetSwapChainTextures)    (const NriRef(SwapChain) swapChain, NriOut NonNriRef(uint32_t) textureNum);
+      //
+      // // Returns "FAILURE" if swap chain's window is outside of all monitors
+      // Nri(Result)             (NRI_CALL *GetDisplayDesc)          (NriRef(SwapChain) swapChain, NriOut NriRef(DisplayDesc) displayDesc);
+      //
+      // // VK only: may return "OUT_OF_DATE", fences must be created with "SWAPCHAIN_SEMAPHORE" initial value
+      // Nri(Result)             (NRI_CALL *AcquireNextTexture)      (NriRef(SwapChain) swapChain, NriRef(Fence) acquireSemaphore, NriOut NonNriRef(uint32_t) textureIndex);
+      // Nri(Result)             (NRI_CALL *WaitForPresent)          (NriRef(SwapChain) swapChain); // call once right before input sampling (must be called starting from the 1st frame)
+      // Nri(Result)             (NRI_CALL *QueuePresent)            (NriRef(SwapChain) swapChain, NriRef(Fence) releaseSemaphore);
+
+      // Work submission and synchronization
+      virtual Result deviceWaitIdle() = 0;
+      // Nri(Result)         (NRI_CALL *QueueSubmit)                     (NriRef(Queue) queue, const NriRef(QueueSubmitDesc) queueSubmitDesc); // to device
+      // Nri(Result)         (NRI_CALL *QueueWaitIdle)                   (NriPtr(Queue) queue);
+      // Nri(Result)         (NRI_CALL *DeviceWaitIdle)                  (NriPtr(Device) device);
+      // void                (NRI_CALL *Wait)                            (NriRef(Fence) fence, uint64_t value); // on host
+      // uint64_t            (NRI_CALL *GetFenceValue)                   (NriRef(Fence) fence);
+
+      CallbackInterface callbackInterface;
+      AllocationCallbacks allocationCallbacks;
+      StdAllocator<uint8_t> stdAllocator;
+  };
+
+  Result createDevice(const DeviceCreateInfo &createInfo, Device *&device);
 }

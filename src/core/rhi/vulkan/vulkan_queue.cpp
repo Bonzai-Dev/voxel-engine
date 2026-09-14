@@ -4,9 +4,6 @@ namespace Core::RHI {
   VulkanQueue::VulkanQueue(VulkanDevice &device): device(device) {
   }
 
-  VulkanQueue::~VulkanQueue() {
-  }
-
   Result VulkanQueue::create(QueueType type, uint32_t familyIndex, VkQueue queue) {
     this->type = type;
     this->familyIndex = familyIndex;
@@ -15,7 +12,8 @@ namespace Core::RHI {
   }
 
   Result VulkanQueue::waitIdle() {
-
+    ExclusiveScope lock(this->lock);
+    VULKAN_CHECK(vkQueueWaitIdle(queue));
     return Result::Success;
   }
 }

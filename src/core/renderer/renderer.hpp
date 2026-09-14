@@ -8,17 +8,11 @@ namespace Core::Renderer {
 
       virtual ~Renderer();
 
-    private:
-
-  };
-
-  class Renderer3D final: public Renderer {
-    public:
-      Renderer3D();
-
-      ~Renderer3D() override;
+      void createSwapChain(void *windowHandle, uint32_t width, uint32_t height);
 
     private:
+      // RHI::SwapChain *swapChain = nullptr;
+      // RHI::Queue *graphicsQueue = nullptr;
       RHI::Device *renderingDevice = nullptr;
   };
 }

@@ -8,6 +8,17 @@
   if (extensionSupported(extension, supportedExtensions)) \
   PNEXT_CHAIN_APPEND_STRUCT(structName)
 
+template <typename T>
+inline void Destroy(T* object) {
+  if (object) {
+    object->~T();
+
+    const auto& allocationCallbacks = ((Core::RHI::Device&)(object->getDevice())).allocationCallbacks;
+    allocationCallbacks.free(allocationCallbacks.userArg, object);
+  }
+}
+
+
 namespace Core::RHI {
   static inline uint32_t nextPow2(uint32_t n) {
     if (n <= 1)
@@ -77,12 +88,12 @@ namespace Core::RHI {
 
   VulkanDevice::VulkanDevice(const CallbackInterface& callbacks, const AllocationCallbacks& allocationCallbacks):
     Device(callbacks, allocationCallbacks), queueFamilies({
-      Vector<IntrusivePtr<VulkanQueue>>(stdAllocator),
-      Vector<IntrusivePtr<VulkanQueue>>(stdAllocator),
-      Vector<IntrusivePtr<VulkanQueue>>(stdAllocator)}
+      Vector<VulkanQueue*>(stdAllocator),
+      Vector<VulkanQueue*>(stdAllocator),
+      Vector<VulkanQueue*>(stdAllocator)}
     )
   {
-    vulkanAllocationCallbacks.pUserData = &this->allocationCallbacks;
+    vulkanAllocationCallbacks.pUserData = (void*)&this->allocationCallbacks;
     vulkanAllocationCallbacks.pfnAllocation = vkAllocateHostMemory;
     vulkanAllocationCallbacks.pfnReallocation = vkReallocateHostMemory;
     vulkanAllocationCallbacks.pfnFree = vkFreeHostMemory;
@@ -93,6 +104,11 @@ namespace Core::RHI {
   VulkanDevice::~VulkanDevice() {
     if (vmaAllocator)
       vmaDestroyAllocator(vmaAllocator);
+
+    for (auto& queueFamily: queueFamilies) {
+      for (uint32_t i = 0; i < queueFamily.size(); i++)
+        Destroy<VulkanQueue>(queueFamily[i]);
+    }
 
     if (debugMessenger)
       vkDestroyDebugUtilsMessengerEXT(instance, debugMessenger, &vulkanAllocationCallbacks);
@@ -496,8 +512,14 @@ namespace Core::RHI {
             VkQueue handle = VK_NULL_HANDLE;
             vkGetDeviceQueue2(device, &queueInfo, &handle);
 
-            IntrusivePtr<VulkanQueue> queue = IntrusivePtr<VulkanQueue>::create(*this);
-            if (queue->create(queueFamilyDesc.queueType, queueInfo.queueFamilyIndex, handle) == Result::Success)
+            VulkanQueue* queue = allocate<VulkanQueue>(allocationCallbacks, *this);
+            Result result = queue->create(queueFamilyDesc.queueType, queueInfo.queueFamilyIndex, handle);
+
+            if (result != Result::Success) {
+              destroy(allocationCallbacks, queue);
+            }
+
+            if (result == Result::Success)
               queueFamily.push_back(queue);
           }
 
@@ -1503,5 +1525,59 @@ namespace Core::RHI {
     }
 
     return false;
+  }
+
+  Result VulkanDevice::getQueue(QueueType type, uint32_t queueIndex, Queue *&queue) {
+    const auto &queueFamily = queueFamilies[static_cast<uint32_t>(type)];
+    if (queueFamily.empty())
+      return Result::Unsupported;
+
+    if (queueIndex < queueFamily.size()) {
+      VulkanQueue *queueVK = queueFamilies[static_cast<uint32_t>(type)].at(queueIndex);
+      queue = static_cast<Queue*>(queueVK);
+
+      { // Update active family indices
+        ExclusiveScope lock(this->lock);
+
+        uint32_t i = 0;
+        for (; i < activeFamilyIndicesCount; i++) {
+          if (activeQueueFamilyIndices[i] == queueVK->getFamilyIndex())
+            break;
+        }
+
+        if (i == activeFamilyIndicesCount)
+          activeQueueFamilyIndices[activeFamilyIndicesCount++] = queueVK->getFamilyIndex();
+      }
+
+      return Result::Success;
+    }
+
+    return Result::Failure;
+  }
+
+  Result VulkanDevice::createSwapChain(const SwapChainInfo &swapChainInfo, SwapChain *&swapChain) {
+    VulkanSwapChain *impl = allocate<VulkanSwapChain>(allocationCallbacks, *this);
+    Result result = impl->create(swapChainInfo);
+
+    if (result != Result::Success) {
+      destroy(allocationCallbacks, impl);
+      swapChain = nullptr;
+    } else
+      swapChain = (VulkanSwapChain*)impl;
+
+    return result;
+  }
+
+  Result VulkanDevice::deviceWaitIdle() {
+    // Don't use "vkDeviceWaitIdle" because it requires host access synchronization to all queues, better do it one by one instead
+    for (auto& queueFamily: queueFamilies) {
+      for (auto queue : queueFamily) {
+        Result result = queue->waitIdle();
+        if (result != Result::Success)
+          return result;
+      }
+    }
+
+    return Result::Success;
   }
 }

@@ -308,27 +308,43 @@ namespace Core::RHI {
     return physicalDeviceCount == 0 ? Result::Unsupported : Result::Success;
   }
 
-  Result createDevice(DeviceCreateInfo createInfo, Device*& device) {
+  Result createDevice(const DeviceCreateInfo &createInfo, Device*& device) {
+    DeviceCreateInfo modifiedCreateInfo = createInfo;
+
     Result result = Result::Unsupported;
     Device *deviceImpl = nullptr;
 
-    createInfo.callbackInterface.MessageCallback = MessageCallback;
-    createInfo.callbackInterface.AbortExecution = AbortExecution;
+    if (!modifiedCreateInfo.callbackInterface.MessageCallback)
+      modifiedCreateInfo.callbackInterface.MessageCallback = MessageCallback;
 
-    createInfo.allocationCallbacks.allocate = AlignedMalloc;
-    createInfo.allocationCallbacks.reallocate = AlignedRealloc;
-    createInfo.allocationCallbacks.free = AlignedFree;
+    if (!modifiedCreateInfo.callbackInterface.AbortExecution)
+      modifiedCreateInfo.callbackInterface.AbortExecution = AbortExecution;
 
-    // TODO: put this in device abstraction
+    if (!modifiedCreateInfo.allocationCallbacks.allocate || !modifiedCreateInfo.allocationCallbacks.reallocate || !modifiedCreateInfo.allocationCallbacks.free) {
+      modifiedCreateInfo.allocationCallbacks.allocate = AlignedMalloc;
+      modifiedCreateInfo.allocationCallbacks.reallocate = AlignedRealloc;
+      modifiedCreateInfo.allocationCallbacks.free = AlignedFree;
+    }
+
+    // Valid adapter expected (take 1st compatible)
     uint32_t physicalDeviceCount = maxPhysicalDevicesCount;
     std::array<PhysicalDeviceInfo, maxPhysicalDevicesCount> physicalDevices = {};
     getPhysicalDevices(physicalDevices.data(), physicalDeviceCount);
-    PhysicalDeviceInfo selectedDevice = physicalDevices[0];
-    createInfo.physicalDeviceInfo = &selectedDevice;
+    PhysicalDeviceInfo *selectedDevice = &physicalDevices[0];
+    modifiedCreateInfo.physicalDeviceInfo = selectedDevice;
+
+    // Valid queue families expected
+    QueueFamilyInfo graphicsQueue = {};
+    graphicsQueue.queueCount = 1;
+    graphicsQueue.queueType = QueueType::Graphics;
+    if (!createInfo.queueFamilyCount) {
+      modifiedCreateInfo.queueFamilyCount = 1;
+      modifiedCreateInfo.queueFamilies = &graphicsQueue;
+    }
 
     // TODO: add macros checking which OS its on to select the best suitable backend
-    if (selectedDevice.supportedGraphicsBackends & GraphicsBackend::Vulkan) {
-      result = createVulkanDevice(createInfo, deviceImpl);
+    if (selectedDevice->supportedGraphicsBackends & GraphicsBackend::Vulkan) {
+      result = createVulkanDevice(modifiedCreateInfo, deviceImpl);
     }
 
     device = deviceImpl;

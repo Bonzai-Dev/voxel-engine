@@ -59,17 +59,17 @@ namespace Core::RHI {
   };
 
   // SwapChain textures will be created as "color attachment" resources
-  // queuedFrameNum = 0 - auto-selection between 1 (for waitable) or 2 (otherwise)
-  // queuedFrameNum = 2 - recommended if the GPU frame time is less than the desired frame time, but the sum of 2 frames is greater
+  // queuedFrameCount = 0 - auto-selection between 1 (for waitable) or 2 (otherwise)
+  // queuedFrameCount = 2 - recommended if the GPU frame time is less than the desired frame time, but the sum of 2 frames is greater
   struct SwapChainInfo {
-    SDL_Window *window = nullptr;
+    void *windowHandle = nullptr;
     const Queue *presentQueue = nullptr;                  // GRAPHICS or COMPUTE (requires "features.presentFromCompute")
     uint16_t width{};
     uint16_t height{};
-    uint8_t textureNum{};                         // desired value, real value must be queried using "GetSwapChainTextures"
+    uint8_t textureCount{};                         // desired value, real value must be queried using "GetSwapChainTextures"
     SwapChainFormat format{};                // desired format, real value must be queried using "GetTextureDesc" for one of the swap chain textures
     SwapChainBits flags{};
-    uint8_t queuedFrameNum{};         // aka "max frame latency", aka "number of frames in flight" (mostly for D3D11)
+    uint8_t queuedFrameCount{};         // aka "max frame latency", aka "number of frames in flight" (mostly for D3D11)
 
     // Present scaling and positioning, silently ignored if "features.resizableSwapChain" is not supported or not supported by the implicitly chosen present mode
     Scaling scaling{};           // VK: if scaling is not supported, "OUT_OF_DATE" error is triggered on resizing
@@ -87,7 +87,7 @@ Typical usage example, valid if the number of swap chain images >= queued frames
 // Creation:
     // Create swap chain
         SwapChainDesc swapChainDesc = {};
-        swapChainDesc.textureNum = QUEUED_FRAME_NUM + 1; // assuming no correction after swap chain creation for simplicity
+        swapChainDesc.textureCount = QUEUED_FRAME_NUM + 1; // assuming no correction after swap chain creation for simplicity
         ...
 
     // Create in-flight data
@@ -101,7 +101,7 @@ Typical usage example, valid if the number of swap chain images >= queued frames
         NRI.CreateFence(device, 0, frameFence);
 
         // Use "GetSwapChainTextures" to populate
-        for (uint32_t i = 0; i < swapChainDesc.textureNum; i++) {
+        for (uint32_t i = 0; i < swapChainDesc.textureCount; i++) {
             NRI.CreateFence(device, SWAPCHAIN_SEMAPHORE, swapChainTextures[i].swapChainAcquireSemaphore);
             NRI.CreateFence(device, SWAPCHAIN_SEMAPHORE, swapChainTextures[i].swapChainReleaseSemaphore);
             ...
@@ -112,7 +112,7 @@ Typical usage example, valid if the number of swap chain images >= queued frames
         NRI.Wait(frameFence, frameIndex >= QUEUED_FRAME_NUM ? 1 + frameIndex - QUEUED_FRAME_NUM : 0);
 
     // Acquire a swap chain texture
-        uint32_t recycledSemaphoreIndex = frameIndex % swapChainDesc.textureNum;
+        uint32_t recycledSemaphoreIndex = frameIndex % swapChainDesc.textureCount;
         Fence* acquireSemaphore = swapChainTextures[recycledSemaphoreIndex].acquireSemaphore;
 
         uint32_t currentSwapChainTextureIndex = 0;

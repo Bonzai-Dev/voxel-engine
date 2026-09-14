@@ -40,7 +40,6 @@ namespace Core {
 
       Window(Window &&other) = delete;
 
-
       Window &operator=(Window &&other) = delete;
 
       ~Window() override;
@@ -75,6 +74,8 @@ namespace Core {
       void unlockMouse() const { SDL_SetWindowRelativeMouseMode(window, false); }
 
       std::uint32_t getId() const { return SDL_GetWindowID(window); }
+
+      void *getWindowHandle() const { return window; }
 
       unsigned long addRef() override {
         return ++referenceCount;

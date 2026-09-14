@@ -64,7 +64,7 @@ namespace Core {
     //     break;
     // }
 
-    renderer = std::make_unique<Renderer::Renderer3D>();
+    renderer = std::make_unique<Renderer::Renderer>();
   }
 
   Application::~Application() {
@@ -92,12 +92,14 @@ namespace Core {
   }
 
   void Application::createWindow(const WindowOptions &options) const {
-    // RefCountedPtr<Graphics::VulkanWindow> window = RefCountedPtr<Graphics::VulkanWindow>::create(
-    //   renderingDevice->getContext(),
-    //   displayInfo,
-    //   options
-    // );
-    // windows.emplace(window->getId(), window);
+    LOG_CORE_INFO("Created window with ID");
+
+    IntrusivePtr<Window> window = IntrusivePtr<Window>::create(
+      displayInfo,
+      options
+    );
+    windows.emplace(window->getId(), window);
+    renderer->createSwapChain(window->getWindowHandle(), window->options.width, window->options.height);
   }
 
   void Application::quit() const {

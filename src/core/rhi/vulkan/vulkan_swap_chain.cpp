@@ -36,10 +36,11 @@ namespace Core::RHI {
 
   VulkanSwapChain::~VulkanSwapChain() {
     // TODO: use "vkReleaseSwapchainImagesEXT" to release acquired but not presented images?
-    for (auto &texture: textures)
-      vkDestroyImage(device, texture, &device.vulkanAllocationCallbacks);
+    // for (auto &texture: textures)
+    //   vkDestroyImage(device, texture, &device.vulkanAllocationCallbacks);
 
-    device.allocationCallbacks.free(device.allocationCallbacks.userArg, latencyFence);
+    if (latencyFence)
+      device.allocationCallbacks.free(device.allocationCallbacks.userArg, latencyFence);
 
     if (swapChain)
       vkDestroySwapchainKHR(device, swapChain, &device.vulkanAllocationCallbacks);
@@ -53,7 +54,7 @@ namespace Core::RHI {
     uint32_t familyIndex = presentQueue->getFamilyIndex();
 
     {
-      SDL_Vulkan_CreateSurface(swapChainInfo.window, device, &device.vulkanAllocationCallbacks, &surface);
+      SDL_Vulkan_CreateSurface(static_cast<SDL_Window *>(swapChainInfo.windowHandle), device, &device.vulkanAllocationCallbacks, &surface);
       VkBool32 supported = VK_FALSE;
       VULKAN_CHECK(vkGetPhysicalDeviceSurfaceSupportKHR(device, familyIndex, surface, &supported));
 
@@ -249,7 +250,7 @@ namespace Core::RHI {
 
     // Scaling mode and caps
     bool isScalingSupported = false;
-    uint32_t textureNum = swapChainInfo.textureNum;
+    uint32_t textureNum = swapChainInfo.textureCount;
     {
       VkPhysicalDeviceSurfaceInfo2KHR surfaceInfo = {VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SURFACE_INFO_2_KHR};
       surfaceInfo.surface = surface;
@@ -295,14 +296,14 @@ namespace Core::RHI {
         );
       }
 
-      // Silently clamp "textureNum" to the supported range
+      // Silently clamp "textureCount" to the supported range
       if (textureNum < surfaceCaps.minImageCount)
         textureNum = surfaceCaps.minImageCount;
       if (surfaceCaps.maxImageCount && textureNum > surfaceCaps.maxImageCount) // 0 - unlimited (see spec)
         textureNum = surfaceCaps.maxImageCount;
 
-      if (textureNum != swapChainInfo.textureNum) {
-        LOG_CORE_WARNING("Swap chain texture count of {} has been clamped to {}", swapChainInfo.textureNum, textureNum);
+      if (textureNum != swapChainInfo.textureCount) {
+        LOG_CORE_WARNING("Swap chain texture count of {} has been clamped to {}", swapChainInfo.textureCount, textureNum);
       }
 
       // TODO: that's the minimal check to detect scaling support
@@ -387,44 +388,46 @@ namespace Core::RHI {
       VULKAN_CHECK(vkCreateSwapchainKHR(device, &swapchainInfo, &device.vulkanAllocationCallbacks, &swapChain));
     }
 
+    // Textures
     {
-      // Textures
       uint32_t imageNum = 0;
       vkGetSwapchainImagesKHR(device, swapChain, &imageNum, nullptr);
 
       Scratch<VkImage> imageHandles = NRI_ALLOCATE_SCRATCH(device, VkImage, imageNum);
       vkGetSwapchainImagesKHR(device, swapChain, &imageNum, imageHandles);
 
-      textures.resize(imageNum);
+      // textures.resize(imageNum);
       for (uint32_t i = 0; i < imageNum; i++) {
-        VkImage image = imageHandles[i];
-        VkFormat imageFormat = surfaceFormat.surfaceFormat.format;
-        VkImageType imageType = VK_IMAGE_TYPE_2D;
-        VkImageUsageFlags imageUsageFlags = swapchainImageUsageFlags;
-        uint32_t imageWidth = swapChainInfo.width;
-        uint32_t imageHeight = swapChainInfo.height;
-        uint32_t imageDepth = 1;
-        uint32_t imageMipNum = 1;
-        uint32_t imageLayerNum = 1;
-        uint32_t imageSampleNum = 1;
-
-        if (swapchainImageUsageFlags & VK_IMAGE_USAGE_SAMPLED_BIT)
-          this->imageUsageFlags |= TextureUsageBits::ShaderResource;
-
-        if (swapchainImageUsageFlags & VK_IMAGE_USAGE_STORAGE_BIT)
-          this->imageUsageFlags |= TextureUsageBits::ShaderResourceStorage;
-
-        if (swapchainImageUsageFlags & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
-          this->imageUsageFlags |= TextureUsageBits::ColorAttachment;
-
-        if (swapchainImageUsageFlags & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
-          this->imageUsageFlags |= TextureUsageBits::DepthStencilAttachment;
-
-        if (swapchainImageUsageFlags & VK_IMAGE_USAGE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR)
-          this->imageUsageFlags |= TextureUsageBits::ShadingRateAttachment;
-
-        if (swapchainImageUsageFlags & VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT)
-          this->imageUsageFlags |= TextureUsageBits::InputAttachment;
+        // VkImage image = imageHandles[i];
+        // VkFormat imageFormat = surfaceFormat.surfaceFormat.format;
+        // VkImageType imageType = VK_IMAGE_TYPE_2D;
+        // VkImageUsageFlags imageUsageFlags = swapchainImageUsageFlags;
+        // uint32_t imageWidth = swapChainInfo.width;
+        // uint32_t imageHeight = swapChainInfo.height;
+        // uint32_t imageDepth = 1;
+        // uint32_t imageMipNum = 1;
+        // uint32_t imageLayerNum = 1;
+        // uint32_t imageSampleNum = 1;
+        //
+        // if (swapchainImageUsageFlags & VK_IMAGE_USAGE_SAMPLED_BIT)
+        //   this->imageUsageFlags |= TextureUsageBits::ShaderResource;
+        //
+        // if (swapchainImageUsageFlags & VK_IMAGE_USAGE_STORAGE_BIT)
+        //   this->imageUsageFlags |= TextureUsageBits::ShaderResourceStorage;
+        //
+        // if (swapchainImageUsageFlags & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
+        //   this->imageUsageFlags |= TextureUsageBits::ColorAttachment;
+        //
+        // if (swapchainImageUsageFlags & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
+        //   this->imageUsageFlags |= TextureUsageBits::DepthStencilAttachment;
+        //
+        // if (swapchainImageUsageFlags & VK_IMAGE_USAGE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR)
+        //   this->imageUsageFlags |= TextureUsageBits::ShadingRateAttachment;
+        //
+        // if (swapchainImageUsageFlags & VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT)
+        //   this->imageUsageFlags |= TextureUsageBits::InputAttachment;
+        //
+        // textures[i] = image;
       }
     }
 
@@ -435,7 +438,7 @@ namespace Core::RHI {
     }
 
     // Finalize
-    windowHandle = swapChainInfo.window;
+    windowHandle = swapChainInfo.windowHandle;
     presentId = getSwapChainId();
 
     flags = swapChainInfo.flags;
@@ -453,9 +456,9 @@ namespace Core::RHI {
     // Acquire next image (signal)
     VkAcquireNextImageInfoKHR acquireInfo = {VK_STRUCTURE_TYPE_ACQUIRE_NEXT_IMAGE_INFO_KHR};
     acquireInfo.swapchain = swapChain;
-    acquireInfo.timeout = Math::Units::msToUs(NRI_TIMEOUT_PRESENT);
+    acquireInfo.timeout = Math::Units::msToUs(presentTimeout);
     acquireInfo.semaphore = acquireSemaphore;
-    acquireInfo.deviceMask = NODE_MASK;
+    acquireInfo.deviceMask = 1;
 
     VULKAN_CHECK(vkAcquireNextImage2KHR(device, &acquireInfo, &this->textureIndex));
 

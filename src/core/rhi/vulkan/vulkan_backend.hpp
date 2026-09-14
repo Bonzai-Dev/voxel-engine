@@ -269,8 +269,7 @@ namespace Core::RHI {
 
     private:
       VulkanDevice &device;
-      Vector<VkImage> textures;
-      TextureUsageBits imageUsageFlags = TextureUsageBits::None;
+      Vector<VulkanTexture*> textures;
 
       VulkanFence *latencyFence = nullptr;
       VulkanQueue *presentQueue = nullptr;
@@ -278,7 +277,7 @@ namespace Core::RHI {
       VkSwapchainKHR swapChain = VK_NULL_HANDLE;
       VkSurfaceKHR surface = VK_NULL_HANDLE;
 
-      SDL_Window *windowHandle = nullptr;
+      void *windowHandle = nullptr;
       uint64_t presentId = 0;
       uint32_t textureIndex = 0;
       SwapChainBits flags = SwapChainBits::None;
@@ -288,7 +287,7 @@ namespace Core::RHI {
     public:
       VulkanQueue(VulkanDevice &device);
 
-      ~VulkanQueue() override;
+      ~VulkanQueue() = default;
 
       inline operator VkQueue() const {
         return queue;
@@ -380,6 +379,12 @@ namespace Core::RHI {
 
       const VulkanDeviceFeatures &getSupportedFeatures() const { return deviceFeatures; }
 
+      Result deviceWaitIdle() override;
+
+      Result getQueue(QueueType type, uint32_t queueIndex, Queue *&queue) override;
+
+      Result createSwapChain(const SwapChainInfo &swapChainInfo, SwapChain *&swapChain) override;
+
     private:
       Result createInstance(bool validationLayerEnabled, const Vector<const char*> &enabledExtensions);
 
@@ -393,6 +398,9 @@ namespace Core::RHI {
         const Vector<VkExtensionProperties> &supportedExtensions
       ) const;
 
+      uint8_t majorVersion = 1;
+      uint8_t minorVersion = 0;
+
       VkInstance instance = VK_NULL_HANDLE;
       VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
       VkDevice device = VK_NULL_HANDLE;
@@ -401,13 +409,15 @@ namespace Core::RHI {
 
       VulkanDeviceFeatures deviceFeatures = {};
       DeviceInfo deviceInfo = {};
-      std::array<Vector<IntrusivePtr<VulkanQueue>>, static_cast<std::size_t>(QueueType::Count)> queueFamilies;
+
+      std::array<uint32_t, static_cast<size_t>(QueueType::Count)> activeQueueFamilyIndices = {};
+      uint32_t activeFamilyIndicesCount = 0;
+      std::array<Vector<VulkanQueue*>, static_cast<std::size_t>(QueueType::Count)> queueFamilies;
 
       VkDebugUtilsMessengerEXT debugMessenger = VK_NULL_HANDLE;
       VmaAllocator_T *vmaAllocator = nullptr;
 
-      uint8_t majorVersion = 1;
-      uint8_t minorVersion = 0;
+      Lock lock;
   };
 
   class VulkanFence {

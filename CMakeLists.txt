@@ -5,8 +5,7 @@ set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
 
 include(tools/cmake/shaders.cmake)
 
-# TODO: Enable back for shared libs
-#set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/$<CONFIGURATION>")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/$<CONFIGURATION>")
 
 add_custom_target(PROJECT_SHADERS)
 file(GLOB_RECURSE PROJECT_SOURCES CONFIGURE_DEPENDS "src/*.h" "src/*.c" "src/*.hpp" "src/*.cpp")

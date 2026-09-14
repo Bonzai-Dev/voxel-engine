@@ -64,7 +64,7 @@ namespace Core {
     //     break;
     // }
 
-    renderer = std::make_unique<Renderer::Renderer3D>();
+    renderer = std::make_unique<Renderer::Renderer>();
   }
 
   Application::~Application() {

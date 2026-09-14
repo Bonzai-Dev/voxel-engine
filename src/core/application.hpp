@@ -100,7 +100,7 @@ namespace Core {
 
       // Graphics::Backend selectGraphicsBackend() const;
       // mutable std::unique_ptr<Graphics::VulkanRenderingDevice> renderingDevice;
-      std::unique_ptr<Renderer::Renderer3D> renderer;
+      std::unique_ptr<Renderer::Renderer> renderer;
 
       const char *name;
       mutable Events::EventDispatcher eventDispatcher;

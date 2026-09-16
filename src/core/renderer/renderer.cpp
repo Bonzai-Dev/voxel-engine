@@ -64,13 +64,10 @@ namespace Core::Renderer {
     nri::nriCreateDevice(deviceCreationDesc, m_Device);
 
     // NRI
-    nri::nriGetInterface(*m_Device, NRI_INTERFACE(nri::CoreInterface), (nri::CoreInterface *) &NRI);
-    nri::nriGetInterface(*m_Device, NRI_INTERFACE(nri::HelperInterface),
-                                              (nri::HelperInterface *) &NRI);
-    nri::nriGetInterface(*m_Device, NRI_INTERFACE(nri::StreamerInterface),
-                                              (nri::StreamerInterface *) &NRI);
-    nri::nriGetInterface(*m_Device, NRI_INTERFACE(nri::SwapChainInterface),
-                                              (nri::SwapChainInterface *) &NRI);
+    (nri::nriGetInterface(*m_Device, NRI_INTERFACE(nri::CoreInterface), (nri::CoreInterface*)&NRI));
+    (nri::nriGetInterface(*m_Device, NRI_INTERFACE(nri::HelperInterface), (nri::HelperInterface*)&NRI));
+    (nri::nriGetInterface(*m_Device, NRI_INTERFACE(nri::StreamerInterface), (nri::StreamerInterface*)&NRI));
+    (nri::nriGetInterface(*m_Device, NRI_INTERFACE(nri::SwapChainInterface), (nri::SwapChainInterface*)&NRI));
 
     // Create streamer
     nri::StreamerDesc streamerDesc = {};

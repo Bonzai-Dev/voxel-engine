@@ -92,14 +92,12 @@ namespace Core {
   }
 
   void Application::createWindow(const WindowOptions &options) const {
-    LOG_CORE_INFO("Created window with ID");
-
-    IntrusivePtr<Window> window = IntrusivePtr<Window>::create(
+    std::unique_ptr<Window> window = std::make_unique<Window>(
       displayInfo,
       options
     );
-    windows.emplace(window->getId(), window);
-    renderer->createSwapChain(window->getWindowHandle(), window->options.width, window->options.height);
+    renderer->createSwapChain(window.get(), window->options.width, window->options.height);
+    windows.emplace(window->getId(), std::move(window));
   }
 
   void Application::quit() const {

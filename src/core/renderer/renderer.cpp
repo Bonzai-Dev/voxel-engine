@@ -1,7 +1,6 @@
 #include <core/logger.hpp>
 #include <core/rhi/extensions/swap_chain.hpp>
 #include <core/rhi/rhi.hpp>
-#include "core/rhi/stl/allocator.hpp"
 #include "renderer.hpp"
 
 namespace {
@@ -18,48 +17,42 @@ namespace {
 namespace Core::Renderer {
   Renderer::Renderer() {
     RHI::DeviceCreateInfo deviceCreateInfo = {};
+    deviceCreateInfo.enableGraphicsAPIValidation = true;
     RHI::createDevice(deviceCreateInfo, renderingDevice);
 
-    // Swap chain
-    RHI::Format swapChainFormat;
-    {
 
-    }
   }
 
   Renderer::~Renderer() {
     if (renderingDevice) {
-      // renderingDevice->deviceWaitIdle();
-      RHI::destroy(renderingDevice->allocationCallbacks, renderingDevice);
+      renderingDevice->destroySwapChain(swapChain);
+
+      renderingDevice->deviceWaitIdle();
+      RHI::destroyDevice(renderingDevice);
     }
   }
 
-  void Renderer::createSwapChain(void *windowHandle, uint32_t width, uint32_t height) {
-    // renderingDevice->getQueue(RHI::QueueType::Graphics, 0, graphicsQueue);
-    //
-    // RHI::SwapChainInfo swapChainInfo = {};
-    // swapChainInfo.windowHandle = windowHandle;
-    // swapChainInfo.presentQueue = graphicsQueue;
-    // swapChainInfo.format = RHI::SwapChainFormat::BT709_G22_8BIT;
-    // swapChainInfo.flags = RHI::SwapChainBits::VSync;
-    // swapChainInfo.width = width;
-    // swapChainInfo.height = height;
-    // swapChainInfo.textureCount = getOptimalSwapChainTextureNum();
-    // swapChainInfo.queuedFrameCount = getQueuedFrameCount();
+  void Renderer::createSwapChain(const Window *window, uint32_t width, uint32_t height) {
+    renderingDevice->getQueue(RHI::QueueType::Graphics, 0, graphicsQueue);
 
-    // renderingDevice->createSwapChain(swapChainInfo, swapChain);
+    RHI::SwapChainInfo swapChainInfo = {};
 
-    // nri::SwapChainDesc swapChainDesc = {};
-    //   swapChainDesc.window = GetWindow();
-    //   swapChainDesc.queue = m_GraphicsQueue;
-    //   swapChainDesc.format = nri::SwapChainFormat::BT709_G22_8BIT;
-    //   swapChainDesc.flags = (m_Vsync ? nri::SwapChainBits::VSYNC : nri::SwapChainBits::NONE) | nri::SwapChainBits::ALLOW_TEARING;
-    //   swapChainDesc.width = (uint16_t)GetOutputResolution().x;
-    //   swapChainDesc.height = (uint16_t)GetOutputResolution().y;
-    //   swapChainDesc.textureCount = GetOptimalSwapChainTextureNum();
-    //   swapChainDesc.queuedFrameCount = GetQueuedFrameNum();
-    //   NRI_ABORT_ON_FAILURE(NRI.CreateSwapChain(*m_Device, swapChainDesc, m_SwapChain));
-    //
+    swapChainInfo.flags |= RHI::SwapChainBits::AllowTearing;
+    if (window->options.vsync)
+      swapChainInfo.flags |= RHI::SwapChainBits::VSync;
+    else
+      swapChainInfo.flags |= RHI::SwapChainBits::None;
+
+    swapChainInfo.windowHandle = window->getWindowHandle();
+    swapChainInfo.presentQueue = graphicsQueue;
+    swapChainInfo.format = RHI::SwapChainFormat::BT709_G22_8BIT;
+    swapChainInfo.width = width;
+    swapChainInfo.height = height;
+    swapChainInfo.textureCount = getOptimalSwapChainTextureNum();
+    swapChainInfo.queuedFrameCount = getQueuedFrameCount();
+
+    renderingDevice->createSwapChain(swapChainInfo, swapChain);
+
     //   uint32_t swapChainTextureNum;
     //   nri::Texture* const* swapChainTextures = NRI.GetSwapChainTextures(*m_SwapChain, swapChainTextureNum);
     //

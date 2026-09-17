@@ -116,6 +116,6 @@ namespace Core {
       int displayCount = 0;
       mutable SDL_DisplayID *displays{};
       const SDL_DisplayMode *currentDisplay{};
-      mutable std::unordered_map<std::uint32_t, IntrusivePtr<Window> > windows;
+      mutable std::unordered_map<std::uint32_t, std::unique_ptr<Window>> windows;
   };
 }

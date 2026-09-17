@@ -48,3 +48,4 @@ target_link_libraries(volk PRIVATE Vulkan-Headers)
 add_library(VulkanHeaders INTERFACE)
 target_link_libraries(VulkanHeaders INTERFACE Vulkan-Headers volk GPUOpen::VulkanMemoryAllocator)
 target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE VulkanHeaders)
+

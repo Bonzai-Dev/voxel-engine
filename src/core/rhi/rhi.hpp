@@ -5,8 +5,7 @@
 #include <array>
 #include <core/core.hpp>
 #include <core/memory/intrusive_ptr.hpp>
-#include "stl/allocator.hpp"
-#include "stl/creation.hpp"
+#include <core/logger.hpp>
 
 /*
 Overview:
@@ -48,15 +47,15 @@ namespace Core::RHI {
   struct SwapChainInfo;
   class SwapChain;
 
+/* clang-format off */
+  //============================================================================================================================================================================================
+#pragma region [ Common ]
+  //============================================================================================================================================================================================
   constexpr uint32_t invalidQueueFamilyIndex = static_cast<uint32_t>(-1);
   constexpr uint32_t maxPhysicalDevicesCount = 32;
   constexpr uint32_t presentTimeout = 1000u; // 1 second
   constexpr uint32_t fenceTimeout = 5000u;
 
-/* clang-format off */
-  //============================================================================================================================================================================================
-#pragma region [ Common ]
-  //============================================================================================================================================================================================
   class Resource: public RefCounted {
     public:
       Resource() = default;
@@ -208,6 +207,31 @@ namespace Core::RHI {
 
     Graphics                        = IndexInput | GraphicsShaders | DepthStencilAttachment | ColorAttachment | ShadingRateAttachment
   );
+
+  struct GraphicsPipelineInfo {
+    const PipelineLayout *pipelineLayout;
+    const VertexInputDesc *vertexInput;
+    InputAssemblyDesc inputAssembly;
+    RasterizationDesc rasterization;
+    const MultisampleDesc *multisample;
+    OutputMergerDesc outputMerger;
+    const ShaderDesc *shaders;
+    uint32_t shaderNum;
+    GraphicsPipelineBits flags;
+    Robustness robustness;
+    const PipelineCache *cache; // if non-NULL, pipeline creation can be served from a cached blob and the result will be added to the cache on a miss
+  };
+
+  struct ComputePipelineInfo {
+    const PipelineLayout *pipelineLayout;
+    ShaderDesc *shader;
+    ComputePipelineBits flags;
+    Robustness *robustness;
+    const PipelineCache *cache; // if non-NULL, pipeline creation can be served from a cached blob and the result will be added to the cache on a miss
+  };
+
+  class Pipeline {
+  };
 #pragma endregion
 
 //============================================================================================================================================================================================
@@ -221,14 +245,6 @@ namespace Core::RHI {
     // WGPU    = NriBit(4)  // WebGPU via wgpu-native, available if "NRI_ENABLE_WGPU_SUPPORT = ON" in CMake (https://github.com/gfx-rs/wgpu-native)
   );
 
-  // enum class GraphicsBackend: uint8_t {
-  //   None    = ENGINE_BIT(0), // Supports everything, does nothing, returns dummy non-NULL objects and ~0-filled descs, available if "NRI_ENABLE_NONE_SUPPORT = ON" in CMake
-  //   D3D11   = ENGINE_BIT(1), // Direct3D 11 (feature set 11.1), available if "NRI_ENABLE_D3D11_SUPPORT = ON" in CMake (https://microsoft.github.io/DirectX-Specs/d3d/archive/D3D11_3_FunctionalSpec.htm)
-  //   D3D12   = ENGINE_BIT(2), // Direct3D 12 (D3D12_SDK_VERSION 4 or 619+), available if "NRI_ENABLE_D3D12_SUPPORT = ON" in CMake (https://microsoft.github.io/DirectX-Specs/)
-  //   Vulkan  = ENGINE_BIT(3), // Vulkan 1.4+, 1.3++ or 1.2+++ (can be used on MacOS via MoltenVK), available if "NRI_ENABLE_VK_SUPPORT = ON" in CMake (https://registry.khronos.org/vulkan/specs/latest/html/vkspec.html)
-  //   // WGPU    = NriBit(4)  // WebGPU via wgpu-native, available if "NRI_ENABLE_WGPU_SUPPORT = ON" in CMake (https://github.com/gfx-rs/wgpu-native)
-  // };
-
   // TODO: temporary
   enum class Message {
     INFO,
@@ -238,8 +254,8 @@ namespace Core::RHI {
   };
 
   struct CallbackInterface {
-    void (*MessageCallback)(Message messageType, const char *file, uint32_t line, const char *message, void *userArg);
-    void (*AbortExecution)(void *userArg); // break on "Message::ERROR" if provided
+    void (*messageCallback)(Message messageType, const char *file, uint32_t line, const char *message, void *userArg);
+    void (*abortExecution)(void *userArg); // break on "Message::ERROR" if provided
     void *userArg;
   };
 
@@ -271,6 +287,10 @@ namespace Core::RHI {
   };
 
   class Queue {
+    public:
+      Queue() = default;
+
+      ~Queue() = default;
   };
 
   ENGINE_FORCE_INLINE QueueType selectSuitableQueueType(
@@ -372,7 +392,6 @@ namespace Core::RHI {
     Robustness robustness{};
     PhysicalDeviceInfo *physicalDeviceInfo{};
     CallbackInterface callbackInterface{};
-    AllocationCallbacks allocationCallbacks{};
 
     // One "GRAPHICS" queue is created by default
     const QueueFamilyInfo *queueFamilies{};
@@ -642,9 +661,9 @@ namespace Core::RHI {
       uint8_t conservativeRaster;
 
       // https://microsoft.github.io/DirectX-Specs/d3d/ProgrammableSamplePositions.html#hardware-tiers
-      // 1 - a single sample pattern can be specified to repeat for every pixel ("locationNum / sampleNum" ratio must be 1 in "CmdSetSampleLocations"),
+      // 1 - a single sample pattern can be specified to repeat for every pixel ("locationNum / sampleCount" ratio must be 1 in "CmdSetSampleLocations"),
       //     1x and 16x sample counts do not support programmable locations
-      // 2 - four separate sample patterns can be specified for each pixel in a 2x2 grid ("locationNum / sampleNum" ratio can be 1 or 4 in "CmdSetSampleLocations"),
+      // 2 - four separate sample patterns can be specified for each pixel in a 2x2 grid ("locationNum / sampleCount" ratio can be 1 or 4 in "CmdSetSampleLocations"),
       //     all sample counts support programmable positions
       uint8_t sampleLocations;
 
@@ -1242,7 +1261,7 @@ namespace Core::RHI {
 #pragma endregion
 
 //============================================================================================================================================================================================
-#pragma region [ Resources: creation ]
+#pragma region [ Resources ]
 //============================================================================================================================================================================================
   class Texture: public Resource {
     public:
@@ -1278,9 +1297,9 @@ namespace Core::RHI {
     uint16_t width;
     uint16_t height;
     uint16_t depth;
-    uint16_t mipNum;
-    uint16_t layerNum;
-    uint8_t sampleNum;
+    uint16_t mipCount;
+    uint16_t layerCount;
+    uint8_t sampleCount;
     SharingMode sharingMode;
     ClearValue optimizedClearValue;    // D3D12: not needed on desktop, since any HW can track many clear values
   };
@@ -1289,7 +1308,7 @@ namespace Core::RHI {
 
   class Device {
     public:
-      Device(const CallbackInterface &callbacks, const AllocationCallbacks &allocationCallbacks);
+      Device(const CallbackInterface &callbacks);
 
       virtual ~Device() = default;
 
@@ -1302,6 +1321,8 @@ namespace Core::RHI {
 
       // Swap chain
       virtual Result createSwapChain(const SwapChainInfo &swapChainInfo, SwapChain *&swapChain) = 0;
+      virtual void destroySwapChain(SwapChain *swapChain) = 0;
+
       // Nri(Result)             (NRI_CALL *CreateSwapChain)         (NriRef(Device) device, const NriRef(SwapChainDesc) swapChainDesc, NriOut NriRef(SwapChain*) swapChain);
       // void                    (NRI_CALL *DestroySwapChain)        (NriPtr(SwapChain) swapChain);
       // NriPtr(Texture) const*  (NRI_CALL *GetSwapChainTextures)    (const NriRef(SwapChain) swapChain, NriOut NonNriRef(uint32_t) textureNum);
@@ -1323,9 +1344,9 @@ namespace Core::RHI {
       // uint64_t            (NRI_CALL *GetFenceValue)                   (NriRef(Fence) fence);
 
       CallbackInterface callbackInterface;
-      AllocationCallbacks allocationCallbacks;
-      StdAllocator<uint8_t> stdAllocator;
   };
 
   Result createDevice(const DeviceCreateInfo &createInfo, Device *&device);
+
+  void destroyDevice(Device *device);
 }

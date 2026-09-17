@@ -7,7 +7,7 @@ namespace Core::RHI {
 
   VulkanFence::~VulkanFence() {
     if (semaphore)
-      vkDestroySemaphore(device, semaphore, &device.vulkanAllocationCallbacks);
+      vkDestroySemaphore(device, semaphore, device.getAllocationCallbacks());
   }
 
   uint64_t VulkanFence::getFenceValue() const {
@@ -33,7 +33,7 @@ namespace Core::RHI {
     VkSemaphoreCreateInfo semaphoreCreateInfo = {VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO};
     semaphoreCreateInfo.pNext = &semaphoreTypeCreateInfo;
 
-    VULKAN_CHECK(vkCreateSemaphore(device, &semaphoreCreateInfo, &device.vulkanAllocationCallbacks, &semaphore));
+    VULKAN_CHECK(vkCreateSemaphore(device, &semaphoreCreateInfo, device.getAllocationCallbacks(), &semaphore));
 
     return Result::Success;
   }

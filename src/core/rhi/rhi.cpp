@@ -1,5 +1,6 @@
 #include <csignal>
 #include <cstdio>
+#include <core/assert.hpp>
 #include "vulkan/vulkan_backend.hpp"
 #include "rhi.hpp"
 
@@ -12,8 +13,7 @@ namespace {
     "ERROR", // ERROR
   };
 
-  static void MessageCallback(Core::RHI::Message messageType, const char *file, uint32_t line, const char *message,
-                              void *) {
+  void messageCallback(Message messageType, const char *file, uint32_t line, const char *message, void *) {
     const char *messageTypeName = g_messageTypes[(size_t)messageType];
 
     char buf[256];
@@ -25,54 +25,8 @@ namespace {
 #endif
   }
 
-  static void AbortExecution(void *) {
-#ifdef _WIN32
-    DebugBreak();
-#else
-    std::raise(SIGTRAP);
-#endif
-  }
-
-  static void *AlignedMalloc(void *, size_t size, size_t alignment) {
-    uint8_t *memory = (uint8_t*)malloc(size + sizeof(uint8_t*) + alignment - 1);
-    if (!memory)
-      return nullptr;
-
-    uint8_t *alignedMemory = Align(memory + sizeof(uint8_t*), alignment);
-    uint8_t **memoryHeader = (uint8_t**)alignedMemory - 1;
-    *memoryHeader = memory;
-
-    return alignedMemory;
-  }
-
-  static void *AlignedRealloc(void *userArg, void *memory, size_t size, size_t alignment) {
-    if (!memory)
-      return AlignedMalloc(userArg, size, alignment);
-
-    uint8_t **memoryHeader = (uint8_t**)memory - 1;
-    uint8_t *oldMemory = *memoryHeader;
-
-    uint8_t *newMemory = (uint8_t*)realloc(oldMemory, size + sizeof(uint8_t*) + alignment - 1);
-    if (!newMemory)
-      return nullptr;
-
-    if (newMemory == oldMemory)
-      return memory;
-
-    uint8_t *alignedMemory = Align(newMemory + sizeof(uint8_t*), alignment);
-    memoryHeader = (uint8_t**)alignedMemory - 1;
-    *memoryHeader = newMemory;
-
-    return alignedMemory;
-  }
-
-  static void AlignedFree(void *, void *memory) {
-    if (!memory)
-      return;
-
-    uint8_t **memoryHeader = (uint8_t**)memory - 1;
-    uint8_t *oldMemory = *memoryHeader;
-    free(oldMemory);
+  void abortExecution(void *) {
+    ENGINE_DEBUG_BREAK();
   }
 
   void getVulkanDevices(PhysicalDeviceInfo *physicalDeviceInfos, uint32_t &physicalDevicesCount) {
@@ -314,17 +268,11 @@ namespace Core::RHI {
     Result result = Result::Unsupported;
     Device *deviceImpl = nullptr;
 
-    if (!modifiedCreateInfo.callbackInterface.MessageCallback)
-      modifiedCreateInfo.callbackInterface.MessageCallback = MessageCallback;
+    if (!modifiedCreateInfo.callbackInterface.messageCallback)
+      modifiedCreateInfo.callbackInterface.messageCallback = messageCallback;
 
-    if (!modifiedCreateInfo.callbackInterface.AbortExecution)
-      modifiedCreateInfo.callbackInterface.AbortExecution = AbortExecution;
-
-    if (!modifiedCreateInfo.allocationCallbacks.allocate || !modifiedCreateInfo.allocationCallbacks.reallocate || !modifiedCreateInfo.allocationCallbacks.free) {
-      modifiedCreateInfo.allocationCallbacks.allocate = AlignedMalloc;
-      modifiedCreateInfo.allocationCallbacks.reallocate = AlignedRealloc;
-      modifiedCreateInfo.allocationCallbacks.free = AlignedFree;
-    }
+    if (!modifiedCreateInfo.callbackInterface.abortExecution)
+      modifiedCreateInfo.callbackInterface.abortExecution = abortExecution;
 
     // Valid adapter expected (take 1st compatible)
     uint32_t physicalDeviceCount = maxPhysicalDevicesCount;
@@ -350,5 +298,10 @@ namespace Core::RHI {
     device = deviceImpl;
 
     return result;
+  }
+
+  void destroyDevice(Device *device) {
+    delete device;
+    device = nullptr;
   }
 }

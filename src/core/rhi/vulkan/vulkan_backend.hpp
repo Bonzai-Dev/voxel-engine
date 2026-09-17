@@ -1,9 +1,10 @@
 #pragma once
+#include <string>
+#include <vector>
 #include <volk.h>
 #include <vk_mem_alloc.h>
 #include <core/rhi/rhi.hpp>
-#include "core/rhi/extensions/swap_chain.hpp"
-#include "core/rhi/stl/allocator.hpp"
+#include <core/rhi/extensions/swap_chain.hpp>
 #include "core/rhi/stl/lock.hpp"
 
 #define VULKAN_CHECK(vulkanCall) \
@@ -38,6 +39,7 @@ namespace Core::RHI {
   class VulkanSwapChain;
   class VulkanQueue;
 
+#pragma region Conversion
   // Each depth/stencil format is only compatible with itself in VK
   constexpr std::array<VkFormat, static_cast<size_t>(Format::Count)> vulkanFormats = {
     VK_FORMAT_UNDEFINED, // UNKNOWN
@@ -225,6 +227,17 @@ namespace Core::RHI {
     return static_cast<VkFormat>(static_cast<uint32_t>(vulkanFormats[static_cast<uint32_t>(format)]));
   }
 
+  constexpr std::array vulkanImageDimensions = {
+    VK_IMAGE_TYPE_1D, // TEXTURE_1D
+    VK_IMAGE_TYPE_2D, // TEXTURE_2D
+    VK_IMAGE_TYPE_3D, // TEXTURE_3D
+  };
+
+  constexpr VkImageType textureDimensionToVulkanImageType(TextureDimension dimension) {
+    return vulkanImageDimensions[static_cast<size_t>(dimension)];
+  }
+#pragma endregion
+
   struct VulkanDeviceFeatures {
     VkBool32 maintenance4 = VK_FALSE;
     VkBool32 maintenance5 = VK_FALSE;
@@ -248,13 +261,50 @@ namespace Core::RHI {
     VkBool32 swapChainMaintenance1 = VK_FALSE;
     VkBool32 fifoLatestReady = VK_FALSE;
     VkBool32 unifiedImageLayoutsVideo = VK_FALSE;
-    VkBool32 memoryZeroInitializationEnabled = VK_FALSE;
   };
 
   struct VulkanMemoryTypeInfo {
     uint16_t index;
     MemoryLocation location;
     bool mustBeDedicated;
+  };
+
+  class VulkanPipeline final: public Pipeline {
+    inline VulkanPipeline(VulkanDevice &device): device(device) {
+    }
+
+    ~VulkanPipeline() {};
+
+    inline operator VkPipeline() const {
+      return pipeline;
+    }
+
+    inline VulkanDevice& GetDevice() const {
+      return device;
+    }
+
+    inline VkPipelineBindPoint GetBindPoint() const {
+      return bindPoint;
+    }
+
+    inline const DepthBiasDesc& GetDepthBias() const {
+      return m_DepthBias;
+    }
+
+    Result create(const GraphicsPipelineDesc& graphicsPipelineDesc);
+    Result create(const ComputePipelineDesc& computePipelineDesc);
+    Result create(const RayTracingPipelineDesc& rayTracingPipelineDesc);
+    Result create(const PipelineVKDesc& pipelineVKDesc);
+
+    Result writeShaderGroupIdentifiers(uint32_t baseShaderGroupIndex, uint32_t shaderGroupNum, void* dst) const;
+
+    private:
+      VulkanDevice &device;
+      VkPipeline pipeline = VK_NULL_HANDLE;
+      VkPipelineBindPoint bindPoint = VK_PIPELINE_BIND_POINT_MAX_ENUM;
+      DepthBiasDesc m_DepthBias = {};
+
+      Result setupShaderStage(VkPipelineShaderStageCreateInfo& stage, const ShaderDesc &shaderDesc, VkShaderModule& module);
   };
 
   class VulkanSwapChain final: public SwapChain {
@@ -269,9 +319,9 @@ namespace Core::RHI {
 
     private:
       VulkanDevice &device;
-      Vector<VulkanTexture*> textures;
+      std::vector<VulkanTexture*> textures;
 
-      VulkanFence *latencyFence = nullptr;
+      std::unique_ptr<VulkanFence> latencyFence = nullptr;
       VulkanQueue *presentQueue = nullptr;
 
       VkSwapchainKHR swapChain = VK_NULL_HANDLE;
@@ -340,7 +390,7 @@ namespace Core::RHI {
 
   class VulkanDevice final: public Device {
     public:
-      VulkanDevice(const CallbackInterface &callbacks, const AllocationCallbacks &allocationCallbacks);
+      VulkanDevice(const CallbackInterface &callbacks);
 
       ~VulkanDevice() override;
 
@@ -356,9 +406,9 @@ namespace Core::RHI {
         return instance;
       }
 
-      bool extensionSupported(const char *extension, const Vector<VkExtensionProperties> &supportedExtensions) const;
+      bool extensionSupported(const char *extension, const std::vector<VkExtensionProperties> &supportedExtensions) const;
 
-      bool extensionSupported(const char *extension, const Vector<const char*> &supportedExtensions) const;
+      bool extensionSupported(const char *extension, const std::vector<const char*> &supportedExtensions) const;
 
       Result create(const DeviceCreateInfo &createInfo);
 
@@ -371,31 +421,33 @@ namespace Core::RHI {
 
       ENGINE_FORCE_INLINE FormatSupportBits getFormatSupport(Format format) const;
 
-      inline const DeviceInfo &getDeviceInfo() const { return deviceInfo; }
+      inline const DeviceInfo &getInfo() const { return deviceInfo; }
 
       inline VmaAllocator_T *getVma() const { return vmaAllocator; }
 
-      VkAllocationCallbacks vulkanAllocationCallbacks = {};
+      VkAllocationCallbacks *getAllocationCallbacks() const { return allocationCallbacks; }
 
-      const VulkanDeviceFeatures &getSupportedFeatures() const { return deviceFeatures; }
+      const VulkanDeviceFeatures &getDeviceFeatures() const { return deviceFeatures; }
+
+      bool memoryZeroInitializationEnabled() const { return isMemoryZeroInitializationEnabled; }
 
       Result deviceWaitIdle() override;
 
       Result getQueue(QueueType type, uint32_t queueIndex, Queue *&queue) override;
-
       Result createSwapChain(const SwapChainInfo &swapChainInfo, SwapChain *&swapChain) override;
+      void destroySwapChain(SwapChain *swapChain) override;
 
     private:
-      Result createInstance(bool validationLayerEnabled, const Vector<const char*> &enabledExtensions);
+      Result createInstance(bool validationLayerEnabled, const std::vector<const char*> &enabledExtensions);
 
-      void loadInstanceExtensions(Vector<const char*> &enabledExtensions);
+      void loadInstanceExtensions(std::vector<const char*> &enabledExtensions);
 
-      void loadDeviceExtensions(Vector<const char*> &enabledDeviceExtensions, bool disableRayTracing);
+      void loadDeviceExtensions(std::vector<const char*> &enabledDeviceExtensions, bool disableRayTracing);
 
       ENGINE_FORCE_INLINE void addExtension(
         const char *extension,
-        Vector<const char*> &enabledExtensions,
-        const Vector<VkExtensionProperties> &supportedExtensions
+        std::vector<const char*> &enabledExtensions,
+        const std::vector<VkExtensionProperties> &supportedExtensions
       ) const;
 
       uint8_t majorVersion = 1;
@@ -404,6 +456,9 @@ namespace Core::RHI {
       VkInstance instance = VK_NULL_HANDLE;
       VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
       VkDevice device = VK_NULL_HANDLE;
+      VkAllocationCallbacks *allocationCallbacks = nullptr;
+
+      bool isMemoryZeroInitializationEnabled = false;
 
       VkPhysicalDeviceMemoryProperties memoryProperties = {};
 
@@ -412,7 +467,11 @@ namespace Core::RHI {
 
       std::array<uint32_t, static_cast<size_t>(QueueType::Count)> activeQueueFamilyIndices = {};
       uint32_t activeFamilyIndicesCount = 0;
-      std::array<Vector<VulkanQueue*>, static_cast<std::size_t>(QueueType::Count)> queueFamilies;
+      std::array<std::vector<std::unique_ptr<VulkanQueue>>, static_cast<std::size_t>(QueueType::Count)> queueFamilies = {
+        std::vector<std::unique_ptr<VulkanQueue>>(),
+        std::vector<std::unique_ptr<VulkanQueue>>(),
+        std::vector<std::unique_ptr<VulkanQueue>>()
+      };
 
       VkDebugUtilsMessengerEXT debugMessenger = VK_NULL_HANDLE;
       VmaAllocator_T *vmaAllocator = nullptr;

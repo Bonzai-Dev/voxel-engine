@@ -25,7 +25,7 @@ namespace Core {
     std::uint32_t height;
   };
 
-  class Window: public RefCounted {
+  class Window {
     public:
       explicit Window(
         const DisplayInfo &displayInfo,
@@ -42,7 +42,7 @@ namespace Core {
 
       Window &operator=(Window &&other) = delete;
 
-      ~Window() override;
+      ~Window();
 
       void show() { shown = true; }
 
@@ -76,18 +76,6 @@ namespace Core {
       std::uint32_t getId() const { return SDL_GetWindowID(window); }
 
       void *getWindowHandle() const { return window; }
-
-      unsigned long addRef() override {
-        return ++referenceCount;
-      }
-
-      unsigned long release() override {
-        unsigned long result = --referenceCount;
-        if (result == 0) {
-          delete this;
-        }
-        return result;
-      }
 
     protected:
       bool minimized = false;

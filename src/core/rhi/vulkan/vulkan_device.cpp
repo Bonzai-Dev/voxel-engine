@@ -8,19 +8,10 @@
   if (extensionSupported(extension, supportedExtensions)) \
   PNEXT_CHAIN_APPEND_STRUCT(structName)
 
-template <typename T>
-inline void Destroy(T* object) {
-  if (object) {
-    object->~T();
+namespace {
+  constexpr const char *vulkanValidationLayerName = "VK_LAYER_KHRONOS_validation";
 
-    const auto& allocationCallbacks = ((Core::RHI::Device&)(object->getDevice())).allocationCallbacks;
-    allocationCallbacks.free(allocationCallbacks.userArg, object);
-  }
-}
-
-
-namespace Core::RHI {
-  static inline uint32_t nextPow2(uint32_t n) {
+  inline uint32_t nextPow2(uint32_t n) {
     if (n <= 1)
       return 1;
 
@@ -34,23 +25,25 @@ namespace Core::RHI {
 
     return n;
   }
+}
 
-  static void * VKAPI_PTR vkAllocateHostMemory(void *pUserData, size_t size, size_t alignment, VkSystemAllocationScope) {
-    const auto &allocationCallbacks = *(AllocationCallbacks*)pUserData;
-    return allocationCallbacks.allocate(allocationCallbacks.userArg, size, alignment);
-  }
-
-  static void * VKAPI_PTR vkReallocateHostMemory(
-    void *pUserData, void *pOriginal, size_t size, size_t alignment, VkSystemAllocationScope
-  ) {
-    const auto &allocationCallbacks = *(AllocationCallbacks*)pUserData;
-    return allocationCallbacks.reallocate(allocationCallbacks.userArg, pOriginal, size, alignment);
-  }
-
-  static void VKAPI_PTR vkFreeHostMemory(void *pUserData, void *pMemory) {
-    const auto &allocationCallbacks = *(AllocationCallbacks*)pUserData;
-    return allocationCallbacks.free(allocationCallbacks.userArg, pMemory);
-  }
+namespace Core::RHI {
+  // static void * VKAPI_PTR vkAllocateHostMemory(void *pUserData, size_t size, size_t alignment, VkSystemAllocationScope) {
+  //   const auto &allocationCallbacks = *(AllocationCallbacks*)pUserData;
+  //   return allocationCallbacks.allocate(allocationCallbacks.userArg, size, alignment);
+  // }
+  //
+  // static void * VKAPI_PTR vkReallocateHostMemory(
+  //   void *pUserData, void *pOriginal, size_t size, size_t alignment, VkSystemAllocationScope
+  // ) {
+  //   const auto &allocationCallbacks = *(AllocationCallbacks*)pUserData;
+  //   return allocationCallbacks.reallocate(allocationCallbacks.userArg, pOriginal, size, alignment);
+  // }
+  //
+  // static void VKAPI_PTR vkFreeHostMemory(void *pUserData, void *pMemory) {
+  //   const auto &allocationCallbacks = *(AllocationCallbacks*)pUserData;
+  //   return allocationCallbacks.free(allocationCallbacks.userArg, pMemory);
+  // }
 
   static VkBool32 messageCallback(
     VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
@@ -79,24 +72,19 @@ namespace Core::RHI {
     }
 
     if (messageSeverity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
-      LOG_CORE_ERROR("{} {} {}", __FILE__, __LINE__, callbackData->pMessage, callbackData->messageIdNumber);
+      LOG_CORE_ERROR("Vulkan validation error ({})\n{}\n", callbackData->messageIdNumber, callbackData->pMessage);
     else if (messageSeverity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
-      LOG_CORE_WARNING("{} {} {}", __FILE__, __LINE__, callbackData->pMessage, callbackData->messageIdNumber);
+      LOG_CORE_WARNING("Vulkan validation warning ({})\n{}\n", callbackData->messageIdNumber, callbackData->pMessage);
 
     return VK_FALSE;
   }
 
-  VulkanDevice::VulkanDevice(const CallbackInterface& callbacks, const AllocationCallbacks& allocationCallbacks):
-    Device(callbacks, allocationCallbacks), queueFamilies({
-      Vector<VulkanQueue*>(stdAllocator),
-      Vector<VulkanQueue*>(stdAllocator),
-      Vector<VulkanQueue*>(stdAllocator)}
-    )
-  {
-    vulkanAllocationCallbacks.pUserData = (void*)&this->allocationCallbacks;
-    vulkanAllocationCallbacks.pfnAllocation = vkAllocateHostMemory;
-    vulkanAllocationCallbacks.pfnReallocation = vkReallocateHostMemory;
-    vulkanAllocationCallbacks.pfnFree = vkFreeHostMemory;
+  VulkanDevice::VulkanDevice(const CallbackInterface& callbacks): Device(callbacks) {
+    // Once we get our own allocator :D
+    // vulkanAllocationCallbacks.pUserData = (void*)&this->allocationCallbacks;
+    // vulkanAllocationCallbacks.pfnAllocation = vkAllocateHostMemory;
+    // vulkanAllocationCallbacks.pfnReallocation = vkReallocateHostMemory;
+    // vulkanAllocationCallbacks.pfnFree = vkFreeHostMemory;
 
     deviceInfo.graphicsBackend = GraphicsBackend::Vulkan;
   }
@@ -105,19 +93,14 @@ namespace Core::RHI {
     if (vmaAllocator)
       vmaDestroyAllocator(vmaAllocator);
 
-    for (auto& queueFamily: queueFamilies) {
-      for (uint32_t i = 0; i < queueFamily.size(); i++)
-        Destroy<VulkanQueue>(queueFamily[i]);
-    }
-
     if (debugMessenger)
-      vkDestroyDebugUtilsMessengerEXT(instance, debugMessenger, &vulkanAllocationCallbacks);
+      vkDestroyDebugUtilsMessengerEXT(instance, debugMessenger, allocationCallbacks);
 
     if (device)
-      vkDestroyDevice(device, &vulkanAllocationCallbacks);
+      vkDestroyDevice(device, allocationCallbacks);
 
     if (instance)
-      vkDestroyInstance(instance, &vulkanAllocationCallbacks);
+      vkDestroyInstance(instance, allocationCallbacks);
 
     volkFinalize();
   }
@@ -132,7 +115,7 @@ namespace Core::RHI {
         return Result::Failure;
       }
 
-      Vector<const char*> enabledExtensions(stdAllocator);
+      std::vector<const char*> enabledExtensions;
       for (uint32_t i = 0; i < createInfo.vulkanExtensions.instanceExtensionCount; i++)
         enabledExtensions.push_back(createInfo.vulkanExtensions.instanceExtensions[i]);
 
@@ -148,15 +131,13 @@ namespace Core::RHI {
       uint32_t deviceGroupCount = 0;
       VULKAN_CHECK(vkEnumeratePhysicalDeviceGroups(instance, &deviceGroupCount, nullptr));
 
-      Scratch<VkPhysicalDeviceGroupProperties> deviceGroups = NRI_ALLOCATE_SCRATCH(
-        *this, VkPhysicalDeviceGroupProperties, deviceGroupCount
-      );
+      std::vector<VkPhysicalDeviceGroupProperties> deviceGroups(deviceGroupCount);
       for (uint32_t i = 0; i < deviceGroupCount; i++) {
         deviceGroups[i].sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GROUP_PROPERTIES;
         deviceGroups[i].pNext = nullptr;
       }
 
-      VULKAN_CHECK(vkEnumeratePhysicalDeviceGroups(instance, &deviceGroupCount, deviceGroups));
+      VULKAN_CHECK(vkEnumeratePhysicalDeviceGroups(instance, &deviceGroupCount, deviceGroups.data()));
 
       uint32_t physicalDeviceIndex = 0;
       for (physicalDeviceIndex = 0; physicalDeviceIndex < deviceGroupCount; physicalDeviceIndex++) {
@@ -200,11 +181,11 @@ namespace Core::RHI {
     uint32_t familyCount = 0;
     vkGetPhysicalDeviceQueueFamilyProperties2(physicalDevice, &familyCount, nullptr);
 
-    Scratch<VkQueueFamilyProperties2> familyProps2 = NRI_ALLOCATE_SCRATCH(*this, VkQueueFamilyProperties2, familyCount);
+    std::vector<VkQueueFamilyProperties2> familyProps2 = std::vector<VkQueueFamilyProperties2>(familyCount);
     for (uint32_t i = 0; i < familyCount; i++)
       familyProps2[i] = {VK_STRUCTURE_TYPE_QUEUE_FAMILY_PROPERTIES_2};
 
-    vkGetPhysicalDeviceQueueFamilyProperties2(physicalDevice, &familyCount, familyProps2);
+    vkGetPhysicalDeviceQueueFamilyProperties2(physicalDevice, &familyCount, familyProps2.data());
 
     std::array<uint32_t, static_cast<size_t>(QueueType::Count)> scores = {};
     for (uint32_t i = 0; i < familyCount; i++) {
@@ -235,7 +216,7 @@ namespace Core::RHI {
     }
 
     // Device extensions
-    Vector<const char*> enabledDeviceExtensions(stdAllocator);
+    std::vector<const char*> enabledDeviceExtensions;
     for (uint32_t i = 0; i < createInfo.vulkanExtensions.deviceExtensionCount; i++)
       enabledDeviceExtensions.push_back(createInfo.vulkanExtensions.deviceExtensions[i]);
 
@@ -429,7 +410,7 @@ namespace Core::RHI {
     this->deviceFeatures.fifoLatestReady = presentModeFifoLatestReadyFeatures.presentModeFifoLatestReady;
     this->deviceFeatures.unifiedImageLayoutsVideo = unifiedImageLayoutsFeatures.unifiedImageLayoutsVideo;
 
-    this->deviceFeatures.memoryZeroInitializationEnabled = createInfo.enableMemoryZeroInitialization &&
+    this->isMemoryZeroInitializationEnabled = createInfo.enableMemoryZeroInitialization &&
       zeroInitializeDeviceMemoryFeatures.zeroInitializeDeviceMemory;
 
     // Check hard requirements
@@ -490,7 +471,7 @@ namespace Core::RHI {
         }
       }
 
-      VULKAN_CHECK(vkCreateDevice(physicalDevice, &deviceCreateInfo, &vulkanAllocationCallbacks, &device));
+      VULKAN_CHECK(vkCreateDevice(physicalDevice, &deviceCreateInfo, allocationCallbacks, &device));
       volkLoadDevice(device);
     }
 
@@ -512,15 +493,9 @@ namespace Core::RHI {
             VkQueue handle = VK_NULL_HANDLE;
             vkGetDeviceQueue2(device, &queueInfo, &handle);
 
-            VulkanQueue* queue = allocate<VulkanQueue>(allocationCallbacks, *this);
-            Result result = queue->create(queueFamilyDesc.queueType, queueInfo.queueFamilyIndex, handle);
-
-            if (result != Result::Success) {
-              destroy(allocationCallbacks, queue);
-            }
-
-            if (result == Result::Success)
-              queueFamily.push_back(queue);
+            std::unique_ptr<VulkanQueue> queue = std::make_unique<VulkanQueue>(*this);
+            if (queue->create(queueFamilyDesc.queueType, queueInfo.queueFamilyIndex, handle) == Result::Success)
+              queueFamily.push_back(std::move(queue));
           }
 
           deviceInfo.physicalDeviceInfo.queueCount[(size_t)queueFamilyDesc.queueType] = queueFamilyDesc.queueCount;
@@ -647,12 +622,11 @@ namespace Core::RHI {
       uint32_t queueFamilyCount = 0;
       vkGetPhysicalDeviceQueueFamilyProperties2(physicalDevice, &queueFamilyCount, nullptr);
 
-      Scratch<VkQueueFamilyProperties2> queueFamilyProps2 = NRI_ALLOCATE_SCRATCH(
-        *this, VkQueueFamilyProperties2, queueFamilyCount);
+      std::vector<VkQueueFamilyProperties2> queueFamilyProps2 = std::vector<VkQueueFamilyProperties2>(queueFamilyCount);
       for (uint32_t i = 0; i < queueFamilyCount; i++)
         queueFamilyProps2[i] = {VK_STRUCTURE_TYPE_QUEUE_FAMILY_PROPERTIES_2};
 
-      vkGetPhysicalDeviceQueueFamilyProperties2(physicalDevice, &queueFamilyCount, queueFamilyProps2);
+      vkGetPhysicalDeviceQueueFamilyProperties2(physicalDevice, &queueFamilyCount, queueFamilyProps2.data());
 
       std::array<bool, static_cast<size_t>(QueueType::Count)> isTimestampSupported = {};
       for (size_t i = 0; i < isTimestampSupported.size(); i++) {
@@ -748,9 +722,9 @@ namespace Core::RHI {
         // 4. Large MSAA texture
         FormatSupportBits formatSupportBits = getFormatSupport(textureInfo.format);
         if (formatSupportBits & FormatSupportBits::MultiSample4X)
-          textureInfo.sampleNum = 4;
+          textureInfo.sampleCount = 4;
         else if (formatSupportBits & FormatSupportBits::Multisample2X)
-          textureInfo.sampleNum = 2;
+          textureInfo.sampleCount = 2;
 
         IntrusivePtr<VulkanTexture> textureMs = IntrusivePtr<VulkanTexture>::create(*this);
         textureMs->create(textureInfo);
@@ -1123,7 +1097,7 @@ namespace Core::RHI {
     allocatorCreateInfo.device = device;
     allocatorCreateInfo.instance = instance;
     allocatorCreateInfo.pVulkanFunctions = &vulkanFunctions;
-    allocatorCreateInfo.pAllocationCallbacks = &vulkanAllocationCallbacks;
+    allocatorCreateInfo.pAllocationCallbacks = allocationCallbacks;
     allocatorCreateInfo.preferredLargeHeapBlockSize = 0; // = VMA_DEFAULT_LARGE_HEAP_BLOCK_SIZE
     VULKAN_CHECK(vmaImportVulkanFunctionsFromVolk(&allocatorCreateInfo, &vulkanFunctions));
 
@@ -1146,26 +1120,29 @@ namespace Core::RHI {
 
   Result VulkanDevice::createInstance(
     bool validationLayerEnabled,
-    const Vector<const char*> &enabledInstanceExtensions
+    const std::vector<const char*> &enabledInstanceExtensions
   ) {
-    Vector<const char*> layers(stdAllocator);
+    std::vector<const char*> layers;
 
     // Instance layers
     {
       if (validationLayerEnabled)
-        layers.push_back("VK_LAYER_KHRONOS_validation");
+        layers.push_back(vulkanValidationLayerName);
 
       uint32_t layerCount = 0;
       vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
 
-      Vector<VkLayerProperties> supportedLayers(layerCount, stdAllocator);
+      std::vector<VkLayerProperties> supportedLayers(layerCount);
       vkEnumerateInstanceLayerProperties(&layerCount, supportedLayers.data());
 
       for (size_t i = 0; i < layers.size(); i++) {
         bool found = false;
         for (uint32_t j = 0; j < layerCount && !found; j++) {
-          if (strcmp(supportedLayers[j].layerName, layers[i]) == 0)
+          LOG_CORE_TRACE("Found supported instance layer: {}", supportedLayers[j].layerName);
+          if (strcmp(supportedLayers[j].layerName, layers[i]) == 0) {
             found = true;
+            LOG_CORE_TRACE("Enabled instance layer: {}", supportedLayers[j].layerName);
+          }
         }
 
         if (!found)
@@ -1216,30 +1193,30 @@ namespace Core::RHI {
     if (validationLayerEnabled)
       messengerCreateInfo.pNext = &validationFeatures;
 
-    VULKAN_CHECK(vkCreateInstance(&instanceCreateInfo, &vulkanAllocationCallbacks, &instance));
+    VULKAN_CHECK(vkCreateInstance(&instanceCreateInfo, allocationCallbacks, &instance));
     volkLoadInstanceOnly(instance);
 
     if (validationLayerEnabled) {
       VULKAN_CHECK(
-        vkCreateDebugUtilsMessengerEXT(instance, &messengerCreateInfo, &vulkanAllocationCallbacks, &debugMessenger)
+        vkCreateDebugUtilsMessengerEXT(instance, &messengerCreateInfo, allocationCallbacks, &debugMessenger)
       );
     }
 
     return Result::Success;
   }
 
-  void VulkanDevice::loadInstanceExtensions(Vector<const char*> &enabledExtensions) {
+  void VulkanDevice::loadInstanceExtensions(std::vector<const char*> &enabledExtensions) {
     // Query extensions
     uint32_t extensionCount = 0;
     vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
 
-    Vector<VkExtensionProperties> supportedExtensions(extensionCount, stdAllocator);
+    std::vector<VkExtensionProperties> supportedExtensions(extensionCount);
     vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, supportedExtensions.data());
 
 #ifdef ENGINE_DEBUG
     for (const VkExtensionProperties &extension: supportedExtensions) {
       LOG_CORE_TRACE(
-        "Found supported instance extension on device: {} {}",
+        "Found supported instance extension: {} {}",
         extension.extensionName, extension.specVersion
       );
     }
@@ -1265,17 +1242,17 @@ namespace Core::RHI {
 
 #ifdef ENGINE_DEBUG
     for (const auto &extension : enabledExtensions) {
-      LOG_CORE_TRACE("Enabled instance extension on device: {}", extension);
+      LOG_CORE_TRACE("{} instance extension has been enabled", extension);
     }
 #endif
   }
 
-  void VulkanDevice::loadDeviceExtensions(Vector<const char*> &enabledDeviceExtensions, bool disableRayTracing) {
+  void VulkanDevice::loadDeviceExtensions(std::vector<const char*> &enabledDeviceExtensions, bool disableRayTracing) {
     // Query extensions
     uint32_t extensionsCount = 0;
     vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &extensionsCount, nullptr);
 
-    Vector<VkExtensionProperties> supportedExtensions(extensionsCount, stdAllocator);
+    std::vector<VkExtensionProperties> supportedExtensions(extensionsCount);
     vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &extensionsCount, supportedExtensions.data());
 
 #ifdef ENGINE_DEBUG
@@ -1496,8 +1473,8 @@ namespace Core::RHI {
 
   void VulkanDevice::addExtension(
     const char *extension,
-    Vector<const char*> &enabledExtensions,
-    const Vector<VkExtensionProperties> &supportedExtensions
+    std::vector<const char*> &enabledExtensions,
+    const std::vector<VkExtensionProperties> &supportedExtensions
   ) const {
     if (extensionSupported(extension, supportedExtensions))
       enabledExtensions.push_back(extension);
@@ -1505,7 +1482,7 @@ namespace Core::RHI {
 
   bool VulkanDevice::extensionSupported(
     const char *extension,
-    const Vector<VkExtensionProperties> &supportedExtensions
+    const std::vector<VkExtensionProperties> &supportedExtensions
   ) const {
     for (auto &supportedExtension : supportedExtensions) {
       if (!strcmp(extension, supportedExtension.extensionName))
@@ -1517,7 +1494,7 @@ namespace Core::RHI {
 
   bool VulkanDevice::extensionSupported(
     const char *extension,
-    const Vector<const char*> &supportedExtensions
+    const std::vector<const char*> &supportedExtensions
   ) const {
     for (auto &supportedExtension : supportedExtensions) {
       if (!strcmp(extension, supportedExtension))
@@ -1533,7 +1510,7 @@ namespace Core::RHI {
       return Result::Unsupported;
 
     if (queueIndex < queueFamily.size()) {
-      VulkanQueue *queueVK = queueFamilies[static_cast<uint32_t>(type)].at(queueIndex);
+      VulkanQueue *queueVK = queueFamilies[static_cast<uint32_t>(type)].at(queueIndex).get();
       queue = static_cast<Queue*>(queueVK);
 
       { // Update active family indices
@@ -1556,11 +1533,11 @@ namespace Core::RHI {
   }
 
   Result VulkanDevice::createSwapChain(const SwapChainInfo &swapChainInfo, SwapChain *&swapChain) {
-    VulkanSwapChain *impl = allocate<VulkanSwapChain>(allocationCallbacks, *this);
+    VulkanSwapChain *impl = new VulkanSwapChain(*this);
     Result result = impl->create(swapChainInfo);
 
     if (result != Result::Success) {
-      destroy(allocationCallbacks, impl);
+      delete impl;
       swapChain = nullptr;
     } else
       swapChain = (VulkanSwapChain*)impl;
@@ -1570,8 +1547,8 @@ namespace Core::RHI {
 
   Result VulkanDevice::deviceWaitIdle() {
     // Don't use "vkDeviceWaitIdle" because it requires host access synchronization to all queues, better do it one by one instead
-    for (auto& queueFamily: queueFamilies) {
-      for (auto queue : queueFamily) {
+    for (const std::vector<std::unique_ptr<VulkanQueue>> &queueFamily: queueFamilies) {
+      for (const std::unique_ptr<VulkanQueue> &queue: queueFamily) {
         Result result = queue->waitIdle();
         if (result != Result::Success)
           return result;
@@ -1579,5 +1556,11 @@ namespace Core::RHI {
     }
 
     return Result::Success;
+  }
+
+  void VulkanDevice::destroySwapChain(SwapChain *swapChain) {
+    VulkanSwapChain *impl = (VulkanSwapChain*)(swapChain);
+    delete impl;
+    impl = nullptr;
   }
 }

@@ -34,23 +34,15 @@ namespace Core {
       virtual ~RefCounted() = default;
 
       virtual unsigned long addRef() {
-        // Implementation example:
-        //
-        // return ++referenceCount;
         return 0;
       }
 
       virtual unsigned long release() {
-        // Implementation example:
-        //
-        // unsigned long result = --referenceCount;
-        // if (result == 0) {
-        //   delete this;
-        // }
-        // return result;
         return 0;
       }
 
+      // Implementation example
+      //
       // virtual unsigned long addRef(std::memory_order memoryOrder) {
       //   return ++referenceCount;
       // }
@@ -259,7 +251,9 @@ namespace Core {
       // Create a wrapper around a raw object while keeping the object's reference count unchanged
       template <typename... Args>
       static IntrusivePtr<T> create(Args &&... args) {
-        return IntrusivePtr<T>(new T(std::forward<Args>(args)...));
+        IntrusivePtr<T> instance;
+        instance.attach(new T(std::forward<Args>(args)...));
+        return instance;
       }
 
       unsigned long reset() {

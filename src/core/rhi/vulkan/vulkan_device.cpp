@@ -3,12 +3,15 @@
 #include <core/assert.hpp>
 #include <core/logger.hpp>
 #include "vulkan_backend.hpp"
+#include "vulkan_device.hpp"
 
 #define PNEXT_CHAIN_APPEND_FEATURES(extension, structName, supportedExtensions) \
   if (extensionSupported(extension, supportedExtensions)) \
   PNEXT_CHAIN_APPEND_STRUCT(structName)
 
 namespace {
+  using namespace Core::RHI;
+
   constexpr const char *vulkanValidationLayerName = "VK_LAYER_KHRONOS_validation";
 
   inline uint32_t nextPow2(uint32_t n) {
@@ -24,6 +27,35 @@ namespace {
     n++;
 
     return n;
+  }
+
+  void copyRenderPassInfo(RenderPassInfo &dst, const RenderPassInfo &src) {
+    dst.colors = src.colors;
+    dst.colorResolves = src.colorResolves;
+    dst.inputAttachmentIndices = src.inputAttachmentIndices;
+
+    dst.depth = src.depth;
+    dst.stencil = src.stencil;
+    dst.depthResolve = src.depthResolve;
+    dst.stencilResolve = src.stencilResolve;
+    dst.shadingRate = src.shadingRate;
+    dst.depthResolveMode = src.depthResolveMode;
+    dst.stencilResolveMode = src.stencilResolveMode;
+    dst.viewMask = src.viewMask;
+    dst.hasDepth = src.hasDepth;
+    dst.hasStencil = src.hasStencil;
+    dst.hasDepthResolve = src.hasDepthResolve;
+    dst.hasStencilResolve = src.hasStencilResolve;
+    dst.hasShadingRate = src.hasShadingRate;
+  }
+
+  void copyFramebufferInfo(FramebufferInfo &dst, const FramebufferInfo &src) {
+    dst.attachments = src.attachments;
+
+    dst.renderPass = src.renderPass;
+    dst.width = src.width;
+    dst.height = src.height;
+    dst.layerNum = src.layerNum;
   }
 }
 
@@ -79,7 +111,12 @@ namespace Core::RHI {
     return VK_FALSE;
   }
 
-  VulkanDevice::VulkanDevice(const CallbackInterface& callbacks): Device(callbacks) {
+  VulkanDevice::VulkanDevice(const CallbackInterface &callbacks): Device(callbacks),
+                                                                  queueFamilies({
+                                                                    std::vector<std::unique_ptr<VulkanQueue>>(),
+                                                                    std::vector<std::unique_ptr<VulkanQueue>>(),
+                                                                    std::vector<std::unique_ptr<VulkanQueue>>()
+                                                                  }) {
     // Once we get our own allocator :D
     // vulkanAllocationCallbacks.pUserData = (void*)&this->allocationCallbacks;
     // vulkanAllocationCallbacks.pfnAllocation = vkAllocateHostMemory;
@@ -104,6 +141,11 @@ namespace Core::RHI {
 
     volkFinalize();
   }
+
+  VkResult vkTest() {
+    VkResult res = VK_ERROR_DEVICE_LOST;
+    return res;
+  };
 
   Result VulkanDevice::create(const DeviceCreateInfo &createInfo) {
     deviceInfo.physicalDeviceInfo = *createInfo.physicalDeviceInfo;
@@ -381,34 +423,34 @@ namespace Core::RHI {
     if (minorVersion > 2)
       extendedDynamicStateFeatures.extendedDynamicState = true;
 
-    this->deviceFeatures.maintenance4 = deviceFeatures13.maintenance4;
-    this->deviceFeatures.maintenance5 = deviceFeatures14.maintenance5;
-    this->deviceFeatures.maintenance6 = deviceFeatures14.maintenance6;
-    this->deviceFeatures.maintenance7 = maintenance7Features.maintenance7;
-    this->deviceFeatures.maintenance8 = maintenance8Features.maintenance8;
-    this->deviceFeatures.maintenance9 = maintenance9Features.maintenance9;
-    this->deviceFeatures.maintenance10 = maintenance10Features.maintenance10;
-    this->deviceFeatures.deviceAddress = deviceFeatures12.bufferDeviceAddress;
-    this->deviceFeatures.dynamicRendering = deviceFeatures13.dynamicRendering;
-    this->deviceFeatures.copyCommands2 = minorVersion > 2 ||
+    this->vulkanFeatures.maintenance4 = deviceFeatures13.maintenance4;
+    this->vulkanFeatures.maintenance5 = deviceFeatures14.maintenance5;
+    this->vulkanFeatures.maintenance6 = deviceFeatures14.maintenance6;
+    this->vulkanFeatures.maintenance7 = maintenance7Features.maintenance7;
+    this->vulkanFeatures.maintenance8 = maintenance8Features.maintenance8;
+    this->vulkanFeatures.maintenance9 = maintenance9Features.maintenance9;
+    this->vulkanFeatures.maintenance10 = maintenance10Features.maintenance10;
+    this->vulkanFeatures.deviceAddress = deviceFeatures12.bufferDeviceAddress;
+    this->vulkanFeatures.dynamicRendering = deviceFeatures13.dynamicRendering;
+    this->vulkanFeatures.copyCommands2 = minorVersion > 2 ||
       extensionSupported(VK_KHR_COPY_COMMANDS_2_EXTENSION_NAME, enabledDeviceExtensions);
-    this->deviceFeatures.swapChainMutableFormat =
+    this->vulkanFeatures.swapChainMutableFormat =
       extensionSupported(VK_KHR_SWAPCHAIN_MUTABLE_FORMAT_EXTENSION_NAME, enabledDeviceExtensions);
-    this->deviceFeatures.presentId = presentIdFeatures.presentId;
-    this->deviceFeatures.memoryPriority = memoryPriorityFeatures.memoryPriority;
-    this->deviceFeatures.memoryBudget =
+    this->vulkanFeatures.presentId = presentIdFeatures.presentId;
+    this->vulkanFeatures.memoryPriority = memoryPriorityFeatures.memoryPriority;
+    this->vulkanFeatures.memoryBudget =
       extensionSupported(VK_EXT_MEMORY_BUDGET_EXTENSION_NAME, enabledDeviceExtensions);
-    this->deviceFeatures.imageSlicedView = imageSlicedViewOf3DFeatures.imageSlicedViewOf3D != 0;
-    this->deviceFeatures.customBorderColor = customBorderColorFeatures.customBorderColors != 0 &&
+    this->vulkanFeatures.imageSlicedView = imageSlicedViewOf3DFeatures.imageSlicedViewOf3D != 0;
+    this->vulkanFeatures.customBorderColor = customBorderColorFeatures.customBorderColors != 0 &&
       customBorderColorFeatures.customBorderColorWithoutFormat != 0;
-    this->deviceFeatures.robustness = deviceFeatures.features.robustBufferAccess != 0 &&
+    this->vulkanFeatures.robustness = deviceFeatures.features.robustBufferAccess != 0 &&
       deviceFeatures13.robustImageAccess != 0;
-    this->deviceFeatures.robustness2 = robustness2Features.robustBufferAccess2 != 0 &&
+    this->vulkanFeatures.robustness2 = robustness2Features.robustBufferAccess2 != 0 &&
       robustness2Features.robustImageAccess2 != 0;
-    this->deviceFeatures.pipelineRobustness = deviceFeatures14.pipelineRobustness;
-    this->deviceFeatures.swapChainMaintenance1 = swapChainMaintenance1Features.swapchainMaintenance1;
-    this->deviceFeatures.fifoLatestReady = presentModeFifoLatestReadyFeatures.presentModeFifoLatestReady;
-    this->deviceFeatures.unifiedImageLayoutsVideo = unifiedImageLayoutsFeatures.unifiedImageLayoutsVideo;
+    this->vulkanFeatures.pipelineRobustness = deviceFeatures14.pipelineRobustness;
+    this->vulkanFeatures.swapChainMaintenance1 = swapChainMaintenance1Features.swapchainMaintenance1;
+    this->vulkanFeatures.fifoLatestReady = presentModeFifoLatestReadyFeatures.presentModeFifoLatestReady;
+    this->vulkanFeatures.unifiedImageLayoutsVideo = unifiedImageLayoutsFeatures.unifiedImageLayoutsVideo;
 
     this->isMemoryZeroInitializationEnabled = createInfo.enableMemoryZeroInitialization &&
       zeroInitializeDeviceMemoryFeatures.zeroInitializeDeviceMemory;
@@ -710,7 +752,7 @@ namespace Core::RHI {
         TextureInfo textureInfo = {};
         textureInfo.dimension = TextureDimension::Dimension2D;
         textureInfo.usage = TextureUsageBits::ColorAttachment;
-        textureInfo.format = Format::RGBA8_UNORM;
+        textureInfo.format = DataFormat::RGBA8_UNORM;
         textureInfo.width = 4096;
         textureInfo.height = 4096;
 
@@ -947,7 +989,7 @@ namespace Core::RHI {
       deviceInfo.features.presentFromCompute = true;
       deviceInfo.features.waitableSwapChain = deviceInfo.features.swapChain != 0 && presentIdFeatures.presentId != 0 &&
         presentWaitFeatures.presentWait != 0;
-      deviceInfo.features.resizableSwapChain = deviceInfo.features.swapChain != 0 && this->deviceFeatures.
+      deviceInfo.features.resizableSwapChain = deviceInfo.features.swapChain != 0 && this->vulkanFeatures.
         swapChainMaintenance1 != 0;
       deviceInfo.features.layerBasedMultiview = deviceFeatures11.multiview;
       deviceInfo.features.textureCompressionBC = deviceFeatures.features.textureCompressionBC;
@@ -965,16 +1007,16 @@ namespace Core::RHI {
         fragmentShadingRateProps.maxFragmentSize.width > 2;
       deviceInfo.features.sumShadingRateCombiner = deviceInfo.tiers.shadingRate != 0;
       deviceInfo.features.regionResolve = true;
-      deviceInfo.features.resolveOpMinMax = this->deviceFeatures.maintenance10 && this->deviceFeatures.copyCommands2;
+      deviceInfo.features.resolveOpMinMax = this->vulkanFeatures.maintenance10 && this->vulkanFeatures.copyCommands2;
       // TODO: it's "all or nothing", without it "min/max" resolve is supported only in a render pass
       deviceInfo.features.pipelineCache = true;
       deviceInfo.features.pipelineCacheControl = deviceFeatures13.pipelineCreationCacheControl;
-      deviceInfo.features.getMemoryDesc2 = this->deviceFeatures.maintenance4;
+      deviceInfo.features.getMemoryDesc2 = this->vulkanFeatures.maintenance4;
       deviceInfo.features.enhancedBarriers = true;
       deviceInfo.features.tessellationShader = deviceFeatures.features.tessellationShader != 0;
       deviceInfo.features.geometryShader = deviceFeatures.features.geometryShader != 0;
       deviceInfo.features.meshShader = meshShaderFeatures.meshShader != 0 && meshShaderFeatures.taskShader != 0;
-      deviceInfo.features.lowLatency = this->deviceFeatures.presentId != 0 && extensionSupported(
+      deviceInfo.features.lowLatency = this->vulkanFeatures.presentId != 0 && extensionSupported(
         VK_NV_LOW_LATENCY_2_EXTENSION_NAME, enabledDeviceExtensions);
       deviceInfo.features.componentSwizzle = true;
       deviceInfo.features.independentFrontAndBackStencilReferenceAndMasks = true;
@@ -1083,7 +1125,7 @@ namespace Core::RHI {
       // // TODO: "deviceInfo.features.mutableDescriptorType" is an optional feature, despite that it's needed to emulate SM 6.6 "ultimate" bindless
       // if (deviceInfo.shaderFeatures.atomicsI64)
       //   deviceInfo.shaderModel = ENGINE_SHADER_MODEL(6, 6);
-      // if (deviceFeatures.features.shaderStorageImageMultisample)
+      // if (vulkanFeatures.features.shaderStorageImageMultisample)
       //   deviceInfo.shaderModel = ENGINE_SHADER_MODEL(6, 7);
       // // TODO: add SM 6.8+ detection
     }
@@ -1102,15 +1144,15 @@ namespace Core::RHI {
     VULKAN_CHECK(vmaImportVulkanFunctionsFromVolk(&allocatorCreateInfo, &vulkanFunctions));
 
     allocatorCreateInfo.flags = 0;
-    if (this->deviceFeatures.memoryBudget)
+    if (this->vulkanFeatures.memoryBudget)
       allocatorCreateInfo.flags |= VMA_ALLOCATOR_CREATE_EXT_MEMORY_BUDGET_BIT;
-    if (this->deviceFeatures.deviceAddress)
+    if (this->vulkanFeatures.deviceAddress)
       allocatorCreateInfo.flags |= VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT;
-    if (this->deviceFeatures.memoryPriority)
+    if (this->vulkanFeatures.memoryPriority)
       allocatorCreateInfo.flags |= VMA_ALLOCATOR_CREATE_EXT_MEMORY_PRIORITY_BIT;
-    if (this->deviceFeatures.maintenance4)
+    if (this->vulkanFeatures.maintenance4)
       allocatorCreateInfo.flags |= VMA_ALLOCATOR_CREATE_KHR_MAINTENANCE4_BIT;
-    if (this->deviceFeatures.maintenance5)
+    if (this->vulkanFeatures.maintenance5)
       allocatorCreateInfo.flags |= VMA_ALLOCATOR_CREATE_KHR_MAINTENANCE5_BIT;
 
     VULKAN_CHECK(vmaCreateAllocator(&allocatorCreateInfo, &vmaAllocator));
@@ -1214,7 +1256,7 @@ namespace Core::RHI {
     vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, supportedExtensions.data());
 
 #ifdef ENGINE_DEBUG
-    for (const VkExtensionProperties &extension: supportedExtensions) {
+    for (const VkExtensionProperties &extension : supportedExtensions) {
       LOG_CORE_TRACE(
         "Found supported instance extension: {} {}",
         extension.extensionName, extension.specVersion
@@ -1340,9 +1382,10 @@ namespace Core::RHI {
 #define UPDATE_BUFFER_SUPPORT_BITS(required, bit) \
   if ((props3.bufferFeatures & (required)) == (required)) \
     supportBits |= bit;
-  FormatSupportBits VulkanDevice::getFormatSupport(Format format) const {
+
+  FormatSupportBits VulkanDevice::getFormatSupport(DataFormat format) const {
     FormatSupportBits supportBits = FormatSupportBits::Unsupported;
-    VkFormat vkFormat = formatToVulkanFormat(format);
+    VkFormat vkFormat = getVulkanFormat(format);
     if (vkFormat == VK_FORMAT_UNDEFINED)
       return FormatSupportBits::Unsupported;
 
@@ -1366,7 +1409,7 @@ namespace Core::RHI {
 
     if (supportBits & FormatSupportBits::ColorAttachment)
       supportBits |= FormatSupportBits::MultiSampleResolve;
-    if ((supportBits & FormatSupportBits::DepthStencilAttachment) && deviceFeatures.maintenance10)
+    if ((supportBits & FormatSupportBits::DepthStencilAttachment) && vulkanFeatures.maintenance10)
       supportBits |= FormatSupportBits::MultiSampleResolve;
 
     if ((props3.optimalTilingFeatures | props3.bufferFeatures) & VK_FORMAT_FEATURE_2_STORAGE_READ_WITHOUT_FORMAT_BIT)
@@ -1513,7 +1556,8 @@ namespace Core::RHI {
       VulkanQueue *queueVK = queueFamilies[static_cast<uint32_t>(type)].at(queueIndex).get();
       queue = static_cast<Queue*>(queueVK);
 
-      { // Update active family indices
+      {
+        // Update active family indices
         ExclusiveScope lock(this->lock);
 
         uint32_t i = 0;
@@ -1532,23 +1576,211 @@ namespace Core::RHI {
     return Result::Failure;
   }
 
-  Result VulkanDevice::createSwapChain(const SwapChainInfo &swapChainInfo, SwapChain *&swapChain) {
-    VulkanSwapChain *impl = new VulkanSwapChain(*this);
-    Result result = impl->create(swapChainInfo);
+  VkRenderPass VulkanDevice::getOrCreateRenderPass(const RenderPassInfo &info) {
+    ExclusiveScope lock(this->lock);
 
-    if (result != Result::Success) {
-      delete impl;
-      swapChain = nullptr;
-    } else
-      swapChain = (VulkanSwapChain*)impl;
+    for (const RenderPassCacheEntry &entry : renderPasses) {
+      if (entry.info == info)
+        return entry.handle;
+    }
 
-    return result;
+    std::vector<VkAttachmentDescription2> attachments(info.colors.size() + info.colorResolves.size() + 4);
+    std::vector<VkAttachmentReference2> colors(info.colors.size());
+    std::vector<VkAttachmentReference2> colorResolves(info.colorResolves.size());
+    std::vector<VkAttachmentReference2> inputs(info.inputAttachmentIndices.size());
+    std::vector<uint32_t> colorAttachmentIndices(info.colors.size());
+
+    auto addAttachment = [&](const RenderPassAttachmentInfo &attachmentDesc) {
+      VkAttachmentDescription2 &attachment = attachments.emplace_back();
+      attachment = {VK_STRUCTURE_TYPE_ATTACHMENT_DESCRIPTION_2};
+      attachment.format = attachmentDesc.format;
+      attachment.samples = attachmentDesc.sampleNum;
+      attachment.loadOp = attachmentDesc.loadOp;
+      attachment.storeOp = attachmentDesc.storeOp;
+      attachment.stencilLoadOp = attachmentDesc.stencilLoadOp;
+      attachment.stencilStoreOp = attachmentDesc.stencilStoreOp;
+      attachment.initialLayout = attachmentDesc.layout;
+      attachment.finalLayout = attachmentDesc.layout;
+
+      return (uint32_t)attachments.size() - 1;
+    };
+
+    for (uint32_t i = 0; i < (uint32_t)info.colors.size(); i++) {
+      uint32_t attachmentIndex = addAttachment(info.colors[i]);
+
+      VkAttachmentReference2 &color = colors.emplace_back();
+      color = {VK_STRUCTURE_TYPE_ATTACHMENT_REFERENCE_2};
+      color.attachment = attachmentIndex;
+      color.layout = info.colors[i].layout;
+      color.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+
+      colorAttachmentIndices.push_back(attachmentIndex);
+    }
+
+    for (uint32_t i = 0; i < (uint32_t)info.inputAttachmentIndices.size(); i++) {
+      uint32_t index = info.inputAttachmentIndices[i];
+      bool isUsed = index != unusedRenderPassAttachment && index < colorAttachmentIndices.size();
+
+      VkAttachmentReference2 &input = inputs.emplace_back();
+      input = {VK_STRUCTURE_TYPE_ATTACHMENT_REFERENCE_2};
+      input.attachment = isUsed ? colorAttachmentIndices[index] : VK_ATTACHMENT_UNUSED;
+      input.layout = isUsed ? info.colors[index].layout : VK_IMAGE_LAYOUT_UNDEFINED;
+      input.aspectMask = isUsed ? VK_IMAGE_ASPECT_COLOR_BIT : 0;
+    }
+
+    for (uint32_t i = 0; i < (uint32_t)info.colorResolves.size(); i++) {
+      VkAttachmentReference2 &colorResolve = colorResolves.emplace_back();
+      colorResolve = {VK_STRUCTURE_TYPE_ATTACHMENT_REFERENCE_2};
+
+      if (info.colorResolves[i].format == VK_FORMAT_UNDEFINED) {
+        colorResolve.attachment = VK_ATTACHMENT_UNUSED;
+        colorResolve.layout = VK_IMAGE_LAYOUT_UNDEFINED;
+      }
+      else {
+        colorResolve.attachment = addAttachment(info.colorResolves[i]);
+        colorResolve.layout = info.colorResolves[i].layout;
+        colorResolve.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+      }
+    }
+
+    VkAttachmentReference2 depthStencil = {VK_STRUCTURE_TYPE_ATTACHMENT_REFERENCE_2};
+    if (info.hasDepth)
+      depthStencil.attachment = addAttachment(info.depth);
+    else if (info.hasStencil)
+      depthStencil.attachment = addAttachment(info.stencil);
+    else
+      depthStencil.attachment = VK_ATTACHMENT_UNUSED;
+
+    if (info.hasDepth)
+      depthStencil.layout = info.depth.layout;
+    else if (info.hasStencil)
+      depthStencil.layout = info.stencil.layout;
+    else
+      depthStencil.layout = VK_IMAGE_LAYOUT_UNDEFINED;
+
+    if (info.hasDepth)
+      depthStencil.aspectMask |= VK_IMAGE_ASPECT_DEPTH_BIT;
+    if (info.hasStencil)
+      depthStencil.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
+
+    VkAttachmentReference2 depthStencilResolve = {VK_STRUCTURE_TYPE_ATTACHMENT_REFERENCE_2};
+    if (info.hasDepthResolve) {
+      depthStencilResolve.attachment = addAttachment(info.depthResolve);
+      depthStencilResolve.layout = info.depthResolve.layout;
+    }
+    else if (info.hasStencilResolve) {
+      depthStencilResolve.attachment = addAttachment(info.stencilResolve);
+      depthStencilResolve.layout = info.stencilResolve.layout;
+    }
+    else
+      depthStencilResolve.attachment = VK_ATTACHMENT_UNUSED;
+
+    if (info.hasDepthResolve)
+      depthStencilResolve.aspectMask |= VK_IMAGE_ASPECT_DEPTH_BIT;
+    if (info.hasStencilResolve)
+      depthStencilResolve.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
+
+    VkAttachmentReference2 shadingRate = {VK_STRUCTURE_TYPE_ATTACHMENT_REFERENCE_2};
+    if (info.hasShadingRate) {
+      shadingRate.attachment = addAttachment(info.shadingRate);
+      shadingRate.layout = info.shadingRate.layout;
+    }
+
+    VkSubpassDescriptionDepthStencilResolve depthStencilResolveInfo = {
+      VK_STRUCTURE_TYPE_SUBPASS_DESCRIPTION_DEPTH_STENCIL_RESOLVE
+    };
+    if (info.hasDepthResolve || info.hasStencilResolve) {
+      depthStencilResolveInfo.depthResolveMode = info.hasDepthResolve ? info.depthResolveMode : VK_RESOLVE_MODE_NONE;
+      depthStencilResolveInfo.stencilResolveMode = info.hasStencilResolve
+                                                     ? info.stencilResolveMode
+                                                     : VK_RESOLVE_MODE_NONE;
+      depthStencilResolveInfo.pDepthStencilResolveAttachment = &depthStencilResolve;
+    }
+
+    VkFragmentShadingRateAttachmentInfoKHR shadingRateInfo = {
+      VK_STRUCTURE_TYPE_FRAGMENT_SHADING_RATE_ATTACHMENT_INFO_KHR
+    };
+    if (info.hasShadingRate) {
+      uint32_t tileSize = deviceInfo.other.shadingRateAttachmentTileSize;
+      shadingRateInfo.pFragmentShadingRateAttachment = &shadingRate;
+      shadingRateInfo.shadingRateAttachmentTexelSize = {tileSize, tileSize};
+    }
+
+    VkSubpassDescription2 subpass = {VK_STRUCTURE_TYPE_SUBPASS_DESCRIPTION_2};
+    subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+    subpass.viewMask = info.viewMask;
+    subpass.colorAttachmentCount = (uint32_t)colors.size();
+    subpass.pColorAttachments = colors.data();
+    subpass.inputAttachmentCount = (uint32_t)inputs.size();
+    subpass.pInputAttachments = inputs.empty() ? nullptr : inputs.data();
+    subpass.pResolveAttachments = colorResolves.empty() ? nullptr : colorResolves.data();
+    subpass.pDepthStencilAttachment = depthStencil.attachment == VK_ATTACHMENT_UNUSED ? nullptr : &depthStencil;
+
+    PNEXT_CHAIN_DECLARE(subpass.pNext);
+    if (info.hasDepthResolve || info.hasStencilResolve)
+      PNEXT_CHAIN_APPEND_STRUCT(depthStencilResolveInfo);
+
+    if (info.hasShadingRate)
+      PNEXT_CHAIN_APPEND_STRUCT(shadingRateInfo);
+
+    VkSubpassDependency2 dependencies[2] = {};
+    uint32_t dependencyNum = 0;
+
+    if (!inputs.empty()) {
+      VkSubpassDependency2 &selfDependency = dependencies[dependencyNum++];
+      selfDependency = {VK_STRUCTURE_TYPE_SUBPASS_DEPENDENCY_2};
+      selfDependency.srcSubpass = 0;
+      selfDependency.dstSubpass = 0;
+      selfDependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+      selfDependency.dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+      selfDependency.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+      selfDependency.dstAccessMask = VK_ACCESS_INPUT_ATTACHMENT_READ_BIT;
+      selfDependency.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+    }
+
+    if (info.hasShadingRate) {
+      VkSubpassDependency2 &dependency = dependencies[dependencyNum++];
+      dependency = {VK_STRUCTURE_TYPE_SUBPASS_DEPENDENCY_2};
+      dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+      dependency.dstSubpass = 0;
+      dependency.srcStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+      dependency.dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR;
+      dependency.srcAccessMask = VK_ACCESS_MEMORY_WRITE_BIT;
+      dependency.dstAccessMask = VK_ACCESS_FRAGMENT_SHADING_RATE_ATTACHMENT_READ_BIT_KHR;
+    }
+
+    VkRenderPassCreateInfo2 renderPassInfo = {VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO_2};
+    renderPassInfo.attachmentCount = (uint32_t)attachments.size();
+    renderPassInfo.pAttachments = attachments.data();
+    renderPassInfo.subpassCount = 1;
+    renderPassInfo.pSubpasses = &subpass;
+    renderPassInfo.dependencyCount = dependencyNum;
+    renderPassInfo.pDependencies = dependencyNum ? dependencies : nullptr;
+
+    if (info.viewMask) {
+      renderPassInfo.correlatedViewMaskCount = 1;
+      renderPassInfo.pCorrelatedViewMasks = &info.viewMask;
+    }
+
+    VkRenderPass renderPass = VK_NULL_HANDLE;
+    VkResult vkResult = vkCreateRenderPass2(device, &renderPassInfo, allocationCallbacks, &renderPass);
+    if (vkResult < 0) {
+      LOG_CORE_ERROR("vkCreateRenderPass2() failed with {} at {}:{}", vulkanResultToString(vkResult), __FILE__,
+                     __LINE__);
+      return VK_NULL_HANDLE;
+    }
+
+    RenderPassCacheEntry &entry = renderPasses.emplace_back();
+    copyRenderPassInfo(entry.info, info);
+    entry.handle = renderPass;
+
+    return renderPass;
   }
 
-  Result VulkanDevice::deviceWaitIdle() {
+  Result VulkanDevice::waitIdle() {
     // Don't use "vkDeviceWaitIdle" because it requires host access synchronization to all queues, better do it one by one instead
-    for (const std::vector<std::unique_ptr<VulkanQueue>> &queueFamily: queueFamilies) {
-      for (const std::unique_ptr<VulkanQueue> &queue: queueFamily) {
+    for (const std::vector<std::unique_ptr<VulkanQueue>> &queueFamily : queueFamilies) {
+      for (const std::unique_ptr<VulkanQueue> &queue : queueFamily) {
         Result result = queue->waitIdle();
         if (result != Result::Success)
           return result;
@@ -1556,11 +1788,5 @@ namespace Core::RHI {
     }
 
     return Result::Success;
-  }
-
-  void VulkanDevice::destroySwapChain(SwapChain *swapChain) {
-    VulkanSwapChain *impl = (VulkanSwapChain*)(swapChain);
-    delete impl;
-    impl = nullptr;
   }
 }

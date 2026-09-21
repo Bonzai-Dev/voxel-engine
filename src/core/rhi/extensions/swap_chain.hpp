@@ -1,6 +1,5 @@
 #pragma once
-#include <cstdint>
-#include <SDL3/SDL_video.h>
+#include <cstddef>
 #include <core/core.hpp>
 
 namespace Core::RHI {
@@ -37,7 +36,7 @@ namespace Core::RHI {
     }
   }
 
-  ENGINE_ENUM_BITS(SwapChainBits, uint8_t,
+  ENGINE_BITS(SwapChainBits, uint8_t,
     None                = 0,
     VSync               = ENGINE_BIT(0), // cap framerate to the monitor refresh rate
     Waitable            = ENGINE_BIT(1), // unlock "WaitForPresent" reducing latency (requires "features.waitableSwapChain")
@@ -78,6 +77,20 @@ namespace Core::RHI {
   };
 
   class SwapChain {
+  };
+
+  struct SwapChainInterface {
+    Result (*createSwapChain)(Device &device, const SwapChainInfo &swapChainInfo, SwapChain *&swapChain);
+    void (*destroySwapChain)(Device &device, SwapChain *swapChain);
+    // NriPtr(Texture) const*  (NRI_CALL *GetSwapChainTextures)    (const NriRef(SwapChain) swapChain, NriOut NonNriRef(uint32_t) textureNum);
+    //
+    // // Returns "FAILURE" if swap chain's window is outside of all monitors
+    // Nri(Result)             (NRI_CALL *GetDisplayDesc)          (NriRef(SwapChain) swapChain, NriOut NriRef(DisplayDesc) displayDesc);
+    //
+    // // VK only: may return "OUT_OF_DATE", fences must be created with "SWAPCHAIN_SEMAPHORE" initial value
+    // Nri(Result)             (NRI_CALL *AcquireNextTexture)      (NriRef(SwapChain) swapChain, NriRef(Fence) acquireSemaphore, NriOut NonNriRef(uint32_t) textureIndex);
+    // Nri(Result)             (NRI_CALL *WaitForPresent)          (NriRef(SwapChain) swapChain); // call once right before input sampling (must be called starting from the 1st frame)
+    // Nri(Result)             (NRI_CALL *QueuePresent)            (NriRef(SwapChain) swapChain, NriRef(Fence) releaseSemaphore);
   };
 }
 

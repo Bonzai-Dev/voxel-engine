@@ -122,7 +122,7 @@ namespace {
       vkGetPhysicalDeviceProperties2(physicalDevice, &deviceProps2);
 
       // Logic: append unique or wait for "precreated"
-      DeviceUID uid = constructDeviceUID(
+      DeviceUID uid = createDeviceUID(
         deviceIDProperties.deviceLUID, deviceIDProperties.deviceUUID, deviceIDProperties.deviceLUIDValid
       );
 
@@ -303,5 +303,13 @@ namespace Core::RHI {
   void destroyDevice(Device *device) {
     delete device;
     device = nullptr;
+  }
+
+  Result getInterface(Device &device, CoreInterface &coreInterface) {
+    return device.loadInterface(device, coreInterface);
+  }
+
+  Result getInterface(Device &device, SwapChainInterface &coreInterface) {
+    return device.loadInterface(device, coreInterface);
   }
 }

@@ -40,9 +40,9 @@ elseif (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang") # TODO: validate
 endif()
 
 # Compiling shaders
-#file(GLOB_RECURSE SHADER_SOURCE_FILES CONFIGURE_DEPENDS "src/*.slang" "src/*.slangh")
-#foreach(SHADER_SOURCE IN LISTS SHADER_SOURCE_FILES)
-#    add_slang_shader_target(${SHADER_SOURCE} ${SHADERS_DIRECTORY} PROJECT_SHADERS)
-#endforeach()
-#
-#add_dependencies(${CMAKE_PROJECT_NAME} PROJECT_SHADERS)
+file(GLOB_RECURSE SHADER_SOURCE_FILES CONFIGURE_DEPENDS "src/*.slang" "src/*.slangh")
+foreach(SHADER_SOURCE IN LISTS SHADER_SOURCE_FILES)
+    add_slang_shader_target(${SHADER_SOURCE} ${SHADERS_DIRECTORY} PROJECT_SHADERS)
+endforeach()
+
+add_dependencies(${CMAKE_PROJECT_NAME} PROJECT_SHADERS)

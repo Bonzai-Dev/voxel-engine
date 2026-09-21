@@ -15,7 +15,7 @@
 
 #define ENGINE_BIT(x) (1u << x)
 
-#define ENGINE_ENUM_BITS(name, type, ...) \
+#define ENGINE_BITS(name, type, ...) \
   enum class name : type; \
   constexpr name operator ~ (name val) { return (name)(~(type)val); } \
   constexpr type operator & (name val0, name val1) { return (type)val0 & (type)val1; } \

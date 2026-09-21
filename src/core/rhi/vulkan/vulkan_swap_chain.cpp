@@ -216,7 +216,7 @@ namespace Core::RHI {
            : VK_PRESENT_MODE_MAILBOX_KHR,
          (swapChainInfo.flags & SwapChainBits::AllowTearing)
            ? VK_PRESENT_MODE_IMMEDIATE_KHR
-           : (device.getDeviceFeatures().fifoLatestReady ? VK_PRESENT_MODE_FIFO_LATEST_READY_EXT : VK_PRESENT_MODE_FIFO_KHR),
+           : (device.getVulkanFeatures().fifoLatestReady ? VK_PRESENT_MODE_FIFO_LATEST_READY_EXT : VK_PRESENT_MODE_FIFO_KHR),
          VK_PRESENT_MODE_FIFO_KHR, // guaranteed to be supported
        };
 
@@ -263,11 +263,11 @@ namespace Core::RHI {
        };
 
        PNEXT_CHAIN_DECLARE(surfaceCaps2.pNext);
-       if (device.getDeviceFeatures().swapChainMaintenance1)
+       if (device.getVulkanFeatures().swapChainMaintenance1)
          PNEXT_CHAIN_APPEND_STRUCT(surfacePresentScalingCaps);
 
        PNEXT_CHAIN_SET(surfaceInfo.pNext);
-       if (device.getDeviceFeatures().swapChainMaintenance1)
+       if (device.getVulkanFeatures().swapChainMaintenance1)
          PNEXT_CHAIN_APPEND_STRUCT(surfacePresentMode);
 
        VULKAN_CHECK(vkGetPhysicalDeviceSurfaceCapabilities2KHR(device, &surfaceInfo, &surfaceCaps2));
@@ -370,7 +370,7 @@ namespace Core::RHI {
        imageFormatListCreateInfo.pViewFormats = mutableFormats;
        imageFormatListCreateInfo.viewFormatCount = mutableFormatNum;
 
-       if (device.getDeviceFeatures().swapChainMutableFormat) {
+       if (device.getVulkanFeatures().swapChainMutableFormat) {
          swapchainInfo.flags |= VK_SWAPCHAIN_CREATE_MUTABLE_FORMAT_BIT_KHR;
          PNEXT_CHAIN_APPEND_STRUCT(imageFormatListCreateInfo);
        }

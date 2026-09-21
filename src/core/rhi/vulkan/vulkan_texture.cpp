@@ -64,8 +64,8 @@ namespace Core::RHI {
 
     createInfo = {VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO}; // should be already set
     createInfo.flags = flags;
-    createInfo.imageType = textureDimensionToVulkanImageType(textureInfo.dimension);
-    createInfo.format = formatToVulkanFormat(textureInfo.format, true);
+    createInfo.imageType = getVulkanImageType(textureInfo.dimension);
+    createInfo.format = getVulkanFormat(textureInfo.format, true);
     createInfo.extent.width = textureInfo.width;
     createInfo.extent.height = std::max(textureInfo.height, static_cast<uint16_t>(1));
     createInfo.extent.depth = std::max(textureInfo.depth, static_cast<uint16_t>(1));

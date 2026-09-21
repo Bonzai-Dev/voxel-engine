@@ -1,20 +1,3 @@
-# Slang
-set(SLANG_ENABLE_PCH OFF CACHE BOOL "" FORCE)
-set(SLANG_ENABLE_SLANG_RHI ON CACHE BOOL "" FORCE) # TODO: turn this back off
-set(SLANG_LIB_TYPE "STATIC" CACHE STRING "" FORCE)
-set(SLANG_ENABLE_TESTS OFF CACHE BOOL "" FORCE)
-set(SLANG_ENABLE_EXAMPLES OFF CACHE BOOL "" FORCE)
-set(SLANG_ENABLE_GFX OFF CACHE BOOL "" FORCE)
-set(SLANG_USE_SYSTEM_VULKAN_HEADERS ON CACHE BOOL "" FORCE)
-set(SLANG_ENABLE_CUDA OFF CACHE BOOL "" FORCE)
-set(SLANG_ENABLE_OPTIX OFF CACHE BOOL "" FORCE)
-add_subdirectory(
-    slang
-    ${CMAKE_BINARY_DIR}/thirdparty/slang
-    EXCLUDE_FROM_ALL
-)
-target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE slang)
-
 # SDL
 set(SDL_SHARED OFF CACHE BOOL "" FORCE)
 set(SDL_STATIC ON CACHE BOOL "" FORCE)
@@ -47,5 +30,21 @@ target_link_libraries(volk PRIVATE Vulkan-Headers)
 
 add_library(VulkanHeaders INTERFACE)
 target_link_libraries(VulkanHeaders INTERFACE Vulkan-Headers volk GPUOpen::VulkanMemoryAllocator)
-target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE VulkanHeaders)
+target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC VulkanHeaders)
 
+# Slang
+set(SLANG_ENABLE_PCH OFF CACHE BOOL "" FORCE)
+set(SLANG_ENABLE_SLANG_RHI OFF CACHE BOOL "" FORCE)
+set(SLANG_LIB_TYPE "STATIC" CACHE STRING "" FORCE)
+set(SLANG_ENABLE_TESTS OFF CACHE BOOL "" FORCE)
+set(SLANG_ENABLE_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(SLANG_ENABLE_GFX OFF CACHE BOOL "" FORCE)
+set(SLANG_USE_SYSTEM_VULKAN_HEADERS ON CACHE BOOL "" FORCE) # Will use our bundled Vulkan headers instead of the system ones
+set(SLANG_ENABLE_CUDA OFF CACHE BOOL "" FORCE)
+set(SLANG_ENABLE_OPTIX OFF CACHE BOOL "" FORCE)
+add_subdirectory(
+    slang
+    ${CMAKE_BINARY_DIR}/thirdparty/slang
+    EXCLUDE_FROM_ALL
+)
+target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE slang)

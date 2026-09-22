@@ -41,7 +41,7 @@ do { \
 namespace Core::RHI {
   enum class Result: int8_t;
 
-  constexpr uint32_t unusedRenderPassAttachment = uint32_t(-1);
+  constexpr uint32_t unusedRenderPassAttachment = -1;
 
   inline void setRenderPassInputAttachmentIndex(std::vector<uint32_t>& inputAttachmentIndices, uint32_t index) {
     while (inputAttachmentIndices.size() <= index)

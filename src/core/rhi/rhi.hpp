@@ -1483,7 +1483,7 @@ namespace Core::RHI {
     uint64_t sharedSystemMemorySize{};
     uint32_t deviceId{};
     uint32_t driverVersion{}; // GAPI and OS dependent
-    std::array<uint32_t, static_cast<uint32_t>(QueueType::Count)> queueCount;
+    std::array<uint32_t, static_cast<uint32_t>(QueueType::Count)> queueCount{};
     Vendor vendor = Vendor::Unknown;
     DeviceType deviceType = DeviceType::Unknown;
     GraphicsBackend supportedGraphicsBackends = GraphicsBackend::None;

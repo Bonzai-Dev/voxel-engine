@@ -111,11 +111,11 @@ namespace Core {
       mutable std::uint64_t deltaTime = 0;
       mutable bool running = true;
 
-      DisplayInfo displayInfo{};
+      DisplayInfo displayInfo = {};
 
       int displayCount = 0;
-      mutable SDL_DisplayID *displays{};
-      const SDL_DisplayMode *currentDisplay{};
+      mutable SDL_DisplayID *displays = nullptr;
+      const SDL_DisplayMode *currentDisplay = nullptr;
       mutable std::unordered_map<std::uint32_t, std::unique_ptr<Window>> windows;
   };
 }

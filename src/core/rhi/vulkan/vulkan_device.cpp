@@ -1192,7 +1192,7 @@ namespace Core::RHI {
       }
     }
 
-    VkApplicationInfo applicationInfo{};
+    VkApplicationInfo applicationInfo = {};
     applicationInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
     applicationInfo.apiVersion = VK_API_VERSION_1_4;
 
@@ -1201,7 +1201,7 @@ namespace Core::RHI {
       VK_VALIDATION_FEATURE_ENABLE_DEBUG_PRINTF_EXT,
     };
 
-    VkInstanceCreateInfo instanceCreateInfo{};
+    VkInstanceCreateInfo instanceCreateInfo = {};
     instanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 
 #ifdef ENGINE_PLATFORM_APPLE
@@ -1213,7 +1213,7 @@ namespace Core::RHI {
     instanceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(enabledInstanceExtensions.size());
     instanceCreateInfo.ppEnabledExtensionNames = enabledInstanceExtensions.data();
 
-    VkDebugUtilsMessengerCreateInfoEXT messengerCreateInfo{};
+    VkDebugUtilsMessengerCreateInfoEXT messengerCreateInfo = {};
     messengerCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
     messengerCreateInfo.pUserData = this;
     messengerCreateInfo.pfnUserCallback = messageCallback;
@@ -1227,7 +1227,7 @@ namespace Core::RHI {
 
     instanceCreateInfo.pNext = &messengerCreateInfo;
 
-    VkValidationFeaturesEXT validationFeatures{};
+    VkValidationFeaturesEXT validationFeatures = {};
     validationFeatures.sType = VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT;
     validationFeatures.enabledValidationFeatureCount = enabledValidationFeatures.size();
     validationFeatures.pEnabledValidationFeatures = enabledValidationFeatures.data();
@@ -1765,8 +1765,9 @@ namespace Core::RHI {
     VkRenderPass renderPass = VK_NULL_HANDLE;
     VkResult vkResult = vkCreateRenderPass2(device, &renderPassInfo, allocationCallbacks, &renderPass);
     if (vkResult < 0) {
-      LOG_CORE_ERROR("vkCreateRenderPass2() failed with {} at {}:{}", vulkanResultToString(vkResult), __FILE__,
-                     __LINE__);
+      LOG_CORE_ERROR(
+        "vkCreateRenderPass2() failed with {} at {}:{}", vulkanResultToString(vkResult), __FILE__, __LINE__
+      );
       return VK_NULL_HANDLE;
     }
 

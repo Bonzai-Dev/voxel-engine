@@ -43,7 +43,5 @@ set(SLANG_ENABLE_CUDA OFF CACHE BOOL "" FORCE)
 set(SLANG_ENABLE_OPTIX OFF CACHE BOOL "" FORCE)
 
 set(SLANG_LIB_TYPE "SHARED" CACHE STRING "" FORCE)
-#set(SLANG_USE_SYSTEM_VULKAN_HEADERS OFF CACHE BOOL "" FORCE) # Does this use our bundled vulkan headers?
-set(SLANG_USE_SYSTEM_VULKAN_HEADERS ON CACHE BOOL "" FORCE) # Does this use our bundled vulkan headers?
 add_subdirectory(slang EXCLUDE_FROM_ALL)
 target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE slang::slang)

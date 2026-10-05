@@ -1,8 +1,9 @@
+#include <algorithm>
 #include <SDL3/SDL_vulkan.h>
 #include <core/math/math.hpp>
 #include <core/rhi/rhi.hpp>
-#include "vulkan_backend.hpp"
 #include <core/assert.hpp>
+#include "vulkan_backend.hpp"
 
 namespace {
   using namespace Core::RHI;

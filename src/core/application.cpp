@@ -4,13 +4,19 @@
 #include <core/events/input_events.hpp>
 #include "logger.hpp"
 #include "application.hpp"
-
 #include "assert.hpp"
+#include "slang.h"
+#include "slang-com-helper.h"
+#include "slang-com-ptr.h"
 
 namespace Core {
   using namespace Events;
 
   Application::Application(const char *name) : name(name) {
+
+
+
+
     if (!SDL_Init(SDL_INIT_VIDEO)) {
       LOG_CORE_CRITICAL("Failed to initialize SDL Video: {}", SDL_GetError());
       return;

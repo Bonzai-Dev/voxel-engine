@@ -16,6 +16,7 @@ add_subdirectory(thirdparty)
 set(RESOURCE_DIRECTORY "${CMAKE_BINARY_DIR}/$<CONFIG>/resources")
 set(SHADERS_DIRECTORY "${RESOURCE_DIRECTORY}/shaders")
 
+# macros
 target_compile_definitions(
     ${CMAKE_PROJECT_NAME} PRIVATE
     $<$<CONFIG:Debug>:ENGINE_DEBUG>
@@ -45,3 +46,4 @@ foreach(SHADER_SOURCE IN LISTS SHADER_SOURCE_FILES)
 endforeach()
 
 add_dependencies(${CMAKE_PROJECT_NAME} PROJECT_SHADERS)
+

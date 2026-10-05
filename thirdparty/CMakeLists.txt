@@ -3,7 +3,6 @@ set(SDL_SHARED OFF CACHE BOOL "" FORCE)
 set(SDL_STATIC ON CACHE BOOL "" FORCE)
 set(SDL_DISABLE_INSTALL ON CACHE BOOL "" FORCE)
 set(SDL_TEST_LIBRARY OFF CACHE BOOL "" FORCE)
-set(SDL_TEST_LIBRARY OFF CACHE BOOL "" FORCE)
 add_subdirectory(SDL EXCLUDE_FROM_ALL)
 target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE SDL3::SDL3)
 
@@ -13,11 +12,11 @@ target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE glm::glm)
 
 #simdjson
 add_subdirectory(simdjson EXCLUDE_FROM_ALL)
-target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE simdjson)
+target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE simdjson::simdjson)
 
 # spdlog
 add_subdirectory(spdlog EXCLUDE_FROM_ALL)
-target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE spdlog)
+target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE spdlog::spdlog)
 
 # Vulkan
 add_subdirectory(vulkan/VulkanMemoryAllocator EXCLUDE_FROM_ALL)
@@ -35,16 +34,16 @@ target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC VulkanHeaders)
 # Slang
 set(SLANG_ENABLE_PCH OFF CACHE BOOL "" FORCE)
 set(SLANG_ENABLE_SLANG_RHI OFF CACHE BOOL "" FORCE)
-set(SLANG_LIB_TYPE "STATIC" CACHE STRING "" FORCE)
+set(SLANG_ENABLE_GFX OFF CACHE BOOL "" FORCE)
 set(SLANG_ENABLE_TESTS OFF CACHE BOOL "" FORCE)
 set(SLANG_ENABLE_EXAMPLES OFF CACHE BOOL "" FORCE)
-set(SLANG_ENABLE_GFX OFF CACHE BOOL "" FORCE)
-set(SLANG_USE_SYSTEM_VULKAN_HEADERS ON CACHE BOOL "" FORCE) # Will use our bundled Vulkan headers instead of the system ones
+set(SLANG_ENABLE_SLANGI OFF CACHE BOOL "" FORCE)
+
 set(SLANG_ENABLE_CUDA OFF CACHE BOOL "" FORCE)
 set(SLANG_ENABLE_OPTIX OFF CACHE BOOL "" FORCE)
-add_subdirectory(
-    slang
-    ${CMAKE_BINARY_DIR}/thirdparty/slang
-    EXCLUDE_FROM_ALL
-)
-target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE slang)
+
+set(SLANG_LIB_TYPE "SHARED" CACHE STRING "" FORCE)
+#set(SLANG_USE_SYSTEM_VULKAN_HEADERS OFF CACHE BOOL "" FORCE) # Does this use our bundled vulkan headers?
+set(SLANG_USE_SYSTEM_VULKAN_HEADERS ON CACHE BOOL "" FORCE) # Does this use our bundled vulkan headers?
+add_subdirectory(slang EXCLUDE_FROM_ALL)
+target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE slang::slang)

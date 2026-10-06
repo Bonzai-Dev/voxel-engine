@@ -3,8 +3,6 @@
 #include "vulkan_backend.hpp"
 
 namespace Core::RHI {
-  VulkanFence::VulkanFence(VulkanDevice &device): device(device) {}
-
   VulkanFence::~VulkanFence() {
     if (semaphore)
       vkDestroySemaphore(device, semaphore, device.getAllocationCallbacks());

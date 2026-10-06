@@ -50,7 +50,7 @@ namespace Core::RHI {
   constexpr uint32_t invalidQueueFamilyIndex = static_cast<uint32_t>(-1);
   constexpr uint32_t maxPhysicalDevicesCount = 32;
   constexpr uint32_t presentTimeout = 1000u; // 1 second
-  constexpr uint32_t fenceTimeout = 5000u;
+  constexpr uint32_t fenceTimeout = 5000u; // 5 seconds
 
   class Resource: public RefCounted {
     public:

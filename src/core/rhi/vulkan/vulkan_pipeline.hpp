@@ -2,6 +2,8 @@
 #include <core/rhi/rhi.hpp>
 
 namespace Core::RHI {
+  class VulkanDevice;
+
   class VulkanPipeline final: public Pipeline {
     public:
       inline VulkanPipeline(VulkanDevice &device): device(device) {

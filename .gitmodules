@@ -21,4 +21,4 @@
 	url = https://github.com/KhronosGroup/Vulkan-Headers.git
 [submodule "thirdparty/slang"]
 	path = thirdparty/slang
-	url = https://github.com/Bonzai-Dev/slang.git
+	url = https://github.com/shader-slang/slang.git

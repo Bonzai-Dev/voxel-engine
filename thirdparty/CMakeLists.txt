@@ -44,4 +44,4 @@ set(SLANG_ENABLE_OPTIX OFF CACHE BOOL "" FORCE)
 
 set(SLANG_LIB_TYPE "SHARED" CACHE STRING "" FORCE)
 add_subdirectory(slang EXCLUDE_FROM_ALL)
-target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE slang::slang)
+target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE slang)

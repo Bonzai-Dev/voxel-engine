@@ -5,16 +5,18 @@ function(add_slang_shader_target SHADER_SOURCE OUTPUT_DIRECTORY TARGET)
 
     set(COMPILE_TARGET "spirv")
     set(COMPILE_PROFILE "spirv_1_4")
+    set(SLANG_DEPENDS slang-glslang)
     add_custom_command(
         OUTPUT ${OUTPUT_DIRECTORY}/${OUTPUT_FILE}
         COMMAND ${CMAKE_COMMAND} -E make_directory "${OUTPUT_DIRECTORY}"
-        COMMAND slang::slang-compiler ${SHADER_SOURCE}
+        COMMAND slangc ${SHADER_SOURCE}
         -target ${COMPILE_TARGET}
         -profile ${COMPILE_PROFILE}
         -emit-spirv-directly
         -fvk-use-entrypoint-name
         -o ${OUTPUT_DIRECTORY}/${OUTPUT_FILE}
 
+        DEPENDS ${SLANG_DEPENDS}
         COMMENT "Compiling shader: ${SHADER_SOURCE}"
         VERBATIM
     )

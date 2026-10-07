@@ -52,8 +52,8 @@ uint32_t StreamerImpl::StreamConstantData(const void* data, uint32_t dataSize) {
     ExclusiveScope lock(m_Lock);
 #endif
 
-    const DeviceDesc& deviceDesc = m_iCore.GetDeviceDesc(m_Device);
-    m_ConstantBufferOffset = Align(m_ConstantBufferOffset, deviceDesc.memoryAlignment.constantBufferOffset);
+    const DeviceInfo& DeviceInfo = m_iCore.GetDeviceInfo(m_Device);
+    m_ConstantBufferOffset = Align(m_ConstantBufferOffset, DeviceInfo.memoryAlignment.constantBufferOffset);
 
     // Update
     if (m_ConstantBufferOffset + dataSize > m_Desc.constantBufferSize)
@@ -129,26 +129,26 @@ BufferOffset StreamerImpl::StreamTextureData(const StreamTextureDataDesc& stream
     ExclusiveScope lock(m_Lock);
 #endif
 
-    const DeviceDesc& deviceDesc = m_iCore.GetDeviceDesc(m_Device);
+    const DeviceInfo& DeviceInfo = m_iCore.GetDeviceInfo(m_Device);
     const TextureDesc& textureDesc = m_iCore.GetTextureDesc(*streamTextureDataDesc.dstTexture);
 
     Dim_t w = streamTextureDataDesc.dstRegion.width;
-    w = w == WHOLE_SIZE ? GetDimension(deviceDesc.graphicsAPI, textureDesc, 0, streamTextureDataDesc.dstRegion.mipOffset) : w;
+    w = w == WHOLE_SIZE ? GetDimension(DeviceInfo.graphicsAPI, textureDesc, 0, streamTextureDataDesc.dstRegion.mipOffset) : w;
 
     Dim_t h = streamTextureDataDesc.dstRegion.height;
-    h = h == WHOLE_SIZE ? GetDimension(deviceDesc.graphicsAPI, textureDesc, 1, streamTextureDataDesc.dstRegion.mipOffset) : h;
+    h = h == WHOLE_SIZE ? GetDimension(DeviceInfo.graphicsAPI, textureDesc, 1, streamTextureDataDesc.dstRegion.mipOffset) : h;
 
     Dim_t d = streamTextureDataDesc.dstRegion.depth;
-    d = d == WHOLE_SIZE ? GetDimension(deviceDesc.graphicsAPI, textureDesc, 2, streamTextureDataDesc.dstRegion.mipOffset) : d;
+    d = d == WHOLE_SIZE ? GetDimension(DeviceInfo.graphicsAPI, textureDesc, 2, streamTextureDataDesc.dstRegion.mipOffset) : d;
 
     // Allocate a minimum continous region in a buffer encompassing the destination texture region
     const FormatProps& formatProps = GetFormatProps(textureDesc.format);
     uint32_t rowPitch = w * formatProps.stride;
-    uint32_t alignedRowPitch = Align(rowPitch, deviceDesc.memoryAlignment.uploadBufferTextureRow);
-    uint32_t alignedSlicePitch = Align(alignedRowPitch * h, deviceDesc.memoryAlignment.uploadBufferTextureSlice);
+    uint32_t alignedRowPitch = Align(rowPitch, DeviceInfo.memoryAlignment.uploadBufferTextureRow);
+    uint32_t alignedSlicePitch = Align(alignedRowPitch * h, DeviceInfo.memoryAlignment.uploadBufferTextureSlice);
     uint64_t dataSize = alignedSlicePitch * d;
 
-    m_DynamicBufferOffset = Align(m_DynamicBufferOffset, deviceDesc.memoryAlignment.uploadBufferTextureSlice);
+    m_DynamicBufferOffset = Align(m_DynamicBufferOffset, DeviceInfo.memoryAlignment.uploadBufferTextureSlice);
 
     uint64_t offset = m_FrameIndex * m_DynamicBufferSizePerFrame + m_DynamicBufferOffset;
 

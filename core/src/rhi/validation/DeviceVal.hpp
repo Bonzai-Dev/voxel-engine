@@ -93,7 +93,7 @@ struct DeviceVal final : public DeviceBase {
     // DeviceBase
     //================================================================================================================
 
-    const DeviceDesc& GetDesc() const override {
+    const DeviceInfo& GetDesc() const override {
         return ((DeviceBase&)m_Impl).GetDesc();
     }
 
@@ -193,7 +193,7 @@ struct DeviceVal final : public DeviceBase {
 
 private:
     char* m_Name = nullptr; // .natvis
-    DeviceDesc m_Desc = {}; // .natvis
+    DeviceInfo m_Desc = {}; // .natvis
     Device& m_Impl;
     std::array<QueueVal*, (size_t)QueueType::MAX_NUM> m_Queues = {};
     UnorderedMap<MemoryType, MemoryLocation> m_MemoryTypeMap;

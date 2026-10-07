@@ -519,7 +519,7 @@ inline Vendor GetVendorFromID(uint32_t vendorID) {
     return Vendor::UNKNOWN;
 }
 
-inline Dim_t GetDimension(GraphicsAPI api, const TextureDesc& textureDesc, Dim_t dimensionIndex, Dim_t mip) {
+inline Dim_t GetDimension(GraphicsBackend api, const TextureDesc& textureDesc, Dim_t dimensionIndex, Dim_t mip) {
     assert(dimensionIndex < 3);
 
     Dim_t dim = textureDesc.depth;
@@ -531,7 +531,7 @@ inline Dim_t GetDimension(GraphicsAPI api, const TextureDesc& textureDesc, Dim_t
     dim = (Dim_t)std::max(dim >> mip, 1);
 
     // TODO: VK doesn't require manual alignment, but probably we should use it here and during texture creation
-    if (api != GraphicsAPI::VK)
+    if (api != GraphicsBackend::Vulkan)
         dim = Align(dim, dimensionIndex < 2 ? GetFormatProps(textureDesc.format).blockWidth : 1);
 
     return dim;

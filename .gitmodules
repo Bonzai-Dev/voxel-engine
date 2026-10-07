@@ -37,9 +37,6 @@
 [submodule "core/thirdparty/spdlog"]
 	path = core/thirdparty/spdlog
 	url = https://github.com/gabime/spdlog.git
-[submodule "core/thirdparty/slang"]
-	path = core/thirdparty/slang
-	url = https://github.com/shader-slang/slang.git
 [submodule "core/thirdparty/VulkanMemoryAllocator"]
 	path = core/thirdparty/VulkanMemoryAllocator
 	url = https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
@@ -52,3 +49,6 @@
 [submodule "core/thirdparty/vulkan"]
 	path = core/thirdparty/vulkan
 	url = https://github.com/KhronosGroup/Vulkan-Headers.git
+[submodule "core/thirdparty/slang"]
+	path = core/thirdparty/slang
+	url = https://github.com/shader-slang/slang.git

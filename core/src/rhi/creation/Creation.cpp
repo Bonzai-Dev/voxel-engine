@@ -212,13 +212,13 @@ static void UpdateAdaptersD3D(AdapterDesc* adapterDescs, uint32_t& adapterDescNu
         ComPtr<ID3D11Device> deviceD3D11;
         hr = D3D11CreateDevice(adapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr, 0, levels, levelNum, D3D11_SDK_VERSION, &deviceD3D11, nullptr, nullptr);
         if (SUCCEEDED(hr))
-            adapterDesc.supportedGraphicsAPIs |= GraphicsAPI::D3D11;
+            adapterDesc.supportedGraphicsAPIs |= GraphicsBackend::D3D11;
 #    endif
 
 #    if (NRI_ENABLE_D3D12_SUPPORT)
         hr = D3D12CreateDevice(adapter, D3D_FEATURE_LEVEL_11_0, __uuidof(ID3D12Device), nullptr);
         if (SUCCEEDED(hr))
-            adapterDesc.supportedGraphicsAPIs |= GraphicsAPI::D3D12;
+            adapterDesc.supportedGraphicsAPIs |= GraphicsBackend::D3D12;
 #    endif
 
         // Logic: advance or skip
@@ -411,7 +411,7 @@ static void UpdateAdaptersVK(AdapterDesc* adapterDescs, uint32_t& adapterDescNum
         AdapterDesc& adapterDesc = adapterDescs[n];
 
         // Update GAPI support
-        adapterDesc.supportedGraphicsAPIs |= GraphicsAPI::VK;
+        adapterDesc.supportedGraphicsAPIs |= GraphicsBackend::Vulkan;
 
         // Logic: advance or skip
         if (n != adapterDescNum)
@@ -590,7 +590,7 @@ static void UpdateAdaptersWGPU(AdapterDesc* adapterDescs, uint32_t& adapterDescN
                 strncpy(adapterDesc.name, "WGPU", sizeof(adapterDesc.name));
         }
 
-        adapterDescs[n].supportedGraphicsAPIs |= GraphicsAPI::WGPU;
+        adapterDescs[n].supportedGraphicsAPIs |= GraphicsBackend::WGPU;
 
         wgpuAdapterInfoFreeMembers(adapterInfo);
         wgpuAdapterRelease(wgpuAdapters[i]);
@@ -604,7 +604,7 @@ static void UpdateAdaptersWGPU(AdapterDesc* adapterDescs, uint32_t& adapterDescN
 static Result FinalizeDeviceCreation(const DeviceCreationDesc& deviceCreationDesc, DeviceBase& deviceImpl, Device*& device) {
     MaybeUnused(deviceCreationDesc);
 #if NRI_ENABLE_VALIDATION_SUPPORT
-    if (deviceCreationDesc.enableNRIValidation && deviceCreationDesc.graphicsAPI != GraphicsAPI::NONE) {
+    if (deviceCreationDesc.enableNRIValidation && deviceCreationDesc.graphicsAPI != GraphicsBackend::None) {
         Device* deviceVal = (Device*)CreateDeviceValidation(deviceCreationDesc, deviceImpl);
         if (!deviceVal) {
             nriDestroyDevice((Device*)&deviceImpl);
@@ -850,27 +850,27 @@ NRI_API Result NRI_CALL nriCreateDevice(const DeviceCreationDesc& deviceCreation
     }
 
 #if NRI_ENABLE_NONE_SUPPORT
-    if (modifiedDeviceCreationDesc.graphicsAPI == GraphicsAPI::NONE)
+    if (modifiedDeviceCreationDesc.graphicsAPI == GraphicsBackend::None)
         result = CreateDeviceNONE(modifiedDeviceCreationDesc, deviceImpl);
 #endif
 
 #if NRI_ENABLE_D3D11_SUPPORT
-    if (modifiedDeviceCreationDesc.graphicsAPI == GraphicsAPI::D3D11)
+    if (modifiedDeviceCreationDesc.graphicsAPI == GraphicsBackend::D3D11)
         result = CreateDeviceD3D11(modifiedDeviceCreationDesc, {}, deviceImpl);
 #endif
 
 #if NRI_ENABLE_D3D12_SUPPORT
-    if (modifiedDeviceCreationDesc.graphicsAPI == GraphicsAPI::D3D12)
+    if (modifiedDeviceCreationDesc.graphicsAPI == GraphicsBackend::D3D12)
         result = CreateDeviceD3D12(modifiedDeviceCreationDesc, {}, deviceImpl);
 #endif
 
 #if NRI_ENABLE_VK_SUPPORT
-    if (modifiedDeviceCreationDesc.graphicsAPI == GraphicsAPI::VK)
+    if (modifiedDeviceCreationDesc.graphicsAPI == GraphicsBackend::Vulkan)
         result = CreateDeviceVK(modifiedDeviceCreationDesc, {}, deviceImpl);
 #endif
 
 #if NRI_ENABLE_WGPU_SUPPORT
-    if (modifiedDeviceCreationDesc.graphicsAPI == GraphicsAPI::WGPU)
+    if (modifiedDeviceCreationDesc.graphicsAPI == GraphicsBackend::WGPU)
         result = CreateDeviceWGPU(modifiedDeviceCreationDesc, deviceImpl);
 #endif
 
@@ -882,7 +882,7 @@ NRI_API Result NRI_CALL nriCreateDevice(const DeviceCreationDesc& deviceCreation
 
 NRI_API Result NRI_CALL nriCreateDeviceFromD3D11Device(const DeviceCreationD3D11Desc& deviceCreationD3D11Desc, Device*& device) {
     DeviceCreationDesc deviceCreationDesc = {};
-    deviceCreationDesc.graphicsAPI = GraphicsAPI::D3D11;
+    deviceCreationDesc.graphicsAPI = GraphicsBackend::D3D11;
 
     AdapterDesc adapterDesc = {};
     deviceCreationDesc.adapterDesc = &adapterDesc;
@@ -942,7 +942,7 @@ NRI_API Result NRI_CALL nriCreateDeviceFromD3D11Device(const DeviceCreationD3D11
 
 NRI_API Result NRI_CALL nriCreateDeviceFromD3D12Device(const DeviceCreationD3D12Desc& deviceCreationD3D12Desc, Device*& device) {
     DeviceCreationDesc deviceCreationDesc = {};
-    deviceCreationDesc.graphicsAPI = GraphicsAPI::D3D12;
+    deviceCreationDesc.graphicsAPI = GraphicsBackend::D3D12;
 
     AdapterDesc adapterDesc = {};
     deviceCreationDesc.adapterDesc = &adapterDesc;
@@ -994,7 +994,7 @@ NRI_API Result NRI_CALL nriCreateDeviceFromD3D12Device(const DeviceCreationD3D12
 
 NRI_API Result NRI_CALL nriCreateDeviceFromVKDevice(const DeviceCreationVKDesc& deviceCreationVKDesc, Device*& device) {
     DeviceCreationDesc deviceCreationDesc = {};
-    deviceCreationDesc.graphicsAPI = GraphicsAPI::VK;
+    deviceCreationDesc.graphicsAPI = GraphicsBackend::Vulkan;
 
     AdapterDesc adapterDesc = {};
     deviceCreationDesc.adapterDesc = &adapterDesc;
@@ -1079,17 +1079,17 @@ NRI_API const FormatProps* NRI_CALL nriGetFormatProps(Format format) {
     return &GetFormatProps(format);
 }
 
-NRI_API const char* NRI_CALL nriGetGraphicsAPIString(GraphicsAPI graphicsAPI) {
+NRI_API const char* NRI_CALL nriGetGraphicsAPIString(GraphicsBackend graphicsAPI) {
     switch (graphicsAPI) {
-        case GraphicsAPI::NONE:
+        case GraphicsBackend::None:
             return "NONE";
-        case GraphicsAPI::D3D11:
+        case GraphicsBackend::D3D11:
             return "D3D11";
-        case GraphicsAPI::D3D12:
+        case GraphicsBackend::D3D12:
             return "D3D12";
-        case GraphicsAPI::VK:
+        case GraphicsBackend::Vulkan:
             return "VK";
-        case GraphicsAPI::WGPU:
+        case GraphicsBackend::WGPU:
             return "WGPU";
         default:
             return "UNKNOWN";
@@ -1135,7 +1135,7 @@ NRI_API Result NRI_CALL nriEnumerateAdapters(AdapterDesc* outAdapterDescs, uint3
         for (uint32_t i = 0; i < outAdapterDescNum; i++) {
             outAdapterDescs[i] = adapterDescs[i];
 #if NRI_ENABLE_NONE_SUPPORT
-            outAdapterDescs[i].supportedGraphicsAPIs |= GraphicsAPI::NONE;
+            outAdapterDescs[i].supportedGraphicsAPIs |= GraphicsBackend::None;
 #endif
         }
     } else

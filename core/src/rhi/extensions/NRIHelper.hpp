@@ -87,7 +87,7 @@ NRI_API uint32_t NRI_CALL nriConvertNRIFormatToVK(Nri(Format) format);
 NRI_API const NriPtr(FormatProps) NRI_CALL nriGetFormatProps(Nri(Format) format);
 
 // Strings
-NRI_API const char* NRI_CALL nriGetGraphicsAPIString(Nri(GraphicsAPI) graphicsAPI);
+NRI_API const char* NRI_CALL nriGetGraphicsAPIString(Nri(GraphicsBackend) graphicsAPI);
 
 // A friendly way to get a supported depth format
 static inline Nri(Format) NriFunc(GetSupportedDepthFormat)(const NriRef(CoreInterface) coreInterface, const NriRef(Device) device, uint32_t minBits, bool stencil) {
@@ -126,23 +126,23 @@ NriStruct(PipelineLayoutSettingsDesc) {
     bool enableD3D12DrawIndexEmulation;
 };
 
-static inline Nri(PipelineLayoutSettingsDesc) NriFunc(FitPipelineLayoutSettingsIntoDeviceLimits)(const NriRef(DeviceDesc) deviceDesc, const NriRef(PipelineLayoutSettingsDesc) pipelineLayoutSettingsDesc) {
+static inline Nri(PipelineLayoutSettingsDesc) NriFunc(FitPipelineLayoutSettingsIntoDeviceLimits)(const NriRef(DeviceInfo) DeviceInfo, const NriRef(PipelineLayoutSettingsDesc) pipelineLayoutSettingsDesc) {
     uint32_t descriptorSetNum = NriDeref(pipelineLayoutSettingsDesc)->descriptorSetNum;
     uint32_t descriptorRangeNum = NriDeref(pipelineLayoutSettingsDesc)->descriptorRangeNum;
     uint32_t rootConstantSize = NriDeref(pipelineLayoutSettingsDesc)->rootConstantSize;
     uint32_t rootDescriptorNum = NriDeref(pipelineLayoutSettingsDesc)->rootDescriptorNum;
 
     // Apply global limits
-    if (rootConstantSize > NriDeref(deviceDesc)->pipelineLayout.rootConstantMaxSize)
-        rootConstantSize = NriDeref(deviceDesc)->pipelineLayout.rootConstantMaxSize;
+    if (rootConstantSize > NriDeref(DeviceInfo)->pipelineLayout.rootConstantMaxSize)
+        rootConstantSize = NriDeref(DeviceInfo)->pipelineLayout.rootConstantMaxSize;
 
-    if (rootDescriptorNum > NriDeref(deviceDesc)->pipelineLayout.rootDescriptorMaxNum)
-        rootDescriptorNum = NriDeref(deviceDesc)->pipelineLayout.rootDescriptorMaxNum;
+    if (rootDescriptorNum > NriDeref(DeviceInfo)->pipelineLayout.rootDescriptorMaxNum)
+        rootDescriptorNum = NriDeref(DeviceInfo)->pipelineLayout.rootDescriptorMaxNum;
 
-    uint32_t pipelineLayoutDescriptorSetMaxNum = NriDeref(deviceDesc)->pipelineLayout.descriptorSetMaxNum;
+    uint32_t pipelineLayoutDescriptorSetMaxNum = NriDeref(DeviceInfo)->pipelineLayout.descriptorSetMaxNum;
 
     // D3D12 has limited-size root signature
-    if (NriDeref(deviceDesc)->graphicsAPI == NriScopedMember(GraphicsAPI, D3D12)) {
+    if (NriDeref(DeviceInfo)->graphicsAPI == NriScopedMember(GraphicsBackend, D3D12)) {
         const uint32_t descriptorTableCost = 4;
         const uint32_t rootDescriptorCost = 8;
 

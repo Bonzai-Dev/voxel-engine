@@ -18,7 +18,7 @@ struct DeviceNONE final : public DeviceBase {
         for (uint32_t i = 0; i < (uint32_t)QueueType::MAX_NUM; i++)
             m_Desc.adapterDesc.queueNum[i] = 4;
 
-        m_Desc.graphicsAPI = GraphicsAPI::NONE;
+        m_Desc.graphicsAPI = GraphicsBackend::None;
         m_Desc.nriVersion = NRI_VERSION;
         m_Desc.shaderModel = NriShaderModel(6, 10);
 
@@ -184,7 +184,7 @@ struct DeviceNONE final : public DeviceBase {
     // DeviceBase
     //================================================================================================================
 
-    inline const DeviceDesc& GetDesc() const override {
+    inline const DeviceInfo& GetDesc() const override {
         return m_Desc;
     }
 
@@ -206,7 +206,7 @@ struct DeviceNONE final : public DeviceBase {
 #endif
 
 private:
-    DeviceDesc m_Desc = {};
+    DeviceInfo m_Desc = {};
 };
 
 Result CreateDeviceNONE(const DeviceCreationDesc& desc, DeviceBase*& device) {
@@ -227,7 +227,7 @@ Result CreateDeviceNONE(const DeviceCreationDesc& desc, DeviceBase*& device) {
 //============================================================================================================================================================================================
 #pragma region[  Core  ]
 
-static const DeviceDesc& NRI_CALL GetDeviceDesc(const Device& device) {
+static const DeviceInfo& NRI_CALL GetDeviceInfo(const Device& device) {
     return ((DeviceNONE&)device).GetDesc();
 }
 
@@ -660,7 +660,7 @@ static uint64_t NRI_CALL GetDescriptorNativeObject(const Descriptor*) {
 }
 
 Result DeviceNONE::FillFunctionTable(CoreInterface& table) const {
-    table.GetDeviceDesc = ::GetDeviceDesc;
+    table.GetDeviceInfo = ::GetDeviceInfo;
     table.GetBufferDesc = ::GetBufferDesc;
     table.GetTextureDesc = ::GetTextureDesc;
     table.GetFormatSupport = ::GetFormatSupport;

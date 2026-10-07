@@ -44,14 +44,14 @@ Result MemoryVK::Create(const AllocateMemoryDesc& allocateMemoryDesc) {
         return Result::SUCCESS;
 
     if (allocateMemoryDesc.vma.enable) {
-        const DeviceDesc& deviceDesc = m_Device.GetDesc();
+        const DeviceInfo& DeviceInfo = m_Device.GetDesc();
         uint32_t alignment = allocateMemoryDesc.vma.alignment;
         if (!alignment) {
             // Worst-case alignment
             if (allocateMemoryDesc.allowMultisampleTextures)
-                alignment = deviceDesc.memory.alignmentMultisample;
+                alignment = DeviceInfo.memory.alignmentMultisample;
             else
-                alignment = deviceDesc.memory.alignmentDefault;
+                alignment = DeviceInfo.memory.alignmentDefault;
         }
 
         // (Sub) allocate memory

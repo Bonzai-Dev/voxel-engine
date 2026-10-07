@@ -44,12 +44,12 @@ NriEnum(Gravity, uint8_t,
     CENTERED                         // VK: pixels will be centered in the surface
 );
 
-NriBits(SwapChainBits, uint8_t,
+ENGINE_BITs(SwapChainBits, uint8_t,
     NONE                = 0,
-    VSYNC               = NriBit(0), // cap framerate to the monitor refresh rate
-    WAITABLE            = NriBit(1), // unlock "WaitForPresent" reducing latency (requires "features.waitableSwapChain")
-    ALLOW_TEARING       = NriBit(2), // allow screen tearing if possible
-    ALLOW_LOW_LATENCY   = NriBit(3)  // allow "NRILowLatency" functionality (requires "features.lowLatency")
+    VSYNC               = ENGINE_BIT(0), // cap framerate to the monitor refresh rate
+    WAITABLE            = ENGINE_BIT(1), // unlock "WaitForPresent" reducing latency (requires "features.waitableSwapChain")
+    ALLOW_TEARING       = ENGINE_BIT(2), // allow screen tearing if possible
+    ALLOW_LOW_LATENCY   = ENGINE_BIT(3)  // allow "NRILowLatency" functionality (requires "features.lowLatency")
 );
 
 NriStruct(WindowsWindow) {  // Expects "WIN32" platform macro

@@ -54,6 +54,6 @@ NriStruct(WrapperD3D11Interface) {
     Nri(Result) (NRI_CALL *CreateTextureD3D11)          (NriRef(Device) device, const NriRef(TextureD3D11Desc) textureD3D11Desc, NriOut NriRef(Texture*) texture);
 };
 
-NRI_API Nri(Result) NRI_CALL nriCreateDeviceFromD3D11Device(const NriRef(DeviceCreationD3D11Desc) deviceDesc, NriOut NriRef(Device*) device);
+NRI_API Nri(Result) NRI_CALL nriCreateDeviceFromD3D11Device(const NriRef(DeviceCreationD3D11Desc) DeviceInfo, NriOut NriRef(Device*) device);
 
 NriNamespaceEnd

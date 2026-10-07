@@ -42,7 +42,7 @@ struct TextureD3D11 final : public DebugNameBase {
     }
 
     inline Dim_t GetSize(Dim_t dimensionIndex, Dim_t mip = 0) const {
-        return GetDimension(GraphicsAPI::D3D11, m_Desc, dimensionIndex, mip);
+        return GetDimension(GraphicsBackend::D3D11, m_Desc, dimensionIndex, mip);
     }
 
     Result Create(const TextureDesc& textureDesc);

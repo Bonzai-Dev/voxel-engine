@@ -895,7 +895,7 @@ Format nri::VKFormatToNRIFormat(uint32_t format) {
 
 void DeviceBase::ReportMessage(Message messageType, Result result, const char* file, uint32_t line, const char* format, ...) const {
     // Report message
-    const DeviceDesc& desc = GetDesc();
+    const DeviceInfo& desc = GetDesc();
     const char* graphicsAPIName = nriGetGraphicsAPIString(desc.graphicsAPI);
 
     const char* temp = strrchr(file, NRI_FILE_SEPARATOR);

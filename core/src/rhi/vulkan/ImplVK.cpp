@@ -66,7 +66,7 @@ Result CreateDeviceVK(const DeviceCreationDesc& desc, const DeviceCreationVKDesc
 //============================================================================================================================================================================================
 #pragma region[  Core  ]
 
-static const DeviceDesc& NRI_CALL GetDeviceDesc(const Device& device) {
+static const DeviceInfo& NRI_CALL GetDeviceInfo(const Device& device) {
     return ((DeviceVK&)device).GetDesc();
 }
 
@@ -637,7 +637,7 @@ static uint64_t NRI_CALL GetDescriptorNativeObject(const Descriptor* descriptor)
 }
 
 Result DeviceVK::FillFunctionTable(CoreInterface& table) const {
-    table.GetDeviceDesc = ::GetDeviceDesc;
+    table.GetDeviceInfo = ::GetDeviceInfo;
     table.GetBufferDesc = ::GetBufferDesc;
     table.GetTextureDesc = ::GetTextureDesc;
     table.GetFormatSupport = ::GetFormatSupport;

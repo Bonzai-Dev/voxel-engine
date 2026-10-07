@@ -28,7 +28,7 @@ struct DeviceWGPU final : public DeviceBase {
         return m_iCore;
     }
 
-    inline const DeviceDesc& GetDesc() const override {
+    inline const DeviceInfo& GetDesc() const override {
         return m_Desc;
     }
 
@@ -85,7 +85,7 @@ private:
 private:
     std::array<Vector<QueueWGPU*>, (size_t)QueueType::MAX_NUM> m_QueueFamilies;
     CoreInterface m_iCore = {};
-    DeviceDesc m_Desc = {};
+    DeviceInfo m_Desc = {};
     WGPUInstance m_Instance = nullptr;
     WGPUAdapter m_Adapter = nullptr;
     WGPUDevice m_Device = nullptr;

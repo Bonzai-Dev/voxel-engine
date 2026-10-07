@@ -659,8 +659,8 @@ void ImguiImpl::CmdDraw(CommandBuffer& commandBuffer, const DrawImguiDesc& drawI
     }
 
     if (!pipeline) {
-        const DeviceDesc& deviceDesc = m_iCore.GetDeviceDesc(m_Device);
-        MaybeUnused(deviceDesc);
+        const DeviceInfo& DeviceInfo = m_iCore.GetDeviceInfo(m_Device);
+        MaybeUnused(DeviceInfo);
 
         ShaderDesc shaders[] = {
             {StageBits::VERTEX_SHADER, nullptr, 0},
@@ -668,7 +668,7 @@ void ImguiImpl::CmdDraw(CommandBuffer& commandBuffer, const DrawImguiDesc& drawI
         };
 
 #    if NRI_ENABLE_D3D11_SUPPORT
-        if (deviceDesc.graphicsAPI == GraphicsAPI::D3D11) {
+        if (DeviceInfo.graphicsAPI == GraphicsBackend::D3D11) {
             shaders[0].bytecode = g_Imgui_vs_dxbc;
             shaders[0].size = sizeof(g_Imgui_vs_dxbc);
 
@@ -677,7 +677,7 @@ void ImguiImpl::CmdDraw(CommandBuffer& commandBuffer, const DrawImguiDesc& drawI
         }
 #    endif
 #    if NRI_ENABLE_D3D12_SUPPORT
-        if (deviceDesc.graphicsAPI == GraphicsAPI::D3D12) {
+        if (DeviceInfo.graphicsAPI == GraphicsBackend::D3D12) {
             shaders[0].bytecode = g_Imgui_vs_dxil;
             shaders[0].size = sizeof(g_Imgui_vs_dxil);
 
@@ -686,7 +686,7 @@ void ImguiImpl::CmdDraw(CommandBuffer& commandBuffer, const DrawImguiDesc& drawI
         }
 #    endif
 #    if NRI_ENABLE_VK_SUPPORT
-        if (deviceDesc.graphicsAPI == GraphicsAPI::VK) {
+        if (DeviceInfo.graphicsAPI == GraphicsBackend::Vulkan) {
             shaders[0].bytecode = g_Imgui_vs_spirv;
             shaders[0].size = sizeof(g_Imgui_vs_spirv);
 
@@ -695,7 +695,7 @@ void ImguiImpl::CmdDraw(CommandBuffer& commandBuffer, const DrawImguiDesc& drawI
         }
 #    endif
 #    if NRI_ENABLE_WGPU_SUPPORT && NRI_ENABLE_VK_SUPPORT
-        if (deviceDesc.graphicsAPI == GraphicsAPI::WGPU) {
+        if (DeviceInfo.graphicsAPI == GraphicsBackend::WGPU) {
             shaders[0].bytecode = g_Imgui_vs_spirv;
             shaders[0].size = sizeof(g_Imgui_vs_spirv);
 

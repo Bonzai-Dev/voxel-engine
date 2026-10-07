@@ -435,33 +435,33 @@ static inline NVSDK_NGX_Resource_VK NgxGetResource(const CoreInterface& NRI, con
 //=====================================================================================================================================
 // Upscaler
 //=====================================================================================================================================
-bool nri::IsUpscalerSupported(const DeviceDesc& deviceDesc, UpscalerType type) {
-    MaybeUnused(deviceDesc, type);
+bool nri::IsUpscalerSupported(const DeviceInfo& DeviceInfo, UpscalerType type) {
+    MaybeUnused(DeviceInfo, type);
 
 #if NRI_ENABLE_NIS_SDK
     if (type == UpscalerType::NIS) {
-        if (deviceDesc.graphicsAPI == GraphicsAPI::D3D12 || deviceDesc.graphicsAPI == GraphicsAPI::VK || deviceDesc.graphicsAPI == GraphicsAPI::D3D11)
+        if (DeviceInfo.graphicsAPI == GraphicsBackend::D3D12 || DeviceInfo.graphicsAPI == GraphicsBackend::Vulkan || DeviceInfo.graphicsAPI == GraphicsBackend::D3D11)
             return true;
     }
 #endif
 
 #if NRI_ENABLE_FFX_SDK
     if (type == UpscalerType::FSR) {
-        if (deviceDesc.graphicsAPI == GraphicsAPI::D3D12 || deviceDesc.graphicsAPI == GraphicsAPI::VK)
+        if (DeviceInfo.graphicsAPI == GraphicsBackend::D3D12 || DeviceInfo.graphicsAPI == GraphicsBackend::Vulkan)
             return true;
     }
 #endif
 
 #if NRI_ENABLE_XESS_SDK
     if (type == UpscalerType::XESS) {
-        if (deviceDesc.graphicsAPI == GraphicsAPI::D3D12)
+        if (DeviceInfo.graphicsAPI == GraphicsBackend::D3D12)
             return true;
     }
 #endif
 
 #if NRI_ENABLE_NGX_SDK
     if (type == UpscalerType::DLSR || type == UpscalerType::DLRR) {
-        if (deviceDesc.adapterDesc.vendor == Vendor::NVIDIA && deviceDesc.tiers.rayTracing) // an elegant way to detect an RTX GPU?
+        if (DeviceInfo.adapterDesc.vendor == Vendor::NVIDIA && DeviceInfo.tiers.rayTracing) // an elegant way to detect an RTX GPU?
             return true;
     }
 #endif
@@ -516,12 +516,12 @@ UpscalerImpl::~UpscalerImpl() {
     if ((m_Desc.type == UpscalerType::DLSR || m_Desc.type == UpscalerType::DLRR) && m.ngx) {
         ExclusiveScope lock(g_ngx.lock);
 
-        const DeviceDesc& deviceDesc = m_iCore.GetDeviceDesc(m_Device);
+        const DeviceInfo& DeviceInfo = m_iCore.GetDeviceInfo(m_Device);
         void* deviceNative = m_iCore.GetDeviceNativeObject(&m_Device);
         int32_t refCount = NgxDecrRef(deviceNative);
 
 #    if NRI_ENABLE_D3D11_SUPPORT
-        if (deviceDesc.graphicsAPI == GraphicsAPI::D3D11) {
+        if (DeviceInfo.graphicsAPI == GraphicsBackend::D3D11) {
             NVSDK_NGX_Result result = NVSDK_NGX_D3D11_DestroyParameters(m.ngx->params);
             NRI_CHECK(!m.ngx->params || result == NVSDK_NGX_Result_Success, "NVSDK_NGX_D3D11_DestroyParameters() failed!");
 
@@ -536,7 +536,7 @@ UpscalerImpl::~UpscalerImpl() {
 #    endif
 
 #    if NRI_ENABLE_D3D12_SUPPORT
-        if (deviceDesc.graphicsAPI == GraphicsAPI::D3D12) {
+        if (DeviceInfo.graphicsAPI == GraphicsBackend::D3D12) {
             NVSDK_NGX_Result result = NVSDK_NGX_D3D12_DestroyParameters(m.ngx->params);
             NRI_CHECK(!m.ngx->params || result == NVSDK_NGX_Result_Success, "NVSDK_NGX_D3D12_DestroyParameters() failed!");
 
@@ -551,7 +551,7 @@ UpscalerImpl::~UpscalerImpl() {
 #    endif
 
 #    if NRI_ENABLE_VK_SUPPORT
-        if (deviceDesc.graphicsAPI == GraphicsAPI::VK) {
+        if (DeviceInfo.graphicsAPI == GraphicsBackend::Vulkan) {
             NVSDK_NGX_Result result = NVSDK_NGX_VULKAN_DestroyParameters(m.ngx->params);
             NRI_CHECK(!m.ngx->params || result == NVSDK_NGX_Result_Success, "NVSDK_NGX_VULKAN_DestroyParameters() failed!");
 
@@ -574,8 +574,8 @@ UpscalerImpl::~UpscalerImpl() {
 Result UpscalerImpl::Create(const UpscalerDesc& upscalerDesc) {
     m_Desc = upscalerDesc;
 
-    const DeviceDesc& deviceDesc = m_iCore.GetDeviceDesc(m_Device);
-    if (!IsUpscalerSupported(deviceDesc, upscalerDesc.type))
+    const DeviceInfo& DeviceInfo = m_iCore.GetDeviceInfo(m_Device);
+    if (!IsUpscalerSupported(DeviceInfo, upscalerDesc.type))
         return Result::UNSUPPORTED;
 
     UpscalerProps upscalerProps = {};
@@ -629,27 +629,27 @@ Result UpscalerImpl::Create(const UpscalerDesc& upscalerDesc) {
 
         { // Pipeline
             m.nis->blockSize.w = 32;
-            m.nis->blockSize.h = deviceDesc.shaderModel >= NriShaderModel(6, 2) ? 32 : 24;
+            m.nis->blockSize.h = DeviceInfo.shaderModel >= NriShaderModel(6, 2) ? 32 : 24;
 
             std::array<ShaderMake::ShaderConstant, 3> defines = {{
-                {"NIS_FP16", (deviceDesc.shaderModel >= NriShaderModel(6, 2)) ? "1" : "0"},
+                {"NIS_FP16", (DeviceInfo.shaderModel >= NriShaderModel(6, 2)) ? "1" : "0"},
                 {"NIS_HDR_MODE", (upscalerDesc.flags & UpscalerBits::HDR) ? "1" : "0"},
-                {"NIS_THREAD_GROUP_SIZE", (deviceDesc.adapterDesc.vendor == Vendor::NVIDIA) ? "128" : "256"}, // TODO: verify performance
+                {"NIS_THREAD_GROUP_SIZE", (DeviceInfo.adapterDesc.vendor == Vendor::NVIDIA) ? "128" : "256"}, // TODO: verify performance
             }};
 
             const void* bytecode = nullptr;
             size_t size = 0;
             bool shaderMakeResult = false;
 #    if NRI_ENABLE_D3D11_SUPPORT
-            if (deviceDesc.graphicsAPI == GraphicsAPI::D3D11)
+            if (DeviceInfo.graphicsAPI == GraphicsBackend::D3D11)
                 shaderMakeResult = ShaderMake::FindPermutationInBlob(g_NIS_cs_dxbc, GetCountOf(g_NIS_cs_dxbc), defines.data(), (uint32_t)defines.size(), &bytecode, &size);
 #    endif
 #    if NRI_ENABLE_D3D12_SUPPORT
-            if (deviceDesc.graphicsAPI == GraphicsAPI::D3D12)
+            if (DeviceInfo.graphicsAPI == GraphicsBackend::D3D12)
                 shaderMakeResult = ShaderMake::FindPermutationInBlob(g_NIS_cs_dxil, GetCountOf(g_NIS_cs_dxil), defines.data(), (uint32_t)defines.size(), &bytecode, &size);
 #    endif
 #    if NRI_ENABLE_VK_SUPPORT
-            if (deviceDesc.graphicsAPI == GraphicsAPI::VK)
+            if (DeviceInfo.graphicsAPI == GraphicsBackend::Vulkan)
                 shaderMakeResult = ShaderMake::FindPermutationInBlob(g_NIS_cs_spirv, GetCountOf(g_NIS_cs_spirv), defines.data(), (uint32_t)defines.size(), &bytecode, &size);
 #    endif
             if (!shaderMakeResult)
@@ -789,7 +789,7 @@ Result UpscalerImpl::Create(const UpscalerDesc& upscalerDesc) {
         m.ffx = Allocate<Ffx>(allocationCallbacks);
 
         // Load library
-        const char* libraryName = deviceDesc.graphicsAPI == GraphicsAPI::D3D12 ? "amd_fidelityfx_dx12.dll" : "amd_fidelityfx_vk.dll";
+        const char* libraryName = DeviceInfo.graphicsAPI == GraphicsBackend::D3D12 ? "amd_fidelityfx_dx12.dll" : "amd_fidelityfx_vk.dll";
         Library* ffxLibrary = LoadSharedLibrary(libraryName);
         if (!ffxLibrary)
             return Result::FAILURE;
@@ -849,7 +849,7 @@ Result UpscalerImpl::Create(const UpscalerDesc& upscalerDesc) {
 #    if NRI_ENABLE_D3D12_SUPPORT
         ffxCreateBackendDX12Desc backendD3D12Desc = {};
 
-        if (deviceDesc.graphicsAPI == GraphicsAPI::D3D12) {
+        if (DeviceInfo.graphicsAPI == GraphicsBackend::D3D12) {
             backendD3D12Desc.header.type = FFX_API_CREATE_CONTEXT_DESC_TYPE_BACKEND_DX12;
             backendD3D12Desc.device = (ID3D12Device*)m_iCore.GetDeviceNativeObject(&m_Device);
 
@@ -860,7 +860,7 @@ Result UpscalerImpl::Create(const UpscalerDesc& upscalerDesc) {
 #    if NRI_ENABLE_VK_SUPPORT
         ffxCreateBackendVKDesc backendVKDesc = {};
 
-        if (deviceDesc.graphicsAPI == GraphicsAPI::VK) {
+        if (DeviceInfo.graphicsAPI == GraphicsBackend::Vulkan) {
             WrapperVKInterface iWrapperVK = {};
             if (nriGetInterface(m_Device, NRI_INTERFACE(WrapperVKInterface), &iWrapperVK) != Result::SUCCESS)
                 return Result::UNSUPPORTED;
@@ -891,7 +891,7 @@ Result UpscalerImpl::Create(const UpscalerDesc& upscalerDesc) {
         m.xess = Allocate<Xess>(allocationCallbacks);
 
 #    if NRI_ENABLE_D3D12_SUPPORT
-        if (deviceDesc.graphicsAPI == GraphicsAPI::D3D12) {
+        if (DeviceInfo.graphicsAPI == GraphicsBackend::D3D12) {
             ExclusiveScope lock(g_xess.lock);
 
             ID3D12Device* deviceNative = (ID3D12Device*)m_iCore.GetDeviceNativeObject(&m_Device);
@@ -979,7 +979,7 @@ Result UpscalerImpl::Create(const UpscalerDesc& upscalerDesc) {
             featureCommonInfo.LoggingInfo.DisableOtherLoggingSinks = true;
 
 #    if NRI_ENABLE_D3D11_SUPPORT
-            if (deviceDesc.graphicsAPI == GraphicsAPI::D3D11) {
+            if (DeviceInfo.graphicsAPI == GraphicsBackend::D3D11) {
                 ngxResult = NVSDK_NGX_D3D11_Init(APPLICATION_ID, path, (ID3D11Device*)deviceNative, &featureCommonInfo);
                 if (ngxResult == NVSDK_NGX_Result_Success) {
                     NgxIncrRef(deviceNative);
@@ -989,7 +989,7 @@ Result UpscalerImpl::Create(const UpscalerDesc& upscalerDesc) {
 #    endif
 
 #    if NRI_ENABLE_D3D12_SUPPORT
-            if (deviceDesc.graphicsAPI == GraphicsAPI::D3D12) {
+            if (DeviceInfo.graphicsAPI == GraphicsBackend::D3D12) {
                 ngxResult = NVSDK_NGX_D3D12_Init(APPLICATION_ID, path, (ID3D12Device*)deviceNative, &featureCommonInfo);
                 if (ngxResult == NVSDK_NGX_Result_Success) {
                     NgxIncrRef(deviceNative);
@@ -999,7 +999,7 @@ Result UpscalerImpl::Create(const UpscalerDesc& upscalerDesc) {
 #    endif
 
 #    if NRI_ENABLE_VK_SUPPORT
-            if (deviceDesc.graphicsAPI == GraphicsAPI::VK) {
+            if (DeviceInfo.graphicsAPI == GraphicsBackend::Vulkan) {
                 WrapperVKInterface iWrapperVK = {};
                 if (nriGetInterface(m_Device, NRI_INTERFACE(WrapperVKInterface), &iWrapperVK) != Result::SUCCESS)
                     return Result::UNSUPPORTED;
@@ -1085,17 +1085,17 @@ Result UpscalerImpl::Create(const UpscalerDesc& upscalerDesc) {
                 srCreateParams.InFeatureCreateFlags = featureCreateFlags;
 
 #    if NRI_ENABLE_D3D11_SUPPORT
-                if (deviceDesc.graphicsAPI == GraphicsAPI::D3D11)
+                if (DeviceInfo.graphicsAPI == GraphicsBackend::D3D11)
                     ngxResult = NGX_D3D11_CREATE_DLSS_EXT((ID3D11DeviceContext*)commandBufferNative, &m.ngx->handle, m.ngx->params, &srCreateParams);
 #    endif
 
 #    if NRI_ENABLE_D3D12_SUPPORT
-                if (deviceDesc.graphicsAPI == GraphicsAPI::D3D12)
+                if (DeviceInfo.graphicsAPI == GraphicsBackend::D3D12)
                     ngxResult = NGX_D3D12_CREATE_DLSS_EXT((ID3D12GraphicsCommandList*)commandBufferNative, NODE_MASK, NODE_MASK, &m.ngx->handle, m.ngx->params, &srCreateParams);
 #    endif
 
 #    if NRI_ENABLE_VK_SUPPORT
-                if (deviceDesc.graphicsAPI == GraphicsAPI::VK)
+                if (DeviceInfo.graphicsAPI == GraphicsBackend::Vulkan)
                     ngxResult = NGX_VULKAN_CREATE_DLSS_EXT1((VkDevice)deviceNative, (VkCommandBuffer)commandBufferNative, NODE_MASK, NODE_MASK, &m.ngx->handle, m.ngx->params, &srCreateParams);
 #    endif
             }
@@ -1113,17 +1113,17 @@ Result UpscalerImpl::Create(const UpscalerDesc& upscalerDesc) {
                 rrCreateParams.InFeatureCreateFlags = featureCreateFlags;
 
 #    if NRI_ENABLE_D3D11_SUPPORT
-                if (deviceDesc.graphicsAPI == GraphicsAPI::D3D11)
+                if (DeviceInfo.graphicsAPI == GraphicsBackend::D3D11)
                     ngxResult = NGX_D3D11_CREATE_DLSSD_EXT((ID3D11DeviceContext*)commandBufferNative, &m.ngx->handle, m.ngx->params, &rrCreateParams);
 #    endif
 
 #    if NRI_ENABLE_D3D12_SUPPORT
-                if (deviceDesc.graphicsAPI == GraphicsAPI::D3D12)
+                if (DeviceInfo.graphicsAPI == GraphicsBackend::D3D12)
                     ngxResult = NGX_D3D12_CREATE_DLSSD_EXT((ID3D12GraphicsCommandList*)commandBufferNative, NODE_MASK, NODE_MASK, &m.ngx->handle, m.ngx->params, &rrCreateParams);
 #    endif
 
 #    if NRI_ENABLE_VK_SUPPORT
-                if (deviceDesc.graphicsAPI == GraphicsAPI::VK)
+                if (DeviceInfo.graphicsAPI == GraphicsBackend::Vulkan)
                     ngxResult = NGX_VULKAN_CREATE_DLSSD_EXT1((VkDevice)deviceNative, (VkCommandBuffer)commandBufferNative, NODE_MASK, NODE_MASK, &m.ngx->handle, m.ngx->params, &rrCreateParams);
 #    endif
             }
@@ -1324,7 +1324,7 @@ void UpscalerImpl::CmdDispatchUpscale(CommandBuffer& commandBuffer, const Dispat
     if (m_Desc.type == UpscalerType::DLSR) {
         ExclusiveScope lock(g_ngx.lock);
 
-        const DeviceDesc& deviceDesc = m_iCore.GetDeviceDesc(m_Device);
+        const DeviceInfo& DeviceInfo = m_iCore.GetDeviceInfo(m_Device);
         const UpscalerGuides& guides = dispatchUpscaleDesc.guides.upscaler;
 
         uint64_t outputNative = m_iCore.GetTextureNativeObject(output.texture);
@@ -1339,7 +1339,7 @@ void UpscalerImpl::CmdDispatchUpscale(CommandBuffer& commandBuffer, const Dispat
         NVSDK_NGX_Result result = NVSDK_NGX_Result_Fail;
 
 #    if NRI_ENABLE_D3D11_SUPPORT
-        if (deviceDesc.graphicsAPI == GraphicsAPI::D3D11) {
+        if (DeviceInfo.graphicsAPI == GraphicsBackend::D3D11) {
             NVSDK_NGX_D3D11_DLSS_Eval_Params srEvalParams = {};
             srEvalParams.Feature.pInColor = (ID3D11Resource*)inputNative;
             srEvalParams.Feature.pInOutput = (ID3D11Resource*)outputNative;
@@ -1359,7 +1359,7 @@ void UpscalerImpl::CmdDispatchUpscale(CommandBuffer& commandBuffer, const Dispat
 #    endif
 
 #    if NRI_ENABLE_D3D12_SUPPORT
-        if (deviceDesc.graphicsAPI == GraphicsAPI::D3D12) {
+        if (DeviceInfo.graphicsAPI == GraphicsBackend::D3D12) {
             NVSDK_NGX_D3D12_DLSS_Eval_Params srEvalParams = {};
             srEvalParams.Feature.pInColor = (ID3D12Resource*)inputNative;
             srEvalParams.Feature.pInOutput = (ID3D12Resource*)outputNative;
@@ -1379,7 +1379,7 @@ void UpscalerImpl::CmdDispatchUpscale(CommandBuffer& commandBuffer, const Dispat
 #    endif
 
 #    if NRI_ENABLE_VK_SUPPORT
-        if (deviceDesc.graphicsAPI == GraphicsAPI::VK) {
+        if (DeviceInfo.graphicsAPI == GraphicsBackend::Vulkan) {
             NVSDK_NGX_Resource_VK outputVk = NgxGetResource(m_iCore, output, outputNative, true);
             NVSDK_NGX_Resource_VK inputVk = NgxGetResource(m_iCore, input, inputNative);
             NVSDK_NGX_Resource_VK mvVk = NgxGetResource(m_iCore, guides.mv, mvNative);
@@ -1411,7 +1411,7 @@ void UpscalerImpl::CmdDispatchUpscale(CommandBuffer& commandBuffer, const Dispat
     if (m_Desc.type == UpscalerType::DLRR) {
         ExclusiveScope lock(g_ngx.lock);
 
-        const DeviceDesc& deviceDesc = m_iCore.GetDeviceDesc(m_Device);
+        const DeviceInfo& DeviceInfo = m_iCore.GetDeviceInfo(m_Device);
         const DenoiserGuides& guides = dispatchUpscaleDesc.guides.denoiser;
 
         uint64_t outputNative = m_iCore.GetTextureNativeObject(output.texture);
@@ -1431,7 +1431,7 @@ void UpscalerImpl::CmdDispatchUpscale(CommandBuffer& commandBuffer, const Dispat
         NVSDK_NGX_Result result = NVSDK_NGX_Result_Fail;
 
 #    if NRI_ENABLE_D3D11_SUPPORT
-        if (deviceDesc.graphicsAPI == GraphicsAPI::D3D11) {
+        if (DeviceInfo.graphicsAPI == GraphicsBackend::D3D11) {
             NVSDK_NGX_D3D11_DLSSD_Eval_Params rrEvalParams = {};
             rrEvalParams.pInColor = (ID3D11Resource*)inputNative;
             rrEvalParams.pInOutput = (ID3D11Resource*)outputNative;
@@ -1463,7 +1463,7 @@ void UpscalerImpl::CmdDispatchUpscale(CommandBuffer& commandBuffer, const Dispat
 #    endif
 
 #    if NRI_ENABLE_D3D12_SUPPORT
-        if (deviceDesc.graphicsAPI == GraphicsAPI::D3D12) {
+        if (DeviceInfo.graphicsAPI == GraphicsBackend::D3D12) {
             NVSDK_NGX_D3D12_DLSSD_Eval_Params rrEvalParams = {};
             rrEvalParams.pInColor = (ID3D12Resource*)inputNative;
             rrEvalParams.pInOutput = (ID3D12Resource*)outputNative;
@@ -1495,7 +1495,7 @@ void UpscalerImpl::CmdDispatchUpscale(CommandBuffer& commandBuffer, const Dispat
 #    endif
 
 #    if NRI_ENABLE_VK_SUPPORT
-        if (deviceDesc.graphicsAPI == GraphicsAPI::VK) {
+        if (DeviceInfo.graphicsAPI == GraphicsBackend::Vulkan) {
             NVSDK_NGX_Resource_VK outputVk = NgxGetResource(m_iCore, output, outputNative, true);
             NVSDK_NGX_Resource_VK inputVk = NgxGetResource(m_iCore, input, inputNative);
             NVSDK_NGX_Resource_VK mvVk = NgxGetResource(m_iCore, guides.mv, mvNative);

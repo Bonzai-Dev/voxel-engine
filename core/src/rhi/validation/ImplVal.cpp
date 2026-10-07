@@ -62,7 +62,7 @@ DeviceBase* CreateDeviceValidation(const DeviceCreationDesc& desc, DeviceBase& d
 //============================================================================================================================================================================================
 #pragma region[  Core  ]
 
-static const DeviceDesc& NRI_CALL GetDeviceDesc(const Device& device) {
+static const DeviceInfo& NRI_CALL GetDeviceInfo(const Device& device) {
     return ((DeviceVal&)device).GetDesc();
 }
 
@@ -592,7 +592,7 @@ static uint64_t NRI_CALL GetDescriptorNativeObject(const Descriptor* descriptor)
 }
 
 Result DeviceVal::FillFunctionTable(CoreInterface& table) const {
-    table.GetDeviceDesc = ::GetDeviceDesc;
+    table.GetDeviceInfo = ::GetDeviceInfo;
     table.GetBufferDesc = ::GetBufferDesc;
     table.GetTextureDesc = ::GetTextureDesc;
     table.GetFormatSupport = ::GetFormatSupport;

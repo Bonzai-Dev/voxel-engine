@@ -99,7 +99,7 @@ Result HelperDataUpload::UploadData(const TextureUploadDesc* textureUploadDescs,
 }
 
 Result HelperDataUpload::Create(const TextureUploadDesc* textureUploadDescs, uint32_t textureUploadDescNum, const BufferUploadDesc* bufferUploadDescs, uint32_t bufferUploadDescNum) {
-    const DeviceDesc& deviceDesc = m_iCore.GetDeviceDesc(m_Device);
+    const DeviceInfo& DeviceInfo = m_iCore.GetDeviceInfo(m_Device);
 
     { // Calculate upload buffer size
         uint64_t maxSubresourceSize = 0;
@@ -112,8 +112,8 @@ Result HelperDataUpload::Create(const TextureUploadDesc* textureUploadDescs, uin
                 const TextureDesc& textureDesc = m_iCore.GetTextureDesc(*textureUploadDesc.texture);
 
                 uint32_t sliceRowNum = subresource0.slicePitch / subresource0.rowPitch;
-                uint64_t alignedRowPitch = Align(subresource0.rowPitch, deviceDesc.memoryAlignment.uploadBufferTextureRow);
-                uint64_t alignedSlicePitch = Align(sliceRowNum * alignedRowPitch, deviceDesc.memoryAlignment.uploadBufferTextureSlice);
+                uint64_t alignedRowPitch = Align(subresource0.rowPitch, DeviceInfo.memoryAlignment.uploadBufferTextureRow);
+                uint64_t alignedSlicePitch = Align(sliceRowNum * alignedRowPitch, DeviceInfo.memoryAlignment.uploadBufferTextureSlice);
                 uint64_t alignedSize = alignedSlicePitch * subresource0.sliceNum;
 
                 NRI_CHECK(alignedSize != 0, "Unexpected");
@@ -295,7 +295,7 @@ bool HelperDataUpload::CopyTextureContent(const TextureUploadDesc& textureUpload
     if (!textureUploadDesc.subresources)
         return true;
 
-    const DeviceDesc& deviceDesc = m_iCore.GetDeviceDesc(m_Device);
+    const DeviceInfo& DeviceInfo = m_iCore.GetDeviceInfo(m_Device);
     const TextureDesc& textureDesc = m_iCore.GetTextureDesc(*textureUploadDesc.texture);
 
     for (; layerOffset < textureDesc.layerNum; layerOffset++) {
@@ -303,8 +303,8 @@ bool HelperDataUpload::CopyTextureContent(const TextureUploadDesc& textureUpload
             const auto& subresource = textureUploadDesc.subresources[layerOffset * textureDesc.mipNum + mipOffset];
 
             uint32_t sliceRowNum = subresource.slicePitch / subresource.rowPitch;
-            uint32_t alignedRowPitch = Align(subresource.rowPitch, deviceDesc.memoryAlignment.uploadBufferTextureRow);
-            uint32_t alignedSlicePitch = Align(sliceRowNum * alignedRowPitch, deviceDesc.memoryAlignment.uploadBufferTextureSlice);
+            uint32_t alignedRowPitch = Align(subresource.rowPitch, DeviceInfo.memoryAlignment.uploadBufferTextureRow);
+            uint32_t alignedSlicePitch = Align(sliceRowNum * alignedRowPitch, DeviceInfo.memoryAlignment.uploadBufferTextureSlice);
             uint64_t alignedSize = uint64_t(alignedSlicePitch) * subresource.sliceNum;
             uint64_t freeSpace = m_UploadBufferSize - m_UploadBufferOffset;
 
@@ -605,8 +605,8 @@ void HelperDeviceMemoryAllocator::GroupByMemoryType(MemoryLocation memoryLocatio
             MemoryHeap& heap = FindOrCreateHeap(memoryDesc, resourceGroupDesc.preferredMemorySize);
 
             if (heap.textures.empty()) {
-                const DeviceDesc& deviceDesc = m_iCore.GetDeviceDesc(m_Device);
-                heap.size = Align(heap.size, deviceDesc.memory.bufferTextureGranularity);
+                const DeviceInfo& DeviceInfo = m_iCore.GetDeviceInfo(m_Device);
+                heap.size = Align(heap.size, DeviceInfo.memory.bufferTextureGranularity);
             }
 
             uint64_t offset = Align(heap.size, memoryDesc.alignment);

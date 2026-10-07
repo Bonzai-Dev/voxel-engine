@@ -27,23 +27,23 @@ NriEnum(UpscalerMode, uint8_t,  // Scaling factor       // Min jitter phases (or
     ULTRA_PERFORMANCE           // 3.0x                 72
 );
 
-NriBits(UpscalerBits, uint16_t,
+ENGINE_BITs(UpscalerBits, uint16_t,
     NONE                        = 0,
-    HDR                         = NriBit(0),            // "input" uses colors in High-Dynamic Range (HDR)
-    SRGB                        = NriBit(1),            // "input" uses Low-Dynamic Range (LDR) colors in sRGB space
-    USE_EXPOSURE                = NriBit(2),            // "exposure" texture is provided (automatic exposure otherwise)
-    USE_REACTIVE                = NriBit(3),            // "reactive" texture is provided
-    DEPTH_INVERTED              = NriBit(4),            // "depth" is inverted, i.e. the near plane is mapped to 1
-    DEPTH_INFINITE              = NriBit(5),            // "depth" uses INF far plane
-    DEPTH_LINEAR                = NriBit(6),            // "depth" is linear viewZ (HW otherwise)
-    MV_UPSCALED                 = NriBit(7),            // "mv" are rendered at upscale resolution
-    MV_JITTERED                 = NriBit(8)             // "mv" include jitter
+    HDR                         = ENGINE_BIT(0),            // "input" uses colors in High-Dynamic Range (HDR)
+    SRGB                        = ENGINE_BIT(1),            // "input" uses Low-Dynamic Range (LDR) colors in sRGB space
+    USE_EXPOSURE                = ENGINE_BIT(2),            // "exposure" texture is provided (automatic exposure otherwise)
+    USE_REACTIVE                = ENGINE_BIT(3),            // "reactive" texture is provided
+    DEPTH_INVERTED              = ENGINE_BIT(4),            // "depth" is inverted, i.e. the near plane is mapped to 1
+    DEPTH_INFINITE              = ENGINE_BIT(5),            // "depth" uses INF far plane
+    DEPTH_LINEAR                = ENGINE_BIT(6),            // "depth" is linear viewZ (HW otherwise)
+    MV_UPSCALED                 = ENGINE_BIT(7),            // "mv" are rendered at upscale resolution
+    MV_JITTERED                 = ENGINE_BIT(8)             // "mv" include jitter
 );
 
-NriBits(DispatchUpscaleBits, uint8_t,
+ENGINE_BITs(DispatchUpscaleBits, uint8_t,
     NONE                        = 0,
-    RESET_HISTORY               = NriBit(0),            // restart accumulation
-    USE_SPECULAR_MOTION         = NriBit(1)             // ("DLRR" only) if set, "specularMvOrHitT" represents "specular motion" not "hit distance"
+    RESET_HISTORY               = ENGINE_BIT(0),            // restart accumulation
+    USE_SPECULAR_MOTION         = ENGINE_BIT(1)             // ("DLRR" only) if set, "specularMvOrHitT" represents "specular motion" not "hit distance"
 );
 
 NriStruct(UpscalerDesc) {

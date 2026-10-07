@@ -390,7 +390,7 @@ DeviceVK::DeviceVK(const CallbackInterface& callbacks, const AllocationCallbacks
     m_AllocationCallbacks.pfnReallocation = vkReallocateHostMemory;
     m_AllocationCallbacks.pfnFree = vkFreeHostMemory;
 
-    m_Desc.graphicsAPI = GraphicsAPI::VK;
+    m_Desc.graphicsAPI = GraphicsBackend::Vulkan;
     m_Desc.nriVersion = NRI_VERSION;
 }
 

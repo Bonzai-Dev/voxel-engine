@@ -214,7 +214,7 @@ struct DeviceVK final : public DeviceBase {
     // DeviceBase
     //================================================================================================================
 
-    inline const DeviceDesc& GetDesc() const override {
+    inline const DeviceInfo& GetDesc() const override {
         return m_Desc;
     }
 
@@ -276,7 +276,7 @@ private:
     VkAllocationCallbacks m_AllocationCallbacks = {};
     VKBindingOffsets m_BindingOffsets = {};
     CoreInterface m_iCore = {};
-    DeviceDesc m_Desc = {};
+    DeviceInfo m_Desc = {};
     Library* m_Loader = nullptr;
     VkDevice m_Device = VK_NULL_HANDLE;
     VkInstance m_Instance = VK_NULL_HANDLE;

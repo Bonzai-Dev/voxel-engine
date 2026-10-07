@@ -366,8 +366,8 @@ NRI_INLINE Result CommandBufferVK::End() {
 }
 
 NRI_INLINE void CommandBufferVK::SetViewports(const Viewport* viewports, uint32_t viewportNum) {
-    const DeviceDesc& deviceDesc = m_Device.GetDesc();
-    uint32_t vkViewportNum = (deviceDesc.features.extendedDynamicState || viewportNum == 0) ? viewportNum : deviceDesc.viewport.maxNum;
+    const DeviceInfo& DeviceInfo = m_Device.GetDesc();
+    uint32_t vkViewportNum = (DeviceInfo.features.extendedDynamicState || viewportNum == 0) ? viewportNum : DeviceInfo.viewport.maxNum;
     Scratch<VkViewport> vkViewports = NRI_ALLOCATE_SCRATCH(m_Device, VkViewport, vkViewportNum);
     for (uint32_t i = 0; i < viewportNum; i++) {
         const Viewport& in = viewports[i];
@@ -390,15 +390,15 @@ NRI_INLINE void CommandBufferVK::SetViewports(const Viewport* viewports, uint32_
         vkViewports[i] = vkViewports[viewportNum - 1];
 
     const auto& vk = m_Device.GetDispatchTable();
-    if (deviceDesc.features.extendedDynamicState)
+    if (DeviceInfo.features.extendedDynamicState)
         vk.CmdSetViewportWithCount(m_Handle, viewportNum, vkViewports);
     else
         vk.CmdSetViewport(m_Handle, 0, vkViewportNum, vkViewports);
 }
 
 NRI_INLINE void CommandBufferVK::SetScissors(const Rect* rects, uint32_t rectNum) {
-    const DeviceDesc& deviceDesc = m_Device.GetDesc();
-    uint32_t vkRectNum = (deviceDesc.features.extendedDynamicState || rectNum == 0) ? rectNum : deviceDesc.viewport.maxNum;
+    const DeviceInfo& DeviceInfo = m_Device.GetDesc();
+    uint32_t vkRectNum = (DeviceInfo.features.extendedDynamicState || rectNum == 0) ? rectNum : DeviceInfo.viewport.maxNum;
     Scratch<VkRect2D> vkRects = NRI_ALLOCATE_SCRATCH(m_Device, VkRect2D, vkRectNum);
     for (uint32_t i = 0; i < rectNum; i++) {
         const Rect& in = rects[i];
@@ -413,7 +413,7 @@ NRI_INLINE void CommandBufferVK::SetScissors(const Rect* rects, uint32_t rectNum
         vkRects[i] = vkRects[rectNum - 1];
 
     const auto& vk = m_Device.GetDispatchTable();
-    if (deviceDesc.features.extendedDynamicState)
+    if (DeviceInfo.features.extendedDynamicState)
         vk.CmdSetScissorWithCount(m_Handle, rectNum, vkRects);
     else
         vk.CmdSetScissor(m_Handle, 0, vkRectNum, vkRects);
@@ -565,10 +565,10 @@ NRI_INLINE void CommandBufferVK::ClearStorage(const ClearStorageDesc& clearStora
 }
 
 NRI_INLINE void CommandBufferVK::BeginRendering(const RenderingDesc& renderingDesc) {
-    const DeviceDesc& deviceDesc = m_Device.GetDesc();
-    Dim_t renderWidth = deviceDesc.dimensions.attachmentMaxDim;
-    Dim_t renderHeight = deviceDesc.dimensions.attachmentMaxDim;
-    Dim_t renderLayerNum = deviceDesc.dimensions.attachmentLayerMaxNum;
+    const DeviceInfo& DeviceInfo = m_Device.GetDesc();
+    Dim_t renderWidth = DeviceInfo.dimensions.attachmentMaxDim;
+    Dim_t renderHeight = DeviceInfo.dimensions.attachmentMaxDim;
+    Dim_t renderLayerNum = DeviceInfo.dimensions.attachmentLayerMaxNum;
 
     if (m_Device.m_IsSupported.dynamicRendering) {
         Scratch<VkRenderingAttachmentInfo> colors = NRI_ALLOCATE_SCRATCH(m_Device, VkRenderingAttachmentInfo, renderingDesc.colorNum);

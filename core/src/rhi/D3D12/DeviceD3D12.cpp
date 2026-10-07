@@ -144,7 +144,7 @@ DeviceD3D12::DeviceD3D12(const CallbackInterface& callbacks, const AllocationCal
       } {
     m_FreeDescriptors.resize(D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES, Vector<DescriptorHandle>(GetStdAllocator()));
 
-    m_Desc.graphicsAPI = GraphicsAPI::D3D12;
+    m_Desc.graphicsAPI = GraphicsBackend::D3D12;
     m_Desc.nriVersion = NRI_VERSION;
 }
 

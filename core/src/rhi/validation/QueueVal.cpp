@@ -13,8 +13,8 @@ NRI_INLINE void QueueVal::Annotation(const char* name, uint32_t bgra) {
 }
 
 NRI_INLINE void QueueVal::GetCalibratedTimestamps(uint64_t& timestampGPU, uint64_t& timestampCPU) {
-    const DeviceDesc& deviceDesc = m_Device.GetDesc();
-    NRI_RETURN_ON_FAILURE(&m_Device, deviceDesc.features.calibratedTimestamps, ReturnVoid(), "'features.calibratedTimestamps' is false");
+    const DeviceInfo& DeviceInfo = m_Device.GetDesc();
+    NRI_RETURN_ON_FAILURE(&m_Device, DeviceInfo.features.calibratedTimestamps, ReturnVoid(), "'features.calibratedTimestamps' is false");
 
     GetCoreInterfaceImpl().GetCalibratedTimestamps(*GetImpl(), timestampGPU, timestampCPU);
 }

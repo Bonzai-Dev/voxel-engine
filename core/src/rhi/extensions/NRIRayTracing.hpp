@@ -19,12 +19,12 @@ static const NriPtr(Buffer) NriConstant(HAS_BUFFER) = (NriPtr(Buffer))1; // only
 #pragma region [ Pipeline ]
 //============================================================================================================================================================================================
 
-NriBits(RayTracingPipelineBits, uint8_t,
+ENGINE_BITs(RayTracingPipelineBits, uint8_t,
     NONE                        = 0,
-    SKIP_TRIANGLES              = NriBit(0), // provides knowledge that "triangles" doesn't need to be considered
-    SKIP_AABBS                  = NriBit(1), // provides knowledge that "aabbs" doesn't need to be considered
-    ALLOW_MICROMAPS             = NriBit(2), // specifies that the ray tracing pipeline can be used with acceleration structures which reference micromaps
-    FAIL_ON_CACHE_MISS          = NriBit(3)  // "CreateRayTracingPipeline" returns "FAILURE" if the pipeline is not found in the supplied cache (requires "features.pipelineCacheControl")
+    SKIP_TRIANGLES              = ENGINE_BIT(0), // provides knowledge that "triangles" doesn't need to be considered
+    SKIP_AABBS                  = ENGINE_BIT(1), // provides knowledge that "aabbs" doesn't need to be considered
+    ALLOW_MICROMAPS             = ENGINE_BIT(2), // specifies that the ray tracing pipeline can be used with acceleration structures which reference micromaps
+    FAIL_ON_CACHE_MISS          = ENGINE_BIT(3)  // "CreateRayTracingPipeline" returns "FAILURE" if the pipeline is not found in the supplied cache (requires "features.pipelineCacheControl")
 );
 
 NriStruct(ShaderLibraryDesc) {
@@ -74,11 +74,11 @@ NriEnum(MicromapSpecialIndex, int8_t,
     FULLY_UNKNOWN_OPAQUE        = -4            // specifies that the entire triangle is unknown-opaque
 );
 
-NriBits(MicromapBits, uint8_t,
+ENGINE_BITs(MicromapBits, uint8_t,
     NONE                        = 0,
-    ALLOW_COMPACTION            = NriBit(1),    // allows to compact the micromap by copying using "COMPACT" mode
-    PREFER_FAST_TRACE           = NriBit(2),    // prioritize traversal performance over build time
-    PREFER_FAST_BUILD           = NriBit(3)     // prioritize build time over traversal performance
+    ALLOW_COMPACTION            = ENGINE_BIT(1),    // allows to compact the micromap by copying using "COMPACT" mode
+    PREFER_FAST_TRACE           = ENGINE_BIT(2),    // prioritize traversal performance over build time
+    PREFER_FAST_BUILD           = ENGINE_BIT(3)     // prioritize build time over traversal performance
 );
 
 NriStruct(MicromapUsageDesc) {
@@ -141,10 +141,10 @@ NriEnum(BottomLevelGeometryType, uint8_t,
     AABBS
 );
 
-NriBits(BottomLevelGeometryBits, uint8_t,
+ENGINE_BITs(BottomLevelGeometryBits, uint8_t,
     NONE                                = 0,
-    OPAQUE_GEOMETRY                     = NriBit(0),    // the geometry acts as if no any hit shader is present (can be overriden by "TopLevelInstanceBits" or ray flags)
-    NO_DUPLICATE_ANY_HIT_INVOCATION     = NriBit(1)     // the any-hit shader must be called once for each primitive in this geometry
+    OPAQUE_GEOMETRY                     = ENGINE_BIT(0),    // the geometry acts as if no any hit shader is present (can be overriden by "TopLevelInstanceBits" or ray flags)
+    NO_DUPLICATE_ANY_HIT_INVOCATION     = ENGINE_BIT(1)     // the any-hit shader must be called once for each primitive in this geometry
 );
 
 NriStruct(BottomLevelTrianglesDesc) {
@@ -206,14 +206,14 @@ NriStruct(BottomLevelAabb)
 #pragma region [ Acceleration Structure: Top Level (TLAS) ]
 //============================================================================================================================================================================================
 
-NriBits(TopLevelInstanceBits, uint32_t,
+ENGINE_BITs(TopLevelInstanceBits, uint32_t,
     NONE                        = 0,
-    TRIANGLE_CULL_DISABLE       = NriBit(0), // disables face culling for this instance
-    TRIANGLE_FLIP_FACING        = NriBit(1), // inverts the facing determination for geometry in this instance (since the facing is determined in object space, an instance transform does not change the winding, but a geometry transform does)
-    FORCE_OPAQUE                = NriBit(2), // force enable "OPAQUE_GEOMETRY" bit on all geometries referenced by this instance
-    FORCE_NON_OPAQUE            = NriBit(3), // force disable "OPAQUE_GEOMETRY" bit on all geometries referenced by this instance
-    FORCE_OPACITY_2_STATE       = NriBit(4), // ignore the "unknown" state and only consider the "transparent" or "opaque" bit for all 4-state micromaps encountered during traversal
-    DISABLE_MICROMAPS           = NriBit(5)  // disable micromap test for all triangles and revert to using geometry opaque/non-opaque state instead
+    TRIANGLE_CULL_DISABLE       = ENGINE_BIT(0), // disables face culling for this instance
+    TRIANGLE_FLIP_FACING        = ENGINE_BIT(1), // inverts the facing determination for geometry in this instance (since the facing is determined in object space, an instance transform does not change the winding, but a geometry transform does)
+    FORCE_OPAQUE                = ENGINE_BIT(2), // force enable "OPAQUE_GEOMETRY" bit on all geometries referenced by this instance
+    FORCE_NON_OPAQUE            = ENGINE_BIT(3), // force disable "OPAQUE_GEOMETRY" bit on all geometries referenced by this instance
+    FORCE_OPACITY_2_STATE       = ENGINE_BIT(4), // ignore the "unknown" state and only consider the "transparent" or "opaque" bit for all 4-state micromaps encountered during traversal
+    DISABLE_MICROMAPS           = ENGINE_BIT(5)  // disable micromap test for all triangles and revert to using geometry opaque/non-opaque state instead
 );
 
 NriStruct(TopLevelInstance) {
@@ -236,16 +236,16 @@ NriEnum(AccelerationStructureType, uint8_t,
     BOTTOM_LEVEL
 );
 
-NriBits(AccelerationStructureBits, uint8_t,
+ENGINE_BITs(AccelerationStructureBits, uint8_t,
     NONE                        = 0,
-    ALLOW_UPDATE                = NriBit(0),                // allows to do "updates", which are faster than "builds" (may increase memory usage, build time and decrease traversal performance)
-    ALLOW_COMPACTION            = NriBit(1),                // allows to compact the acceleration structure by copying using "COMPACT" mode
-    ALLOW_DATA_ACCESS           = NriBit(2),                // allows to access vertex data from shaders (requires "features.rayTracingPositionFetch")
-    ALLOW_MICROMAP_UPDATE       = NriBit(3),                // allows to update micromaps via acceleration structure update (may increase size and decrease traversal performance)
-    ALLOW_DISABLE_MICROMAPS     = NriBit(4),                // allows to have "DISABLE_MICROMAPS" flag for instances referencing this BLAS
-    PREFER_FAST_TRACE           = NriBit(5),                // prioritize traversal performance over build time
-    PREFER_FAST_BUILD           = NriBit(6),                // prioritize build time over traversal performance
-    MINIMIZE_MEMORY             = NriBit(7)                 // minimize the amount of memory used during the build (may increase build time and decrease traversal performance)
+    ALLOW_UPDATE                = ENGINE_BIT(0),                // allows to do "updates", which are faster than "builds" (may increase memory usage, build time and decrease traversal performance)
+    ALLOW_COMPACTION            = ENGINE_BIT(1),                // allows to compact the acceleration structure by copying using "COMPACT" mode
+    ALLOW_DATA_ACCESS           = ENGINE_BIT(2),                // allows to access vertex data from shaders (requires "features.rayTracingPositionFetch")
+    ALLOW_MICROMAP_UPDATE       = ENGINE_BIT(3),                // allows to update micromaps via acceleration structure update (may increase size and decrease traversal performance)
+    ALLOW_DISABLE_MICROMAPS     = ENGINE_BIT(4),                // allows to have "DISABLE_MICROMAPS" flag for instances referencing this BLAS
+    PREFER_FAST_TRACE           = ENGINE_BIT(5),                // prioritize traversal performance over build time
+    PREFER_FAST_BUILD           = ENGINE_BIT(6),                // prioritize build time over traversal performance
+    MINIMIZE_MEMORY             = ENGINE_BIT(7)                 // minimize the amount of memory used during the build (may increase build time and decrease traversal performance)
 );
 
 NriStruct(AccelerationStructureDesc) {

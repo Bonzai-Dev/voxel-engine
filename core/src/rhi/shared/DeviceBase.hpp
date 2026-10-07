@@ -62,7 +62,7 @@ struct DeviceBase : public DebugNameBaseVal {
     void ReportMessage(Message messageType, Result result, const char* file, uint32_t line, const char* format, ...) const;
 
     // Pure virtual
-    virtual const DeviceDesc& GetDesc() const = 0;
+    virtual const DeviceInfo& GetDesc() const = 0;
     virtual void Destruct() = 0;
 
     // Virtual

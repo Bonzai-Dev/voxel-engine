@@ -34,9 +34,9 @@ Result TextureD3D12::Allocate(MemoryLocation memoryLocation, float priority, boo
     uint32_t flags = D3D12MA::ALLOCATION_FLAG_STRATEGY_MIN_MEMORY;
     flags |= committed ? D3D12MA::ALLOCATION_FLAG_COMMITTED : D3D12MA::ALLOCATION_FLAG_CAN_ALIAS;
 
-    const DeviceDesc& deviceDesc = m_Device.GetDesc();
+    const DeviceInfo& DeviceInfo = m_Device.GetDesc();
     D3D12_HEAP_FLAGS heapFlags = D3D12_HEAP_FLAG_ALLOW_ALL_BUFFERS_AND_TEXTURES;
-    if (deviceDesc.tiers.memory == 0) {
+    if (DeviceInfo.tiers.memory == 0) {
         if (m_Desc.usage & (TextureUsageBits::COLOR_ATTACHMENT | TextureUsageBits::DEPTH_STENCIL_ATTACHMENT))
             heapFlags = D3D12_HEAP_FLAG_ALLOW_ONLY_RT_DS_TEXTURES;
         else

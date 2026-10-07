@@ -117,7 +117,7 @@ struct DeviceD3D12 final : public DeviceBase {
     // DeviceBase
     //================================================================================================================
 
-    inline const DeviceDesc& GetDesc() const override {
+    inline const DeviceInfo& GetDesc() const override {
         return m_Desc;
     }
 
@@ -181,7 +181,7 @@ private:
     UnorderedMap<uint32_t, ComPtr<ID3D12CommandSignature>> m_DrawMeshCommandSignatures;    // m_CommandSignatureLock
     std::array<Vector<QueueD3D12*>, (size_t)QueueType::MAX_NUM> m_QueueFamilies;
     CoreInterface m_iCore = {};
-    DeviceDesc m_Desc = {};
+    DeviceInfo m_Desc = {};
     void* m_CallbackHandle = nullptr;
     DWORD m_CallbackCookie = 0;
     uint8_t m_TightAlignmentTier = 0;

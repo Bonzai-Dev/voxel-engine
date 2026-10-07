@@ -114,7 +114,7 @@ struct DeviceD3D11 final : public DeviceBase {
     // DeviceBase
     //================================================================================================================
 
-    inline const DeviceDesc& GetDesc() const override {
+    inline const DeviceInfo& GetDesc() const override {
         return m_Desc;
     }
 
@@ -164,7 +164,7 @@ private:
     std::array<Vector<QueueD3D11*>, (size_t)QueueType::MAX_NUM> m_QueueFamilies;
     CRITICAL_SECTION m_CriticalSection = {};
     CoreInterface m_iCore = {};
-    DeviceDesc m_Desc = {};
+    DeviceInfo m_Desc = {};
     uint8_t m_Version = 0;
     uint8_t m_ImmediateContextVersion = 0;
     bool m_IsWrapped = false;

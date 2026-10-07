@@ -171,7 +171,7 @@ Result PipelineLayoutVK::Create(const PipelineLayoutDesc& pipelineLayoutDesc) {
 }
 
 void PipelineLayoutVK::CreateSetLayout(VkDescriptorSetLayout* setLayout, const DescriptorSetDesc& descriptorSetDesc, const RootSamplerDesc* rootSamplers, uint32_t rootSamplerNum, bool ignoreGlobalSPIRVOffsets, bool isPush) {
-    const DeviceDesc& deviceDesc = m_Device.GetDesc();
+    const DeviceInfo& DeviceInfo = m_Device.GetDesc();
 
     // Binding offsets
     VKBindingOffsets vkBindingOffsets = {};
@@ -214,7 +214,7 @@ void PipelineLayoutVK::CreateSetLayout(VkDescriptorSetLayout* setLayout, const D
         VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
         VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR,
     };
-    const VkMutableDescriptorTypeListEXT mutableTypeList = {deviceDesc.tiers.rayTracing ? 7u : 6u, mutableTypes};
+    const VkMutableDescriptorTypeListEXT mutableTypeList = {DeviceInfo.tiers.rayTracing ? 7u : 6u, mutableTypes};
 
     for (uint32_t i = 0; i < descriptorSetDesc.rangeNum; i++) {
         const DescriptorRangeDesc& range = descriptorSetDesc.ranges[i];
@@ -289,12 +289,12 @@ void PipelineLayoutVK::CreateSetLayout(VkDescriptorSetLayout* setLayout, const D
     mutableTypeInfo.pMutableDescriptorTypeLists = mutableTypeLists;
 
     VkDescriptorSetLayoutBindingFlagsCreateInfo bindingFlagsInfo = {VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO};
-    bindingFlagsInfo.pNext = deviceDesc.features.mutableDescriptorType ? &mutableTypeInfo : nullptr;
+    bindingFlagsInfo.pNext = DeviceInfo.features.mutableDescriptorType ? &mutableTypeInfo : nullptr;
     bindingFlagsInfo.bindingCount = bindingNum;
     bindingFlagsInfo.pBindingFlags = bindingFlags;
 
     VkDescriptorSetLayoutCreateInfo info = {VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO};
-    info.pNext = deviceDesc.tiers.bindless != 0 ? &bindingFlagsInfo : nullptr;
+    info.pNext = DeviceInfo.tiers.bindless != 0 ? &bindingFlagsInfo : nullptr;
     info.bindingCount = bindingNum;
     info.pBindings = bindings;
     info.flags = (descriptorSetDesc.flags & DescriptorSetBits::ALLOW_UPDATE_AFTER_SET) ? VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT : 0;

@@ -9,7 +9,7 @@ struct Ngx;
 
 namespace nri {
 
-bool IsUpscalerSupported(const DeviceDesc& deviceDesc, UpscalerType type);
+bool IsUpscalerSupported(const DeviceInfo& DeviceInfo, UpscalerType type);
 
 struct UpscalerImpl final : public DebugNameBase {
     inline UpscalerImpl(Device& device, const CoreInterface& NRI)

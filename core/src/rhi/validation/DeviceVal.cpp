@@ -26,12 +26,12 @@ static inline bool IsRayTracingShaderStageValid(StageBits shaderStages, StageBit
     return n == 1;
 }
 
-static inline bool IsShaderStageSupported(const DeviceDesc& deviceDesc, StageBits shaderStages) {
-    if ((shaderStages & StageBits::TESSELLATION_SHADERS) != 0 && !deviceDesc.features.tessellationShader)
+static inline bool IsShaderStageSupported(const DeviceInfo& DeviceInfo, StageBits shaderStages) {
+    if ((shaderStages & StageBits::TESSELLATION_SHADERS) != 0 && !DeviceInfo.features.tessellationShader)
         return false;
-    if ((shaderStages & StageBits::GEOMETRY_SHADER) != 0 && !deviceDesc.features.geometryShader)
+    if ((shaderStages & StageBits::GEOMETRY_SHADER) != 0 && !DeviceInfo.features.geometryShader)
         return false;
-    if ((shaderStages & StageBits::MESH_SHADERS) != 0 && !deviceDesc.features.meshShader)
+    if ((shaderStages & StageBits::MESH_SHADERS) != 0 && !DeviceInfo.features.meshShader)
         return false;
 
     return true;
@@ -376,11 +376,11 @@ NRI_INLINE Result DeviceVal::CreateDescriptor(const SamplerDesc& samplerDesc, De
 NRI_INLINE Result DeviceVal::CreatePipelineLayout(const PipelineLayoutDesc& pipelineLayoutDesc, PipelineLayout*& pipelineLayout) {
     NRI_RETURN_ON_FAILURE(this, pipelineLayoutDesc.shaderStages != StageBits::NONE, Result::INVALID_ARGUMENT, "'shaderStages' can't be 'NONE'");
 
-    const DeviceDesc& deviceDesc = GetDesc();
+    const DeviceInfo& DeviceInfo = GetDesc();
     if (pipelineLayoutDesc.flags & PipelineLayoutBits::ENABLE_DRAW_PARAMETERS_EMULATION)
-        NRI_RETURN_ON_FAILURE(this, deviceDesc.shaderFeatures.drawParameters, Result::INVALID_ARGUMENT, "'ENABLE_DRAW_PARAMETERS_EMULATION' requires 'shaderFeatures.drawParameters'");
+        NRI_RETURN_ON_FAILURE(this, DeviceInfo.shaderFeatures.drawParameters, Result::INVALID_ARGUMENT, "'ENABLE_DRAW_PARAMETERS_EMULATION' requires 'shaderFeatures.drawParameters'");
     if (pipelineLayoutDesc.flags & PipelineLayoutBits::ENABLE_DRAW_INDEX_EMULATION)
-        NRI_RETURN_ON_FAILURE(this, deviceDesc.shaderFeatures.drawIndex, Result::INVALID_ARGUMENT, "'ENABLE_DRAW_INDEX_EMULATION' requires 'shaderFeatures.drawIndex'");
+        NRI_RETURN_ON_FAILURE(this, DeviceInfo.shaderFeatures.drawIndex, Result::INVALID_ARGUMENT, "'ENABLE_DRAW_INDEX_EMULATION' requires 'shaderFeatures.drawIndex'");
 
     Scratch<uint32_t> spaces = NRI_ALLOCATE_SCRATCH(*this, uint32_t, pipelineLayoutDesc.descriptorSetNum);
 
@@ -393,7 +393,7 @@ NRI_INLINE Result DeviceVal::CreatePipelineLayout(const PipelineLayoutDesc& pipe
 
             NRI_RETURN_ON_FAILURE(this, range.descriptorNum > 0, Result::INVALID_ARGUMENT, "'descriptorSets[%u].ranges[%u].descriptorNum' is 0", i, j);
             NRI_RETURN_ON_FAILURE(this, range.descriptorType < DescriptorType::MAX_NUM, Result::INVALID_ARGUMENT, "'descriptorSets[%u].ranges[%u].descriptorType' is invalid", i, j);
-            NRI_RETURN_ON_FAILURE(this, !(range.flags & DescriptorRangeBits::VARIABLE_SIZED_ARRAY) || deviceDesc.tiers.bindless != 0, Result::INVALID_ARGUMENT, "'descriptorSets[%u].ranges[%u].flags' has 'VARIABLE_SIZED_ARRAY', but 'tiers.bindless' is 0", i, j);
+            NRI_RETURN_ON_FAILURE(this, !(range.flags & DescriptorRangeBits::VARIABLE_SIZED_ARRAY) || DeviceInfo.tiers.bindless != 0, Result::INVALID_ARGUMENT, "'descriptorSets[%u].ranges[%u].flags' has 'VARIABLE_SIZED_ARRAY', but 'tiers.bindless' is 0", i, j);
 
             if (range.shaderStages != StageBits::ALL) {
                 const uint32_t filteredVisibilityMask = range.shaderStages & pipelineLayoutDesc.shaderStages;
@@ -457,7 +457,7 @@ NRI_INLINE Result DeviceVal::CreatePipelineLayout(const PipelineLayoutDesc& pipe
     origSettings.enableD3D12DrawParametersEmulation = (pipelineLayoutDesc.flags & PipelineLayoutBits::ENABLE_DRAW_PARAMETERS_EMULATION) != 0 && (pipelineLayoutDesc.shaderStages & StageBits::VERTEX_SHADER) != 0;
     origSettings.enableD3D12DrawIndexEmulation = (pipelineLayoutDesc.flags & PipelineLayoutBits::ENABLE_DRAW_INDEX_EMULATION) != 0 && (pipelineLayoutDesc.shaderStages & StageBits::VERTEX_SHADER) != 0;
 
-    PipelineLayoutSettingsDesc fittedSettings = FitPipelineLayoutSettingsIntoDeviceLimits(deviceDesc, origSettings);
+    PipelineLayoutSettingsDesc fittedSettings = FitPipelineLayoutSettingsIntoDeviceLimits(DeviceInfo, origSettings);
     NRI_RETURN_ON_FAILURE(this, origSettings.descriptorSetNum == fittedSettings.descriptorSetNum, Result::INVALID_ARGUMENT, "total number of descriptor sets (=%u) exceeds device limits", origSettings.descriptorSetNum);
     NRI_RETURN_ON_FAILURE(this, origSettings.descriptorRangeNum == fittedSettings.descriptorRangeNum, Result::INVALID_ARGUMENT, "total number of descriptor ranges (=%u) exceeds device limits", origSettings.descriptorRangeNum);
     NRI_RETURN_ON_FAILURE(this, origSettings.rootConstantSize == fittedSettings.rootConstantSize, Result::INVALID_ARGUMENT, "total size of root constants (=%u) exceeds device limits", origSettings.rootConstantSize);

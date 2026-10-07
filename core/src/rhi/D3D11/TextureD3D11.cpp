@@ -101,9 +101,9 @@ Result TextureD3D11::Create(const TextureD3D11Desc& textureD3D11Desc) {
 uint32_t TextureD3D11::GetMipmappedSize(const TextureDesc& textureDesc) {
     bool isCompressed = textureDesc.format >= Format::BC1_RGBA_UNORM && textureDesc.format <= Format::BC7_RGBA_SRGB;
 
-    uint32_t w = GetDimension(GraphicsAPI::D3D11, textureDesc, 0, 0);
-    uint32_t h = GetDimension(GraphicsAPI::D3D11, textureDesc, 1, 0);
-    uint32_t d = GetDimension(GraphicsAPI::D3D11, textureDesc, 2, 0);
+    uint32_t w = GetDimension(GraphicsBackend::D3D11, textureDesc, 0, 0);
+    uint32_t h = GetDimension(GraphicsBackend::D3D11, textureDesc, 1, 0);
+    uint32_t d = GetDimension(GraphicsBackend::D3D11, textureDesc, 2, 0);
     uint32_t mipNum = textureDesc.mipNum;
     uint32_t size = 0;
 

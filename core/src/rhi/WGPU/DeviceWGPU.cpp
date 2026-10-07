@@ -41,7 +41,7 @@ DeviceWGPU::DeviceWGPU(const CallbackInterface& callbacks, const AllocationCallb
           Vector<QueueWGPU*>(GetStdAllocator()),
           Vector<QueueWGPU*>(GetStdAllocator()),
       } {
-    m_Desc.graphicsAPI = GraphicsAPI::WGPU;
+    m_Desc.graphicsAPI = GraphicsBackend::WGPU;
     m_Desc.nriVersion = NRI_VERSION;
 }
 
@@ -203,11 +203,11 @@ Result DeviceWGPU::CreateInstanceAndDevice(const DeviceCreationDesc& desc) {
     WGPUDeviceExtras deviceExtras = {};
     deviceExtras.chain.sType = (WGPUSType)WGPUSType_DeviceExtras;
 
-    WGPUDeviceDescriptor deviceDesc = WGPU_DEVICE_DESCRIPTOR_INIT;
-    deviceDesc.nextInChain = &deviceExtras.chain;
-    deviceDesc.requiredFeatureCount = requiredFeatureNum;
-    deviceDesc.requiredFeatures = requiredFeatures.data();
-    deviceDesc.requiredLimits = &requiredLimits;
+    WGPUDeviceInforiptor DeviceInfo = WGPU_DEVICE_DESCRIPTOR_INIT;
+    DeviceInfo.nextInChain = &deviceExtras.chain;
+    DeviceInfo.requiredFeatureCount = requiredFeatureNum;
+    DeviceInfo.requiredFeatures = requiredFeatures.data();
+    DeviceInfo.requiredLimits = &requiredLimits;
 
     RequestDeviceContext deviceContext = {};
     WGPURequestDeviceCallbackInfo deviceCallbackInfo = WGPU_REQUEST_DEVICE_CALLBACK_INFO_INIT;
@@ -215,7 +215,7 @@ Result DeviceWGPU::CreateInstanceAndDevice(const DeviceCreationDesc& desc) {
     deviceCallbackInfo.callback = OnDeviceRequested;
     deviceCallbackInfo.userdata1 = &deviceContext;
 
-    wgpuAdapterRequestDevice(m_Adapter, &deviceDesc, deviceCallbackInfo);
+    wgpuAdapterRequestDevice(m_Adapter, &DeviceInfo, deviceCallbackInfo);
     WaitForAsyncRequest(m_Instance, deviceContext.done);
 
     if (deviceContext.status != WGPURequestDeviceStatus_Success || !deviceContext.device)
@@ -346,7 +346,7 @@ void DeviceWGPU::FillDesc(const AdapterDesc& adapterDesc) {
     m_Desc.tiers.bindless = 0;
     m_Desc.tiers.memory = 1;
 
-    // TODO: Unsupported WebGPU features are intentionally left false/zero in "DeviceDesc"; add explicit caps only when WGPU can back the NRI behavior.
+    // TODO: Unsupported WebGPU features are intentionally left false/zero in "DeviceInfo"; add explicit caps only when WGPU can back the NRI behavior.
     m_Desc.features.swapChain = true;
     m_Desc.features.textureCompressionBC = wgpuDeviceHasFeature(m_Device, WGPUFeatureName_TextureCompressionBC) == WGPU_TRUE;
     m_Desc.features.textureCompressionETC2 = wgpuDeviceHasFeature(m_Device, WGPUFeatureName_TextureCompressionETC2) == WGPU_TRUE;

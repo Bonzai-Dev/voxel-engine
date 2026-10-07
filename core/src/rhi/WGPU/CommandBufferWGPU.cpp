@@ -1185,8 +1185,8 @@ void CommandBufferWGPU::BeginRendering(const RenderingDesc& renderingDesc) {
 
         if (textureDesc) {
             if (!m_RenderWidth) {
-                m_RenderWidth = GetDimension(GraphicsAPI::WGPU, *textureDesc, 0, descriptor.GetTextureViewDesc().mipOffset);
-                m_RenderHeight = GetDimension(GraphicsAPI::WGPU, *textureDesc, 1, descriptor.GetTextureViewDesc().mipOffset);
+                m_RenderWidth = GetDimension(GraphicsBackend::WGPU, *textureDesc, 0, descriptor.GetTextureViewDesc().mipOffset);
+                m_RenderHeight = GetDimension(GraphicsBackend::WGPU, *textureDesc, 1, descriptor.GetTextureViewDesc().mipOffset);
             }
 
             m_RenderSampleNum = textureDesc->sampleNum;
@@ -1208,8 +1208,8 @@ void CommandBufferWGPU::BeginRendering(const RenderingDesc& renderingDesc) {
             depthStencilAttachment.view = descriptor.GetTextureView();
 
         if (!m_RenderWidth && textureDesc) {
-            m_RenderWidth = GetDimension(GraphicsAPI::WGPU, *textureDesc, 0, descriptor.GetTextureViewDesc().mipOffset);
-            m_RenderHeight = GetDimension(GraphicsAPI::WGPU, *textureDesc, 1, descriptor.GetTextureViewDesc().mipOffset);
+            m_RenderWidth = GetDimension(GraphicsBackend::WGPU, *textureDesc, 0, descriptor.GetTextureViewDesc().mipOffset);
+            m_RenderHeight = GetDimension(GraphicsBackend::WGPU, *textureDesc, 1, descriptor.GetTextureViewDesc().mipOffset);
         }
 
         if (textureDesc)
@@ -1365,10 +1365,10 @@ static void FillTexelCopyTexture(WGPUTexelCopyTextureInfo& out, const TextureWGP
 
 static WGPUExtent3D GetCopySize(const TextureDesc& textureDesc, const TextureRegionDesc& region) {
     WGPUExtent3D size = {};
-    size.width = region.width == WHOLE_SIZE ? GetDimension(GraphicsAPI::WGPU, textureDesc, 0, region.mipOffset) : region.width;
-    size.height = region.height == WHOLE_SIZE ? GetDimension(GraphicsAPI::WGPU, textureDesc, 1, region.mipOffset) : region.height;
+    size.width = region.width == WHOLE_SIZE ? GetDimension(GraphicsBackend::WGPU, textureDesc, 0, region.mipOffset) : region.width;
+    size.height = region.height == WHOLE_SIZE ? GetDimension(GraphicsBackend::WGPU, textureDesc, 1, region.mipOffset) : region.height;
     if (textureDesc.type == TextureType::TEXTURE_3D)
-        size.depthOrArrayLayers = region.depth == WHOLE_SIZE ? (uint32_t)GetDimension(GraphicsAPI::WGPU, textureDesc, 2, region.mipOffset) : (uint32_t)GetCountOrOne(region.depth);
+        size.depthOrArrayLayers = region.depth == WHOLE_SIZE ? (uint32_t)GetDimension(GraphicsBackend::WGPU, textureDesc, 2, region.mipOffset) : (uint32_t)GetCountOrOne(region.depth);
     else
         size.depthOrArrayLayers = region.depth == WHOLE_SIZE ? textureDesc.layerNum - region.layerOffset : (uint32_t)GetCountOrOne(region.depth);
 
@@ -1811,10 +1811,10 @@ void CommandBufferWGPU::ClearStorage(const ClearStorageDesc& clearStorageDesc) {
     const TextureDesc& textureDesc = texture->GetDesc();
     const TextureViewDesc& viewDesc = descriptor.GetTextureViewDesc();
     Format format = descriptor.GetFormat();
-    uint32_t width = GetDimension(GraphicsAPI::WGPU, textureDesc, 0, viewDesc.mipOffset);
-    uint32_t height = GetDimension(GraphicsAPI::WGPU, textureDesc, 1, viewDesc.mipOffset);
+    uint32_t width = GetDimension(GraphicsBackend::WGPU, textureDesc, 0, viewDesc.mipOffset);
+    uint32_t height = GetDimension(GraphicsBackend::WGPU, textureDesc, 1, viewDesc.mipOffset);
     uint32_t layerNum = viewDesc.layerNum == REMAINING ? textureDesc.layerNum - viewDesc.layerOffset : viewDesc.layerNum;
-    uint32_t depth = textureDesc.type == TextureType::TEXTURE_3D ? GetDimension(GraphicsAPI::WGPU, textureDesc, 2, viewDesc.mipOffset) : std::max(layerNum, 1u);
+    uint32_t depth = textureDesc.type == TextureType::TEXTURE_3D ? GetDimension(GraphicsBackend::WGPU, textureDesc, 2, viewDesc.mipOffset) : std::max(layerNum, 1u);
     WGPUTextureViewDimension dimension = GetTextureViewDimension(viewDesc.type, textureDesc);
 
     WGPUBindGroupLayout bindGroupLayout = nullptr;

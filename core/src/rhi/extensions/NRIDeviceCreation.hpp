@@ -52,7 +52,7 @@ NriStruct(QueueFamilyDesc) {
 };
 
 NriStruct(DeviceCreationDesc) {
-    Nri(GraphicsAPI) graphicsAPI;
+    Nri(GraphicsBackend) graphicsAPI;
     NriOptional Nri(Robustness) robustness;
     NriOptional const NriPtr(AdapterDesc) adapterDesc;
     NriOptional Nri(CallbackInterface) callbackInterface;

@@ -47,18 +47,18 @@ Triangle.exe -a WGPU --timeLimit=8 --debugNRI --debugAPI
 - `std::vector` must not be used in WGPU backend code. Use only NRI `Vector` with the custom allocator for persistent storage.
 - Never use `Vector` for runtime temporary storage. Use `NRI_ALLOCATE_SCRATCH` instead.
 - Use "std::array" in cases where out-of-bounds behavior may be trapped in Debug mode. C-style fixed size arrays are fine if they are passed in functions as "raw data pointers".
-- NRI GAPI backends must not do validity checks. Validation must remain feature-driven and must not special-case `GraphicsAPI::WGPU`.
+- NRI GAPI backends must not do validity checks. Validation must remain feature-driven and must not special-case `GraphicsBackend::WGPU`.
 - Validation must not inspect shader code to identify SPIR-V/WGSL. Shader bytecode format handling is backend responsibility.
 - WebGPU exposes a single device queue. NRI reports:
   - `GRAPHICS = 1`
   - `COMPUTE = 0`
   - `COPY = 0`
 - Compute pipelines and compute dispatch are supported on the graphics queue. Async compute must be disabled in samples.
-- Unsupported WebGPU features should be exposed through `DeviceDesc` fields and tiers, not through backend-side rejection.
+- Unsupported WebGPU features should be exposed through `DeviceInfo` fields and tiers, not through backend-side rejection.
 
 ## TODOs
 
-- Clarify or replace `DeviceDesc::shaderModel = NriShaderModel(6, 0)`
+- Clarify or replace `DeviceInfo::shaderModel = NriShaderModel(6, 0)`
   - WebGPU/WGSL does not expose a D3D-style shader model, so the current value is only a compatibility placeholder.
 - Implement occlusion queries:
   - WebGPU supports occlusion query sets and begin/end commands;
@@ -80,13 +80,13 @@ Triangle.exe -a WGPU --timeLimit=8 --debugNRI --debugAPI
 - Finish descriptor array support:
   - fixed-size `DescriptorRangeBits::ARRAY` maps to one native binding with an array size, matching the Vulkan backend's `descriptorCount = range.descriptorNum`;
   - WGPU requests native binding-array features opportunistically;
-  - fixed arrays are not gated by `DeviceDesc` / Validation today, so adapters without WGPU binding-array features can fail during backend layout creation;
-  - `VARIABLE_SIZED_ARRAY` is rejected by Validation through existing `DeviceDesc` tiers;
+  - fixed arrays are not gated by `DeviceInfo` / Validation today, so adapters without WGPU binding-array features can fail during backend layout creation;
+  - `VARIABLE_SIZED_ARRAY` is rejected by Validation through existing `DeviceInfo` tiers;
   - `PARTIALLY_BOUND` still needs complete descriptor-set allocation/update behavior or a clearer capability story.
 - Decide how to represent true update-after-set descriptors:
   - WGPU bind groups are immutable after command recording;
   - same-set rebind after a descriptor update is handled by tracking descriptor-set update versions during command recording;
-  - descriptor updates after `CmdSetDescriptorSet` without rebinding still need a `DeviceDesc` cap or API convention before `ALLOW_UPDATE_AFTER_SET` can be advertised accurately.
+  - descriptor updates after `CmdSetDescriptorSet` without rebinding still need a `DeviceInfo` cap or API convention before `ALLOW_UPDATE_AFTER_SET` can be advertised accurately.
 - Decide how to represent indirect-count draws:
   - WGPU native count-buffer draw calls do not expose NRI's indirect command stride;
   - keep `features.drawIndirectCount = false` until the API mismatch is solved or an emulation path is added.

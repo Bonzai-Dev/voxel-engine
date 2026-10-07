@@ -60,7 +60,7 @@ Result CreateDeviceD3D11(const DeviceCreationDesc& desc, const DeviceCreationD3D
 //============================================================================================================================================================================================
 #pragma region[  Core  ]
 
-static const DeviceDesc& NRI_CALL GetDeviceDesc(const Device& device) {
+static const DeviceInfo& NRI_CALL GetDeviceInfo(const Device& device) {
     return ((DeviceD3D11&)device).GetDesc();
 }
 
@@ -760,7 +760,7 @@ static void* NRI_CALL EmuGetCommandBufferNativeObject(const CommandBuffer* comma
 }
 
 Result DeviceD3D11::FillFunctionTable(CoreInterface& table) const {
-    table.GetDeviceDesc = ::GetDeviceDesc;
+    table.GetDeviceInfo = ::GetDeviceInfo;
     table.GetBufferDesc = ::GetBufferDesc;
     table.GetTextureDesc = ::GetTextureDesc;
     table.GetFormatSupport = ::GetFormatSupport;

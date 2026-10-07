@@ -130,6 +130,6 @@ NriStruct(WrapperVKInterface) {
     void*       (NRI_CALL *GetDeviceProcAddrVK)             (const NriRef(Device) device);
 };
 
-NRI_API Nri(Result) NRI_CALL nriCreateDeviceFromVKDevice(const NriRef(DeviceCreationVKDesc) deviceDesc, NriOut NriRef(Device*) device);
+NRI_API Nri(Result) NRI_CALL nriCreateDeviceFromVKDevice(const NriRef(DeviceCreationVKDesc) DeviceInfo, NriOut NriRef(Device*) device);
 
 NriNamespaceEnd

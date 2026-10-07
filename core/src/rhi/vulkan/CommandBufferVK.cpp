@@ -1,0 +1,1875 @@
+// © 2021 NVIDIA Corporation
+
+#include <math.h>
+
+static inline VkPipelineBindPoint GetPipelineBindPoint(BindPoint bindPoint) {
+    switch (bindPoint) {
+        case BindPoint::COMPUTE:
+            return VK_PIPELINE_BIND_POINT_COMPUTE;
+        case BindPoint::RAY_TRACING:
+            return VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR;
+        default:
+            return VK_PIPELINE_BIND_POINT_GRAPHICS;
+    }
+}
+
+static inline bool RangesOverlap(const InputAttachmentRange& a, const VkImageSubresourceRange& b) {
+    uint32_t mipOffset = a.mipOffset;
+    uint32_t mipNum = a.mipNum;
+    uint32_t layerOffset = a.layerOffset;
+    uint32_t layerNum = a.layerNum;
+
+    return (a.aspects & b.aspectMask)
+        && mipOffset < b.baseMipLevel + b.levelCount
+        && b.baseMipLevel < mipOffset + mipNum
+        && layerOffset < b.baseArrayLayer + b.layerCount
+        && b.baseArrayLayer < layerOffset + layerNum;
+}
+
+static inline VkImageAspectFlags GetLowestBit(VkImageAspectFlags x) {
+    return x & (~x + 1);
+}
+
+static inline bool ContainsRange(const InputAttachmentRange& a, VkImage image, VkImageAspectFlags aspects, uint32_t mipOffset, uint32_t mipNum, uint32_t layerOffset, uint32_t layerNum) {
+    uint32_t aMipOffset = a.mipOffset;
+    uint32_t aMipNum = a.mipNum;
+    uint32_t aLayerOffset = a.layerOffset;
+    uint32_t aLayerNum = a.layerNum;
+
+    return a.image == image
+        && (a.aspects & aspects) == aspects
+        && aMipOffset <= mipOffset
+        && mipOffset + mipNum <= aMipOffset + aMipNum
+        && aLayerOffset <= layerOffset
+        && layerOffset + layerNum <= aLayerOffset + aLayerNum;
+}
+
+static inline bool TryMergeInputAttachmentRanges(InputAttachmentRange& a, const InputAttachmentRange& b) {
+    if (a.image != b.image)
+        return false;
+
+    if (a.mipOffset == b.mipOffset && a.mipNum == b.mipNum && a.layerOffset == b.layerOffset && a.layerNum == b.layerNum) {
+        a.aspects |= b.aspects;
+        return true;
+    }
+
+    if (a.aspects != b.aspects)
+        return false;
+
+    if (ContainsRange(a, b.image, b.aspects, b.mipOffset, b.mipNum, b.layerOffset, b.layerNum))
+        return true;
+
+    if (ContainsRange(b, a.image, a.aspects, a.mipOffset, a.mipNum, a.layerOffset, a.layerNum)) {
+        a = b;
+        return true;
+    }
+
+    uint32_t aMipOffset = a.mipOffset;
+    uint32_t aMipEnd = aMipOffset + a.mipNum;
+    uint32_t bMipOffset = b.mipOffset;
+    uint32_t bMipEnd = bMipOffset + b.mipNum;
+    uint32_t aLayerOffset = a.layerOffset;
+    uint32_t aLayerEnd = aLayerOffset + a.layerNum;
+    uint32_t bLayerOffset = b.layerOffset;
+    uint32_t bLayerEnd = bLayerOffset + b.layerNum;
+
+    if (aLayerOffset == bLayerOffset && aLayerEnd == bLayerEnd && aMipOffset <= bMipEnd && bMipOffset <= aMipEnd) {
+        uint32_t mipOffset = std::min(aMipOffset, bMipOffset);
+        a.mipOffset = (Dim_t)mipOffset;
+        a.mipNum = (Dim_t)(std::max(aMipEnd, bMipEnd) - mipOffset);
+        return true;
+    }
+
+    if (aMipOffset == bMipOffset && aMipEnd == bMipEnd && aLayerOffset <= bLayerEnd && bLayerOffset <= aLayerEnd) {
+        uint32_t layerOffset = std::min(aLayerOffset, bLayerOffset);
+        a.layerOffset = (Dim_t)layerOffset;
+        a.layerNum = (Dim_t)(std::max(aLayerEnd, bLayerEnd) - layerOffset);
+        return true;
+    }
+
+    return false;
+}
+
+static inline void NormalizeInputAttachmentRanges(Vector<InputAttachmentRange>& ranges) {
+    if (ranges.size() < 2)
+        return;
+
+    // This is O(n^2) and can repeat until stable, but it's a win on average
+    bool hasMerged = false;
+    do {
+        hasMerged = false;
+
+        for (size_t i = 0; i < ranges.size(); i++) {
+            for (size_t j = i + 1; j < ranges.size();) {
+                if (TryMergeInputAttachmentRanges(ranges[i], ranges[j])) {
+                    ranges[j] = ranges.back();
+                    ranges.pop_back();
+                    hasMerged = true;
+                } else
+                    j++;
+            }
+        }
+    } while (hasMerged);
+}
+
+static inline VkImageSubresourceRange GetSubresourceRange(const TextureVK& textureVK, const VkImageSubresourceRange& range) {
+    const TextureDesc& textureDesc = textureVK.GetDesc();
+
+    VkImageSubresourceRange out = range;
+    if (out.levelCount == VK_REMAINING_MIP_LEVELS)
+        out.levelCount = textureDesc.mipNum - out.baseMipLevel;
+    if (out.layerCount == VK_REMAINING_ARRAY_LAYERS)
+        out.layerCount = textureDesc.layerNum - out.baseArrayLayer;
+
+    return out;
+}
+
+static inline VkImageSubresourceRange GetSubresourceRange(const DescriptorVK& descriptorVK) {
+    const TexViewDesc& texViewDesc = descriptorVK.GetTexViewDesc();
+    const TextureDesc& textureDesc = texViewDesc.texture->GetDesc();
+
+    VkImageSubresourceRange out = {};
+    out.aspectMask = texViewDesc.aspectMask;
+    out.baseMipLevel = texViewDesc.mipOffset;
+    out.levelCount = texViewDesc.mipNum;
+    out.baseArrayLayer = textureDesc.type == TextureType::TEXTURE_3D ? 0 : texViewDesc.layerOrSliceOffset;
+    out.layerCount = textureDesc.type == TextureType::TEXTURE_3D ? 1 : texViewDesc.layerOrSliceNum;
+
+    return out;
+}
+
+static inline void AppendInputAttachmentRange(Vector<InputAttachmentRange>& ranges, VkImage image, VkImageAspectFlags aspectMask, uint32_t mipOffset, uint32_t mipNum, uint32_t layerOffset, uint32_t layerNum) {
+    if (!aspectMask || !mipNum || !layerNum)
+        return;
+
+    ranges.push_back({image, aspectMask, (Dim_t)mipOffset, (Dim_t)mipNum, (Dim_t)layerOffset, (Dim_t)layerNum});
+}
+
+static inline void AppendSubtractedInputAttachmentRanges(Vector<InputAttachmentRange>& ranges, VkImage image, const InputAttachmentRange& oldRange, const VkImageSubresourceRange& range) {
+    VkImageAspectFlags removedAspects = oldRange.aspects & range.aspectMask;
+    VkImageAspectFlags remainingAspects = oldRange.aspects & ~range.aspectMask;
+
+    if (remainingAspects)
+        AppendInputAttachmentRange(ranges, image, remainingAspects, oldRange.mipOffset, oldRange.mipNum, oldRange.layerOffset, oldRange.layerNum);
+
+    uint32_t mipBegin = std::max((uint32_t)oldRange.mipOffset, range.baseMipLevel);
+    uint32_t mipEnd = std::min((uint32_t)(oldRange.mipOffset + oldRange.mipNum), range.baseMipLevel + range.levelCount);
+    uint32_t layerBegin = std::max((uint32_t)oldRange.layerOffset, range.baseArrayLayer);
+    uint32_t layerEnd = std::min((uint32_t)(oldRange.layerOffset + oldRange.layerNum), range.baseArrayLayer + range.layerCount);
+
+    AppendInputAttachmentRange(ranges, image, removedAspects, oldRange.mipOffset, mipBegin - oldRange.mipOffset, oldRange.layerOffset, oldRange.layerNum);
+    AppendInputAttachmentRange(ranges, image, removedAspects, mipEnd, oldRange.mipOffset + oldRange.mipNum - mipEnd, oldRange.layerOffset, oldRange.layerNum);
+    AppendInputAttachmentRange(ranges, image, removedAspects, mipBegin, mipEnd - mipBegin, oldRange.layerOffset, layerBegin - oldRange.layerOffset);
+    AppendInputAttachmentRange(ranges, image, removedAspects, mipBegin, mipEnd - mipBegin, layerEnd, oldRange.layerOffset + oldRange.layerNum - layerEnd);
+}
+
+static inline bool HasInputAttachmentRange(const Vector<InputAttachmentRange>& ranges, VkImage image, const VkImageSubresourceRange& range) {
+    bool isFullyContained = true;
+    for (VkImageAspectFlags aspects = range.aspectMask; aspects; aspects &= aspects - 1) {
+        VkImageAspectFlags aspectMask = GetLowestBit(aspects);
+        bool isAspectContained = false;
+
+        for (const InputAttachmentRange& inputAttachmentRange : ranges) {
+            if (ContainsRange(inputAttachmentRange, image, aspectMask, range.baseMipLevel, range.levelCount, range.baseArrayLayer, range.layerCount)) {
+                isAspectContained = true;
+                break;
+            }
+        }
+
+        if (!isAspectContained) {
+            isFullyContained = false;
+            break;
+        }
+    }
+
+    if (isFullyContained)
+        return true;
+
+    for (VkImageAspectFlags aspects = range.aspectMask; aspects; aspects &= aspects - 1) {
+        VkImageAspectFlags aspectMask = GetLowestBit(aspects);
+        for (uint32_t mip = range.baseMipLevel; mip < range.baseMipLevel + range.levelCount; mip++) {
+            for (uint32_t layer = range.baseArrayLayer; layer < range.baseArrayLayer + range.layerCount; layer++) {
+                VkImageSubresourceRange subresource = {aspectMask, mip, 1, layer, 1};
+                bool isCovered = false;
+
+                for (const InputAttachmentRange& inputAttachmentRange : ranges) {
+                    if (inputAttachmentRange.image == image && RangesOverlap(inputAttachmentRange, subresource)) {
+                        isCovered = true;
+                        break;
+                    }
+                }
+
+                if (!isCovered)
+                    return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+static inline void AddInputAttachmentRange(Vector<InputAttachmentRange>& ranges, VkImage image, const VkImageSubresourceRange& range) {
+    if (ranges.empty()) {
+        AppendInputAttachmentRange(ranges, image, range.aspectMask, range.baseMipLevel, range.levelCount, range.baseArrayLayer, range.layerCount);
+        return;
+    }
+
+    if (HasInputAttachmentRange(ranges, image, range))
+        return;
+
+    AppendInputAttachmentRange(ranges, image, range.aspectMask, range.baseMipLevel, range.levelCount, range.baseArrayLayer, range.layerCount);
+    NormalizeInputAttachmentRanges(ranges);
+}
+
+static inline void RemoveInputAttachmentRange(Vector<InputAttachmentRange>& ranges, VkImage image, const VkImageSubresourceRange& range) {
+    if (ranges.empty())
+        return;
+
+    bool hasChanged = false;
+    for (size_t i = 0; i < ranges.size();) {
+        InputAttachmentRange inputAttachmentRange = ranges[i];
+        if (inputAttachmentRange.image != image || !RangesOverlap(inputAttachmentRange, range)) {
+            i++;
+            continue;
+        }
+
+        ranges[i] = ranges.back();
+        ranges.pop_back();
+        AppendSubtractedInputAttachmentRanges(ranges, image, inputAttachmentRange, range);
+        hasChanged = true;
+    }
+
+    if (hasChanged)
+        NormalizeInputAttachmentRanges(ranges);
+}
+
+static inline void FillRenderingAttachmentInfo(VkRenderingAttachmentInfo& attachmentInfo, const AttachmentDesc& attachmentDesc, Dim_t& renderWidth, Dim_t& renderHeight, Dim_t& layerNum) {
+    const DescriptorVK& descriptorVK = *(DescriptorVK*)attachmentDesc.descriptor;
+    const TexViewDesc& texViewDesc = descriptorVK.GetTexViewDesc();
+
+    attachmentInfo = {VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO};
+    attachmentInfo.imageView = descriptorVK.GetImageView();
+    attachmentInfo.imageLayout = texViewDesc.expectedLayout;
+    attachmentInfo.loadOp = GetLoadOp(attachmentDesc.loadOp);
+    attachmentInfo.storeOp = GetStoreOp(attachmentDesc.storeOp);
+    attachmentInfo.clearValue = *(VkClearValue*)&attachmentDesc.clearValue;
+
+    if (attachmentDesc.resolveDst) {
+        const DescriptorVK& resolveDst = *(DescriptorVK*)attachmentDesc.resolveDst;
+
+        attachmentInfo.resolveMode = GetResolveOp(attachmentDesc.resolveOp);
+        attachmentInfo.resolveImageView = resolveDst.GetImageView();
+        attachmentInfo.resolveImageLayout = resolveDst.GetTexViewDesc().expectedLayout;
+    }
+
+    // If "INPUT_ATTACHMENT" usage is set, "VK_IMAGE_LAYOUT_RENDERING_LOCAL_READ" is expected
+    const TextureDesc& textureDesc = texViewDesc.texture->GetDesc();
+    if(textureDesc.usage & TextureUsageBits::INPUT_ATTACHMENT)
+        attachmentInfo.imageLayout = VK_IMAGE_LAYOUT_RENDERING_LOCAL_READ;
+
+    Dim_t w = texViewDesc.texture->GetSize(0, texViewDesc.mipOffset);
+    Dim_t h = texViewDesc.texture->GetSize(1, texViewDesc.mipOffset);
+
+    renderWidth = std::min(renderWidth, w);
+    renderHeight = std::min(renderHeight, h);
+    layerNum = std::min(layerNum, texViewDesc.layerOrSliceNum);
+}
+
+static inline RenderPassAttachmentDesc GetRenderPassAttachmentDesc(const AttachmentDesc& attachmentDesc, bool isInputAttachment = false) {
+    const DescriptorVK& descriptorVK = *(DescriptorVK*)attachmentDesc.descriptor;
+    const TexViewDesc& texViewDesc = descriptorVK.GetTexViewDesc();
+
+    RenderPassAttachmentDesc out = {};
+    out.format = GetVkFormat(descriptorVK.GetFormat());
+    out.sampleNum = (VkSampleCountFlagBits)texViewDesc.texture->GetDesc().sampleNum;
+    out.loadOp = GetLoadOp(attachmentDesc.loadOp);
+    out.storeOp = GetStoreOp(attachmentDesc.storeOp);
+    out.stencilLoadOp = out.loadOp;
+    out.stencilStoreOp = out.storeOp;
+    out.layout = isInputAttachment ? VK_IMAGE_LAYOUT_RENDERING_LOCAL_READ : texViewDesc.expectedLayout;
+
+    return out;
+}
+
+static inline RenderPassAttachmentDesc GetRenderPassResolveAttachmentDesc(const DescriptorVK& descriptorVK) {
+    const TexViewDesc& texViewDesc = descriptorVK.GetTexViewDesc();
+
+    RenderPassAttachmentDesc out = {};
+    out.format = GetVkFormat(descriptorVK.GetFormat());
+    out.sampleNum = VK_SAMPLE_COUNT_1_BIT;
+    out.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    out.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    out.stencilLoadOp = out.loadOp;
+    out.stencilStoreOp = out.storeOp;
+    out.layout = texViewDesc.expectedLayout;
+
+    return out;
+}
+
+static inline void UpdateRenderingExtent(const DescriptorVK& descriptorVK, Dim_t& renderWidth, Dim_t& renderHeight, Dim_t& layerNum) {
+    const TexViewDesc& texViewDesc = descriptorVK.GetTexViewDesc();
+
+    Dim_t w = texViewDesc.texture->GetSize(0, texViewDesc.mipOffset);
+    Dim_t h = texViewDesc.texture->GetSize(1, texViewDesc.mipOffset);
+
+    renderWidth = std::min(renderWidth, w);
+    renderHeight = std::min(renderHeight, h);
+    layerNum = std::min(layerNum, texViewDesc.layerOrSliceNum);
+}
+
+CommandBufferVK::~CommandBufferVK() {
+    if (m_CommandPool) {
+        const auto& vk = m_Device.GetDispatchTable();
+        vk.FreeCommandBuffers(m_Device, m_CommandPool, 1, &m_Handle);
+    }
+}
+
+void CommandBufferVK::Create(VkCommandPool commandPool, VkCommandBuffer commandBuffer, QueueType type) {
+    m_CommandPool = commandPool;
+    m_Handle = commandBuffer;
+    m_Type = type;
+}
+
+Result CommandBufferVK::Create(const CommandBufferVKDesc& commandBufferVKDesc) {
+    m_CommandPool = VK_NULL_HANDLE;
+    m_Handle = (VkCommandBuffer)commandBufferVKDesc.vkCommandBuffer;
+    m_Type = commandBufferVKDesc.queueType;
+
+    return Result::SUCCESS;
+}
+
+NRI_INLINE void CommandBufferVK::SetDebugName(const char* name) {
+    m_Device.SetDebugNameToTrivialObject(VK_OBJECT_TYPE_COMMAND_BUFFER, (uint64_t)m_Handle, name);
+}
+
+NRI_INLINE Result CommandBufferVK::Begin(const DescriptorPool*) {
+    VkCommandBufferBeginInfo info = {VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO};
+    info.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+    const auto& vk = m_Device.GetDispatchTable();
+    VkResult vkResult = vk.BeginCommandBuffer(m_Handle, &info);
+    NRI_RETURN_ON_BAD_VKRESULT(&m_Device, vkResult, "vkBeginCommandBuffer");
+
+    m_PipelineLayout = nullptr;
+    m_PipelineBindPoint = BindPoint::INHERIT;
+    m_InputAttachmentRanges.clear();
+
+    return Result::SUCCESS;
+}
+
+NRI_INLINE Result CommandBufferVK::End() {
+    const auto& vk = m_Device.GetDispatchTable();
+    VkResult vkResult = vk.EndCommandBuffer(m_Handle);
+    NRI_RETURN_ON_BAD_VKRESULT(&m_Device, vkResult, "vkEndCommandBuffer");
+
+    return Result::SUCCESS;
+}
+
+NRI_INLINE void CommandBufferVK::SetViewports(const Viewport* viewports, uint32_t viewportNum) {
+    const DeviceDesc& deviceDesc = m_Device.GetDesc();
+    uint32_t vkViewportNum = (deviceDesc.features.extendedDynamicState || viewportNum == 0) ? viewportNum : deviceDesc.viewport.maxNum;
+    Scratch<VkViewport> vkViewports = NRI_ALLOCATE_SCRATCH(m_Device, VkViewport, vkViewportNum);
+    for (uint32_t i = 0; i < viewportNum; i++) {
+        const Viewport& in = viewports[i];
+        VkViewport& out = vkViewports[i];
+        out.x = in.x;
+        out.y = in.y;
+        out.width = in.width;
+        out.height = in.height;
+        out.minDepth = in.depthMin;
+        out.maxDepth = in.depthMax;
+
+        // Origin top-left requires flipping
+        if (!in.originBottomLeft) {
+            out.y += in.height;
+            out.height = -in.height;
+        }
+    }
+
+    for (uint32_t i = viewportNum; i < vkViewportNum; i++)
+        vkViewports[i] = vkViewports[viewportNum - 1];
+
+    const auto& vk = m_Device.GetDispatchTable();
+    if (deviceDesc.features.extendedDynamicState)
+        vk.CmdSetViewportWithCount(m_Handle, viewportNum, vkViewports);
+    else
+        vk.CmdSetViewport(m_Handle, 0, vkViewportNum, vkViewports);
+}
+
+NRI_INLINE void CommandBufferVK::SetScissors(const Rect* rects, uint32_t rectNum) {
+    const DeviceDesc& deviceDesc = m_Device.GetDesc();
+    uint32_t vkRectNum = (deviceDesc.features.extendedDynamicState || rectNum == 0) ? rectNum : deviceDesc.viewport.maxNum;
+    Scratch<VkRect2D> vkRects = NRI_ALLOCATE_SCRATCH(m_Device, VkRect2D, vkRectNum);
+    for (uint32_t i = 0; i < rectNum; i++) {
+        const Rect& in = rects[i];
+        VkRect2D& out = vkRects[i];
+        out.offset.x = in.x;
+        out.offset.y = in.y;
+        out.extent.width = in.width;
+        out.extent.height = in.height;
+    }
+
+    for (uint32_t i = rectNum; i < vkRectNum; i++)
+        vkRects[i] = vkRects[rectNum - 1];
+
+    const auto& vk = m_Device.GetDispatchTable();
+    if (deviceDesc.features.extendedDynamicState)
+        vk.CmdSetScissorWithCount(m_Handle, rectNum, vkRects);
+    else
+        vk.CmdSetScissor(m_Handle, 0, vkRectNum, vkRects);
+}
+
+NRI_INLINE void CommandBufferVK::SetDepthBounds(float boundsMin, float boundsMax) {
+    const auto& vk = m_Device.GetDispatchTable();
+    vk.CmdSetDepthBounds(m_Handle, boundsMin, boundsMax);
+}
+
+NRI_INLINE void CommandBufferVK::SetStencilReference(uint8_t frontRef, uint8_t backRef) {
+    const auto& vk = m_Device.GetDispatchTable();
+
+    if (frontRef == backRef)
+        vk.CmdSetStencilReference(m_Handle, VK_STENCIL_FACE_FRONT_AND_BACK, frontRef);
+    else {
+        vk.CmdSetStencilReference(m_Handle, VK_STENCIL_FACE_FRONT_BIT, frontRef);
+        vk.CmdSetStencilReference(m_Handle, VK_STENCIL_FACE_BACK_BIT, backRef);
+    }
+}
+
+NRI_INLINE void CommandBufferVK::SetSampleLocations(const SampleLocation* locations, Sample_t locationNum, Sample_t sampleNum) {
+    Scratch<VkSampleLocationEXT> sampleLocations = NRI_ALLOCATE_SCRATCH(m_Device, VkSampleLocationEXT, locationNum);
+    for (uint32_t i = 0; i < locationNum; i++)
+        sampleLocations[i] = {(float)(locations[i].x + 8) / 16.0f, (float)(locations[i].y + 8) / 16.0f};
+
+    uint32_t gridDim = (uint32_t)sqrtf((float)locationNum / (float)sampleNum);
+
+    VkSampleLocationsInfoEXT sampleLocationsInfo = {VK_STRUCTURE_TYPE_SAMPLE_LOCATIONS_INFO_EXT};
+    sampleLocationsInfo.sampleLocationsPerPixel = (VkSampleCountFlagBits)sampleNum;
+    sampleLocationsInfo.sampleLocationGridSize = {gridDim, gridDim};
+    sampleLocationsInfo.sampleLocationsCount = locationNum;
+    sampleLocationsInfo.pSampleLocations = sampleLocations;
+
+    const auto& vk = m_Device.GetDispatchTable();
+    vk.CmdSetSampleLocationsEXT(m_Handle, &sampleLocationsInfo);
+}
+
+NRI_INLINE void CommandBufferVK::SetBlendConstants(const Color32f& color) {
+    const auto& vk = m_Device.GetDispatchTable();
+    vk.CmdSetBlendConstants(m_Handle, &color.x);
+}
+
+NRI_INLINE void CommandBufferVK::SetShadingRate(const ShadingRateDesc& shadingRateDesc) {
+    VkExtent2D shadingRate = GetShadingRate(shadingRateDesc.shadingRate);
+    VkFragmentShadingRateCombinerOpKHR combiners[2] = {
+        GetShadingRateCombiner(shadingRateDesc.primitiveCombiner),
+        GetShadingRateCombiner(shadingRateDesc.attachmentCombiner),
+    };
+
+    const auto& vk = m_Device.GetDispatchTable();
+    vk.CmdSetFragmentShadingRateKHR(m_Handle, &shadingRate, combiners);
+}
+
+NRI_INLINE void CommandBufferVK::SetDepthBias(const DepthBiasDesc& depthBiasDesc) {
+    const auto& vk = m_Device.GetDispatchTable();
+    vk.CmdSetDepthBias(m_Handle, depthBiasDesc.constant, depthBiasDesc.clamp, depthBiasDesc.slope);
+}
+
+NRI_INLINE void CommandBufferVK::ClearAttachments(const ClearAttachmentDesc* clearAttachmentDescs, uint32_t clearAttachmentDescNum, const Rect* rects, uint32_t rectNum) {
+    static_assert(sizeof(VkClearValue) == sizeof(ClearValue), "Sizeof mismatch");
+
+    // Attachments
+    uint32_t clearAttachmentNum = 0;
+    Scratch<VkClearAttachment> clearAttachments = NRI_ALLOCATE_SCRATCH(m_Device, VkClearAttachment, clearAttachmentDescNum);
+
+    for (uint32_t i = 0; i < clearAttachmentDescNum; i++) {
+        const ClearAttachmentDesc& clearAttachmentDesc = clearAttachmentDescs[i];
+
+        VkImageAspectFlags aspectMask = 0;
+        if (clearAttachmentDesc.planes & PlaneBits::COLOR)
+            aspectMask |= VK_IMAGE_ASPECT_COLOR_BIT;
+        if ((clearAttachmentDesc.planes & PlaneBits::DEPTH) && m_DepthStencil->IsDepthWritable())
+            aspectMask |= VK_IMAGE_ASPECT_DEPTH_BIT;
+        if ((clearAttachmentDesc.planes & PlaneBits::STENCIL) && m_DepthStencil->IsStencilWritable())
+            aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
+
+        if (aspectMask) {
+            VkClearAttachment& clearAttachment = clearAttachments[clearAttachmentNum++];
+
+            clearAttachment = {};
+            clearAttachment.aspectMask = aspectMask;
+            clearAttachment.colorAttachment = clearAttachmentDesc.colorAttachmentIndex;
+            clearAttachment.clearValue = *(VkClearValue*)&clearAttachmentDesc.value;
+        }
+    }
+
+    if (!clearAttachmentNum)
+        return;
+
+    // Rects
+    bool hasRects = rectNum != 0;
+    if (!hasRects)
+        rectNum = 1;
+
+    Scratch<VkClearRect> clearRects = NRI_ALLOCATE_SCRATCH(m_Device, VkClearRect, rectNum);
+    for (uint32_t i = 0; i < rectNum; i++) {
+        VkClearRect& clearRect = clearRects[i];
+
+        clearRect = {};
+
+        // TODO: layer specification for clears? but not supported by D3D12
+        clearRect.baseArrayLayer = 0;
+        clearRect.layerCount = m_ViewMask ? 1 : m_RenderLayerNum; // VUID-vkCmdClearAttachments-baseArrayLayer-00018
+
+        if (hasRects) {
+            const Rect& rect = rects[i];
+            clearRect.rect = {{rect.x, rect.y}, {rect.width, rect.height}};
+        } else
+            clearRect.rect = {{0, 0}, {m_RenderWidth, m_RenderHeight}};
+    }
+
+    const auto& vk = m_Device.GetDispatchTable();
+    vk.CmdClearAttachments(m_Handle, clearAttachmentNum, clearAttachments, rectNum, clearRects);
+}
+
+NRI_INLINE void CommandBufferVK::ClearStorage(const ClearStorageDesc& clearStorageDesc) {
+    const DescriptorVK& descriptorVK = *(DescriptorVK*)clearStorageDesc.descriptor;
+
+    const auto& vk = m_Device.GetDispatchTable();
+
+    DescriptorType descriptorType = descriptorVK.GetType();
+    switch (descriptorType) {
+        case DescriptorType::STORAGE_TEXTURE: {
+            static_assert(sizeof(VkClearColorValue) == sizeof(clearStorageDesc.value), "Unexpected sizeof");
+
+            const VkClearColorValue* value = (VkClearColorValue*)&clearStorageDesc.value;
+            const TexViewDesc& texViewDesc = descriptorVK.GetTexViewDesc();
+            VkImage image = texViewDesc.texture->GetHandle();
+
+            VkImageSubresourceRange subresourceRange = {};
+            subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT; // TODO: looks like other aspects are unsupported for storage
+            subresourceRange.baseMipLevel = texViewDesc.mipOffset;
+            subresourceRange.levelCount = texViewDesc.mipNum;
+            subresourceRange.baseArrayLayer = texViewDesc.layerOrSliceOffset;
+            subresourceRange.layerCount = texViewDesc.layerOrSliceNum;
+
+            vk.CmdClearColorImage(m_Handle, image, VK_IMAGE_LAYOUT_GENERAL, value, 1, &subresourceRange);
+        } break;
+        case DescriptorType::STORAGE_BUFFER:
+        case DescriptorType::STORAGE_STRUCTURED_BUFFER: {
+            const VkDescriptorBufferInfo& descriptorBufferInfo = descriptorVK.GetBufferInfo();
+            vk.CmdFillBuffer(m_Handle, descriptorBufferInfo.buffer, descriptorBufferInfo.offset, descriptorBufferInfo.range, clearStorageDesc.value.ui.x);
+        } break;
+        default:
+            NRI_CHECK(false, "Unexpected 'descriptorType'");
+            break;
+    }
+}
+
+NRI_INLINE void CommandBufferVK::BeginRendering(const RenderingDesc& renderingDesc) {
+    const DeviceDesc& deviceDesc = m_Device.GetDesc();
+    Dim_t renderWidth = deviceDesc.dimensions.attachmentMaxDim;
+    Dim_t renderHeight = deviceDesc.dimensions.attachmentMaxDim;
+    Dim_t renderLayerNum = deviceDesc.dimensions.attachmentLayerMaxNum;
+
+    if (m_Device.m_IsSupported.dynamicRendering) {
+        Scratch<VkRenderingAttachmentInfo> colors = NRI_ALLOCATE_SCRATCH(m_Device, VkRenderingAttachmentInfo, renderingDesc.colorNum);
+
+        VkRenderingInfo renderingInfo = {VK_STRUCTURE_TYPE_RENDERING_INFO};
+        renderingInfo.viewMask = renderingDesc.viewMask;
+        renderingInfo.colorAttachmentCount = renderingDesc.colorNum;
+        renderingInfo.pColorAttachments = colors;
+
+        for (uint32_t i = 0; i < renderingDesc.colorNum; i++)
+            FillRenderingAttachmentInfo(colors[i], renderingDesc.colors[i], renderWidth, renderHeight, renderLayerNum);
+
+        VkRenderingAttachmentInfo depth = {VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO};
+        if (renderingDesc.depth.descriptor) {
+            m_DepthStencil = (DescriptorVK*)renderingDesc.depth.descriptor;
+
+            FillRenderingAttachmentInfo(depth, renderingDesc.depth, renderWidth, renderHeight, renderLayerNum);
+            renderingInfo.pDepthAttachment = &depth;
+
+            const FormatProps& formatProps = GetFormatProps(m_DepthStencil->GetFormat());
+            if (formatProps.isStencil)
+                renderingInfo.pStencilAttachment = &depth;
+        } else
+            m_DepthStencil = nullptr;
+
+        VkRenderingAttachmentInfo stencil = {VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO};
+        if (renderingDesc.stencil.descriptor) { // it's safe to do it this way, since there are no "stencil-only" formats
+            m_DepthStencil = (DescriptorVK*)renderingDesc.stencil.descriptor;
+
+            FillRenderingAttachmentInfo(stencil, renderingDesc.stencil, renderWidth, renderHeight, renderLayerNum);
+            renderingInfo.pStencilAttachment = &stencil;
+        }
+
+        // TODO: if there are no attachments, the render area is set to max dims. It may be suboptimal...
+        bool hasAttachment = renderingDesc.colors || renderingDesc.depth.descriptor || renderingDesc.stencil.descriptor;
+        if (!hasAttachment)
+            renderLayerNum = 1;
+
+        renderingInfo.renderArea = {{0, 0}, {renderWidth, renderHeight}};
+        renderingInfo.layerCount = renderLayerNum;
+
+        // Shading rate
+        VkRenderingFragmentShadingRateAttachmentInfoKHR shadingRate = {VK_STRUCTURE_TYPE_RENDERING_FRAGMENT_SHADING_RATE_ATTACHMENT_INFO_KHR};
+        if (renderingDesc.shadingRate) {
+            uint32_t tileSize = m_Device.GetDesc().other.shadingRateAttachmentTileSize;
+            const DescriptorVK& descriptorVK = *(DescriptorVK*)renderingDesc.shadingRate;
+
+            shadingRate.imageView = descriptorVK.GetImageView();
+            shadingRate.imageLayout = descriptorVK.GetTexViewDesc().expectedLayout;
+            shadingRate.shadingRateAttachmentTexelSize = {tileSize, tileSize};
+
+            renderingInfo.pNext = &shadingRate;
+        }
+
+        const auto& vk = m_Device.GetDispatchTable();
+        vk.CmdBeginRendering(m_Handle, &renderingInfo);
+    } else {
+        RenderPassDesc renderPassDesc(m_Device.GetStdAllocator());
+        FramebufferDesc framebufferDesc(m_Device.GetStdAllocator());
+        Scratch<VkImageView> colorResolves = NRI_ALLOCATE_SCRATCH(m_Device, VkImageView, renderingDesc.colorNum);
+        bool hasColorResolve = false;
+        uint32_t colorResolveNum = 0;
+
+        renderPassDesc.viewMask = renderingDesc.viewMask;
+
+        for (uint32_t i = 0; i < renderingDesc.colorNum; i++) {
+            const AttachmentDesc& color = renderingDesc.colors[i];
+            const DescriptorVK& descriptorVK = *(DescriptorVK*)color.descriptor;
+            VkImage image = descriptorVK.GetTexViewDesc().texture->GetHandle();
+            bool isInputAttachment = HasInputAttachmentRange(m_InputAttachmentRanges, image, GetSubresourceRange(descriptorVK));
+
+            renderPassDesc.colors.push_back(GetRenderPassAttachmentDesc(color, isInputAttachment));
+            framebufferDesc.attachments.push_back(descriptorVK.GetImageView());
+            UpdateRenderingExtent(descriptorVK, renderWidth, renderHeight, renderLayerNum);
+
+            if (isInputAttachment)
+                SetRenderPassInputAttachmentIndex(renderPassDesc.inputAttachmentIndices, i);
+
+            if (color.resolveDst) {
+                if (color.resolveOp != ResolveOp::AVERAGE) {
+                    m_Device.ReportMessage(Message::ERROR, Result::UNSUPPORTED, __FILE__, __LINE__, "CmdBeginRendering(): legacy render passes support only AVERAGE color resolve");
+                    return;
+                }
+
+                const DescriptorVK& resolveDst = *(DescriptorVK*)color.resolveDst;
+                renderPassDesc.colorResolves.push_back(GetRenderPassResolveAttachmentDesc(resolveDst));
+                colorResolves[i] = resolveDst.GetImageView();
+                hasColorResolve = true;
+                colorResolveNum++;
+            } else {
+                renderPassDesc.colorResolves.push_back({});
+                colorResolves[i] = VK_NULL_HANDLE;
+            }
+        }
+
+        if (!hasColorResolve)
+            renderPassDesc.colorResolves.clear();
+        else {
+            for (uint32_t i = 0; i < renderingDesc.colorNum; i++) {
+                VkImageView view = colorResolves[i];
+                if (view != VK_NULL_HANDLE)
+                    framebufferDesc.attachments.push_back(view);
+            }
+        }
+
+        if (renderingDesc.depth.descriptor) {
+            m_DepthStencil = (DescriptorVK*)renderingDesc.depth.descriptor;
+            const FormatProps& formatProps = GetFormatProps(m_DepthStencil->GetFormat());
+
+            renderPassDesc.hasDepth = true;
+            renderPassDesc.depth = GetRenderPassAttachmentDesc(renderingDesc.depth);
+            framebufferDesc.attachments.push_back(m_DepthStencil->GetImageView());
+            UpdateRenderingExtent(*m_DepthStencil, renderWidth, renderHeight, renderLayerNum);
+
+            if (renderingDesc.depth.resolveDst) {
+                const DescriptorVK& resolveDst = *(DescriptorVK*)renderingDesc.depth.resolveDst;
+
+                renderPassDesc.hasDepthResolve = true;
+                renderPassDesc.depthResolve = GetRenderPassResolveAttachmentDesc(resolveDst);
+                renderPassDesc.depthResolveMode = GetResolveOp(renderingDesc.depth.resolveOp);
+            }
+
+            if (formatProps.isStencil) {
+                renderPassDesc.hasStencil = true;
+                renderPassDesc.stencil = renderPassDesc.depth;
+
+                if (renderingDesc.depth.resolveDst) {
+                    renderPassDesc.hasStencilResolve = true;
+                    renderPassDesc.stencilResolve = renderPassDesc.depthResolve;
+                    renderPassDesc.stencilResolveMode = renderPassDesc.depthResolveMode;
+                }
+            }
+        } else
+            m_DepthStencil = nullptr;
+
+        if (renderingDesc.stencil.descriptor) {
+            DescriptorVK& stencil = *(DescriptorVK*)renderingDesc.stencil.descriptor;
+            m_DepthStencil = &stencil;
+
+            if (renderingDesc.depth.descriptor && stencil.GetImageView() != ((DescriptorVK*)renderingDesc.depth.descriptor)->GetImageView()) {
+                m_Device.ReportMessage(Message::ERROR, Result::UNSUPPORTED, __FILE__, __LINE__, "CmdBeginRendering(): legacy render passes require matching depth and stencil descriptors");
+                return;
+            }
+
+            renderPassDesc.hasStencil = true;
+            renderPassDesc.stencil = GetRenderPassAttachmentDesc(renderingDesc.stencil);
+            if (renderingDesc.depth.descriptor) {
+                renderPassDesc.depth.stencilLoadOp = renderPassDesc.stencil.loadOp;
+                renderPassDesc.depth.stencilStoreOp = renderPassDesc.stencil.storeOp;
+            }
+
+            if (!renderingDesc.depth.descriptor || stencil.GetImageView() != ((DescriptorVK*)renderingDesc.depth.descriptor)->GetImageView())
+                framebufferDesc.attachments.push_back(stencil.GetImageView());
+
+            UpdateRenderingExtent(stencil, renderWidth, renderHeight, renderLayerNum);
+
+            if (renderingDesc.stencil.resolveDst) {
+                const DescriptorVK& resolveDst = *(DescriptorVK*)renderingDesc.stencil.resolveDst;
+
+                renderPassDesc.hasStencilResolve = true;
+                renderPassDesc.stencilResolve = GetRenderPassResolveAttachmentDesc(resolveDst);
+                renderPassDesc.stencilResolveMode = GetResolveOp(renderingDesc.stencil.resolveOp);
+            }
+        }
+
+        if (renderPassDesc.hasDepthResolve || renderPassDesc.hasStencilResolve) {
+            const bool hasSeparateDepthStencilResolve = renderPassDesc.hasDepthResolve && renderPassDesc.hasStencilResolve
+                && renderingDesc.depth.resolveDst
+                && renderingDesc.stencil.resolveDst
+                && ((DescriptorVK*)renderingDesc.depth.resolveDst)->GetImageView() != ((DescriptorVK*)renderingDesc.stencil.resolveDst)->GetImageView();
+
+            if (hasSeparateDepthStencilResolve) {
+                m_Device.ReportMessage(Message::ERROR, Result::UNSUPPORTED, __FILE__, __LINE__, "CmdBeginRendering(): legacy render passes require matching depth and stencil resolve descriptors");
+                return;
+            }
+
+            const DescriptorVK* resolveDst = renderPassDesc.hasDepthResolve ? (DescriptorVK*)renderingDesc.depth.resolveDst : (DescriptorVK*)renderingDesc.stencil.resolveDst;
+            framebufferDesc.attachments.push_back(resolveDst->GetImageView());
+        }
+
+        if (renderingDesc.shadingRate) {
+            const DescriptorVK& descriptorVK = *(DescriptorVK*)renderingDesc.shadingRate;
+
+            renderPassDesc.hasShadingRate = true;
+            renderPassDesc.shadingRate.format = GetVkFormat(descriptorVK.GetFormat());
+            renderPassDesc.shadingRate.sampleNum = VK_SAMPLE_COUNT_1_BIT;
+            renderPassDesc.shadingRate.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+            renderPassDesc.shadingRate.layout = descriptorVK.GetTexViewDesc().expectedLayout;
+            framebufferDesc.attachments.push_back(descriptorVK.GetImageView());
+        }
+
+        bool hasAttachment = renderingDesc.colorNum || renderingDesc.depth.descriptor || renderingDesc.stencil.descriptor;
+        if (!hasAttachment)
+            renderLayerNum = 1;
+
+        VkRenderPass renderPass = m_Device.GetOrCreateRenderPass(renderPassDesc);
+        if (!renderPass)
+            return;
+
+        framebufferDesc.renderPass = renderPass;
+        framebufferDesc.width = renderWidth;
+        framebufferDesc.height = renderHeight;
+        framebufferDesc.layerNum = renderingDesc.viewMask ? 1 : renderLayerNum;
+
+        VkFramebuffer framebuffer = m_Device.GetOrCreateFramebuffer(framebufferDesc);
+        if (!framebuffer)
+            return;
+
+        Scratch<VkClearValue> clearValues = NRI_ALLOCATE_SCRATCH(m_Device, VkClearValue, framebufferDesc.attachments.size());
+        for (uint32_t i = 0; i < (uint32_t)framebufferDesc.attachments.size(); i++)
+            clearValues[i] = {};
+
+        for (uint32_t i = 0; i < renderingDesc.colorNum; i++)
+            clearValues[i] = *(VkClearValue*)&renderingDesc.colors[i].clearValue;
+
+        uint32_t depthStencilClearIndex = renderingDesc.colorNum + colorResolveNum;
+        if (renderingDesc.depth.descriptor || renderingDesc.stencil.descriptor) {
+            if (renderingDesc.depth.descriptor) {
+                const VkClearValue& depthClear = *(VkClearValue*)&renderingDesc.depth.clearValue;
+                clearValues[depthStencilClearIndex].depthStencil.depth = depthClear.depthStencil.depth;
+            }
+
+            if (renderingDesc.stencil.descriptor) {
+                const VkClearValue& stencilClear = *(VkClearValue*)&renderingDesc.stencil.clearValue;
+                clearValues[depthStencilClearIndex].depthStencil.stencil = stencilClear.depthStencil.stencil;
+            }
+        }
+
+        VkRenderPassBeginInfo beginInfo = {VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO};
+        beginInfo.renderPass = renderPass;
+        beginInfo.framebuffer = framebuffer;
+        beginInfo.renderArea = {{0, 0}, {renderWidth, renderHeight}};
+        beginInfo.clearValueCount = (uint32_t)framebufferDesc.attachments.size();
+        beginInfo.pClearValues = clearValues;
+
+        const auto& vk = m_Device.GetDispatchTable();
+        vk.CmdBeginRenderPass(m_Handle, &beginInfo, VK_SUBPASS_CONTENTS_INLINE);
+    }
+
+    m_RenderWidth = renderWidth;
+    m_RenderHeight = renderHeight;
+    m_RenderLayerNum = renderLayerNum;
+    m_ViewMask = renderingDesc.viewMask;
+    m_RenderPass = true;
+}
+
+NRI_INLINE void CommandBufferVK::EndRendering() {
+    const auto& vk = m_Device.GetDispatchTable();
+    if (m_Device.m_IsSupported.dynamicRendering)
+        vk.CmdEndRendering(m_Handle);
+    else
+        vk.CmdEndRenderPass(m_Handle);
+
+    m_DepthStencil = nullptr;
+    m_RenderPass = false;
+}
+
+NRI_INLINE void CommandBufferVK::SetVertexBuffers(uint32_t baseSlot, const VertexBufferDesc* vertexBufferDescs, uint32_t vertexBufferNum) {
+    Scratch<uint8_t> scratch = NRI_ALLOCATE_SCRATCH(m_Device, uint8_t, vertexBufferNum * (sizeof(VkBuffer) + sizeof(VkDeviceSize) * 3));
+    uint8_t* ptr = scratch;
+
+    VkBuffer* handles = (VkBuffer*)ptr;
+    ptr += vertexBufferNum * sizeof(VkBuffer);
+
+    VkDeviceSize* offsets = (VkDeviceSize*)ptr;
+    ptr += vertexBufferNum * sizeof(VkDeviceSize);
+
+    VkDeviceSize* sizes = (VkDeviceSize*)ptr;
+    ptr += vertexBufferNum * sizeof(VkDeviceSize);
+
+    VkDeviceSize* strides = (VkDeviceSize*)ptr;
+
+    for (uint32_t i = 0; i < vertexBufferNum; i++) {
+        const VertexBufferDesc& vertexBufferDesc = vertexBufferDescs[i];
+
+        const BufferVK* bufferVK = (BufferVK*)vertexBufferDesc.buffer;
+        if (bufferVK) {
+            handles[i] = bufferVK->GetHandle();
+            offsets[i] = vertexBufferDesc.offset;
+            sizes[i] = bufferVK->GetDesc().size - vertexBufferDesc.offset;
+            strides[i] = vertexBufferDesc.stride;
+        } else {
+            handles[i] = VK_NULL_HANDLE;
+            offsets[i] = 0;
+            sizes[i] = 0;
+            strides[i] = 0;
+        }
+    }
+
+    const auto& vk = m_Device.GetDispatchTable();
+    if (m_Device.GetDesc().features.extendedDynamicState)
+        vk.CmdBindVertexBuffers2(m_Handle, baseSlot, vertexBufferNum, handles, offsets, sizes, strides);
+    else
+        vk.CmdBindVertexBuffers(m_Handle, baseSlot, vertexBufferNum, handles, offsets);
+}
+
+NRI_INLINE void CommandBufferVK::SetIndexBuffer(const Buffer& buffer, uint64_t offset, IndexType indexType) {
+    const BufferVK& bufferVK = (BufferVK&)buffer;
+
+    const auto& vk = m_Device.GetDispatchTable();
+    if (m_Device.m_IsSupported.maintenance5) {
+        uint64_t size = bufferVK.GetDesc().size - offset;
+        vk.CmdBindIndexBuffer2(m_Handle, bufferVK.GetHandle(), offset, size, GetIndexType(indexType));
+    } else
+        vk.CmdBindIndexBuffer(m_Handle, bufferVK.GetHandle(), offset, GetIndexType(indexType));
+}
+
+NRI_INLINE void CommandBufferVK::SetPipelineLayout(BindPoint bindPoint, const PipelineLayout& pipelineLayout) {
+    m_PipelineLayout = (PipelineLayoutVK*)&pipelineLayout;
+    m_PipelineBindPoint = bindPoint;
+
+    { // Push immutable samplers
+        const auto& bindingInfo = m_PipelineLayout->GetBindingInfo();
+
+        for (uint32_t i = bindingInfo.rootSamplerBindingOffset; i < (uint32_t)bindingInfo.pushDescriptors.size(); i++) {
+            // https://registry.khronos.org/vulkan/specs/latest/html/vkspec.html#descriptorsets-push-descriptors
+            // To push an immutable sampler...
+            VkDescriptorImageInfo imageInfo = {};
+
+            VkWriteDescriptorSet descriptorWrite = {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET};
+            descriptorWrite.dstBinding = bindingInfo.pushDescriptors[i];
+            descriptorWrite.descriptorCount = 1;
+            descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
+            descriptorWrite.pImageInfo = &imageInfo;
+
+            VkPipelineBindPoint vkPipelineBindPoint = GetPipelineBindPoint(bindPoint);
+
+            const auto& vk = m_Device.GetDispatchTable();
+            vk.CmdPushDescriptorSet(m_Handle, vkPipelineBindPoint, *m_PipelineLayout, bindingInfo.rootRegisterSpace, 1, &descriptorWrite);
+        }
+    }
+}
+
+NRI_INLINE void CommandBufferVK::SetPipeline(const Pipeline& pipeline) {
+    const PipelineVK& pipelineVK = (PipelineVK&)pipeline;
+
+    const auto& vk = m_Device.GetDispatchTable();
+    vk.CmdBindPipeline(m_Handle, pipelineVK.GetBindPoint(), pipelineVK);
+
+    // Set depth bias provided at pipeline creation time to match D3D12 behavior
+    const DepthBiasDesc& depthBias = pipelineVK.GetDepthBias();
+    if (IsDepthBiasEnabled(depthBias))
+        vk.CmdSetDepthBias(m_Handle, depthBias.constant, depthBias.clamp, depthBias.slope);
+}
+
+NRI_INLINE void CommandBufferVK::SetDescriptorSet(const SetDescriptorSetDesc& setDescriptorSetDesc) {
+    const DescriptorSetVK& descriptorSetVK = *(DescriptorSetVK*)setDescriptorSetDesc.descriptorSet;
+    VkDescriptorSet vkDescriptorSet = descriptorSetVK.GetHandle();
+
+    const auto& bindingInfo = m_PipelineLayout->GetBindingInfo();
+    uint32_t registerSpace = bindingInfo.sets[setDescriptorSetDesc.setIndex].registerSpace;
+
+    BindPoint bindPoint = setDescriptorSetDesc.bindPoint == BindPoint::INHERIT ? m_PipelineBindPoint : setDescriptorSetDesc.bindPoint;
+
+    const auto& vk = m_Device.GetDispatchTable();
+#if 0 // TODO: NV driver can crash if VVL is enabled...
+    if (m_Device.m_IsSupported.maintenance6) {
+        StageBits shaderStages = StageBits::NONE;
+        if (bindPoint == BindPoint::GRAPHICS) {
+            shaderStages = StageBits::VERTEX_SHADER
+                | StageBits::TESSELLATION_SHADERS
+                | StageBits::GEOMETRY_SHADER
+                | StageBits::FRAGMENT_SHADER;
+
+            if (m_Device.GetDesc().features.meshShader)
+                shaderStages |= StageBits::MESH_SHADERS;
+        } else if (bindPoint == BindPoint::COMPUTE)
+            shaderStages = StageBits::COMPUTE_SHADER;
+        else if (bindPoint == BindPoint::RAY_TRACING)
+            shaderStages = StageBits::RAY_TRACING_SHADERS;
+
+        VkBindDescriptorSetsInfo info = {VK_STRUCTURE_TYPE_BIND_DESCRIPTOR_SETS_INFO};
+        info.stageFlags = GetShaderStageFlags(shaderStages);
+        info.layout = *m_PipelineLayout;
+        info.firstSet = registerSpace;
+        info.descriptorSetCount = 1;
+        info.pDescriptorSets = &vkDescriptorSet;
+
+        vk.CmdBindDescriptorSets2(m_Handle, &info);
+    } else
+#endif
+    {
+        VkPipelineBindPoint vkPipelineBindPoint = GetPipelineBindPoint(bindPoint);
+
+        vk.CmdBindDescriptorSets(m_Handle, vkPipelineBindPoint, *m_PipelineLayout, registerSpace, 1, &vkDescriptorSet, 0, nullptr);
+    }
+}
+
+NRI_INLINE void CommandBufferVK::SetRootConstants(const SetRootConstantsDesc& setRootConstantsDesc) {
+    const auto& bindingInfo = m_PipelineLayout->GetBindingInfo();
+    const PushConstantBindingDesc& pushConstantBindingDesc = bindingInfo.pushConstants[setRootConstantsDesc.rootConstantIndex];
+    uint32_t offset = pushConstantBindingDesc.offset + setRootConstantsDesc.offset;
+
+    const auto& vk = m_Device.GetDispatchTable();
+    if (m_Device.m_IsSupported.maintenance6) {
+        VkPushConstantsInfo info = {VK_STRUCTURE_TYPE_PUSH_CONSTANTS_INFO};
+        info.layout = *m_PipelineLayout;
+        info.stageFlags = pushConstantBindingDesc.stages;
+        info.offset = offset;
+        info.size = setRootConstantsDesc.size;
+        info.pValues = setRootConstantsDesc.data;
+
+        vk.CmdPushConstants2(m_Handle, &info);
+    } else
+        vk.CmdPushConstants(m_Handle, *m_PipelineLayout, pushConstantBindingDesc.stages, offset, setRootConstantsDesc.size, setRootConstantsDesc.data);
+}
+
+NRI_INLINE void CommandBufferVK::SetRootDescriptor(const SetRootDescriptorDesc& setRootDescriptorDesc) {
+    const DescriptorVK& descriptorVK = *(DescriptorVK*)setRootDescriptorDesc.descriptor;
+
+    VkAccelerationStructureKHR accelerationStructure = descriptorVK.GetAccelerationStructure();
+
+    const auto& bindingInfo = m_PipelineLayout->GetBindingInfo();
+
+    VkDescriptorBufferInfo bufferInfo = descriptorVK.GetBufferInfo();
+    bufferInfo.offset += setRootDescriptorDesc.offset; // TODO: adjust "size"?
+
+    VkWriteDescriptorSetAccelerationStructureKHR accelerationStructureWrite = {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_ACCELERATION_STRUCTURE_KHR};
+    accelerationStructureWrite.accelerationStructureCount = 1;
+    accelerationStructureWrite.pAccelerationStructures = &accelerationStructure;
+
+    VkWriteDescriptorSet descriptorWrite = {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET};
+    descriptorWrite.dstBinding = bindingInfo.pushDescriptors[setRootDescriptorDesc.rootDescriptorIndex];
+    descriptorWrite.descriptorCount = 1;
+
+    // Let's match D3D12 spec (no textures, no typed buffers)
+    DescriptorType descriptorType = descriptorVK.GetType();
+    switch (descriptorType) {
+        case DescriptorType::CONSTANT_BUFFER:
+            descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+            descriptorWrite.pBufferInfo = &bufferInfo;
+            break;
+        case DescriptorType::STRUCTURED_BUFFER:
+        case DescriptorType::STORAGE_STRUCTURED_BUFFER:
+            descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+            descriptorWrite.pBufferInfo = &bufferInfo;
+            break;
+        case DescriptorType::ACCELERATION_STRUCTURE:
+            descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR;
+            descriptorWrite.pNext = &accelerationStructureWrite;
+            break;
+        default:
+            NRI_CHECK(false, "Unexpected 'descriptorType'");
+            break;
+    }
+
+    BindPoint bindPoint = setRootDescriptorDesc.bindPoint == BindPoint::INHERIT ? m_PipelineBindPoint : setRootDescriptorDesc.bindPoint;
+    VkPipelineBindPoint vkPipelineBindPoint = GetPipelineBindPoint(bindPoint);
+
+    const auto& vk = m_Device.GetDispatchTable();
+    vk.CmdPushDescriptorSet(m_Handle, vkPipelineBindPoint, *m_PipelineLayout, bindingInfo.rootRegisterSpace, 1, &descriptorWrite);
+}
+
+NRI_INLINE void CommandBufferVK::Draw(const DrawDesc& drawDesc) {
+    const auto& vk = m_Device.GetDispatchTable();
+    vk.CmdDraw(m_Handle, drawDesc.vertexNum, drawDesc.instanceNum, drawDesc.baseVertex, drawDesc.baseInstance);
+}
+
+NRI_INLINE void CommandBufferVK::DrawIndexed(const DrawIndexedDesc& drawIndexedDesc) {
+    const auto& vk = m_Device.GetDispatchTable();
+    vk.CmdDrawIndexed(m_Handle, drawIndexedDesc.indexNum, drawIndexedDesc.instanceNum, drawIndexedDesc.baseIndex, drawIndexedDesc.baseVertex, drawIndexedDesc.baseInstance);
+}
+
+NRI_INLINE void CommandBufferVK::DrawIndirect(const Buffer& buffer, uint64_t offset, uint32_t drawNum, uint32_t stride, const Buffer* countBuffer, uint64_t countBufferOffset) {
+    const BufferVK& bufferVK = (BufferVK&)buffer;
+    const auto& vk = m_Device.GetDispatchTable();
+
+    if (countBuffer) {
+        const BufferVK& countBufferVK = *(BufferVK*)countBuffer;
+        vk.CmdDrawIndirectCount(m_Handle, bufferVK.GetHandle(), offset, countBufferVK.GetHandle(), countBufferOffset, drawNum, stride);
+    } else
+        vk.CmdDrawIndirect(m_Handle, bufferVK.GetHandle(), offset, drawNum, stride);
+}
+
+NRI_INLINE void CommandBufferVK::DrawIndexedIndirect(const Buffer& buffer, uint64_t offset, uint32_t drawNum, uint32_t stride, const Buffer* countBuffer, uint64_t countBufferOffset) {
+    const BufferVK& bufferVK = (BufferVK&)buffer;
+    const auto& vk = m_Device.GetDispatchTable();
+
+    if (countBuffer) {
+        const BufferVK& countBufferVK = *(BufferVK*)countBuffer;
+        vk.CmdDrawIndexedIndirectCount(m_Handle, bufferVK.GetHandle(), offset, countBufferVK.GetHandle(), countBufferOffset, drawNum, stride);
+    } else
+        vk.CmdDrawIndexedIndirect(m_Handle, bufferVK.GetHandle(), offset, drawNum, stride);
+}
+
+NRI_INLINE void CommandBufferVK::CopyBuffer(Buffer& dstBuffer, uint64_t dstOffset, const Buffer& srcBuffer, uint64_t srcOffset, uint64_t size) {
+    const BufferVK& src = (BufferVK&)srcBuffer;
+    const BufferVK& dstBufferVK = (BufferVK&)dstBuffer;
+    const auto& vk = m_Device.GetDispatchTable();
+
+    if (m_Device.m_IsSupported.copyCommands2) {
+        VkBufferCopy2 region = {VK_STRUCTURE_TYPE_BUFFER_COPY_2};
+        region.srcOffset = srcOffset;
+        region.dstOffset = dstOffset;
+        region.size = size == WHOLE_SIZE ? src.GetDesc().size : size;
+
+        VkCopyBufferInfo2 info = {VK_STRUCTURE_TYPE_COPY_BUFFER_INFO_2};
+        info.srcBuffer = src.GetHandle();
+        info.dstBuffer = dstBufferVK.GetHandle();
+        info.regionCount = 1;
+        info.pRegions = &region;
+
+        vk.CmdCopyBuffer2(m_Handle, &info);
+    } else {
+        VkBufferCopy region = {};
+        region.srcOffset = srcOffset;
+        region.dstOffset = dstOffset;
+        region.size = size == WHOLE_SIZE ? src.GetDesc().size : size;
+
+        vk.CmdCopyBuffer(m_Handle, src.GetHandle(), dstBufferVK.GetHandle(), 1, &region);
+    }
+}
+
+NRI_INLINE void CommandBufferVK::CopyTexture(Texture& dstTexture, const TextureRegionDesc* dstRegion, const Texture& srcTexture, const TextureRegionDesc* srcRegion) {
+    const TextureVK& src = (TextureVK&)srcTexture;
+    const TextureVK& dst = (TextureVK&)dstTexture;
+    const TextureDesc& dstDesc = dst.GetDesc();
+    const TextureDesc& srcDesc = src.GetDesc();
+
+    bool isWholeResource = !dstRegion && !srcRegion;
+    uint32_t regionNum = isWholeResource ? dstDesc.mipNum : 1;
+    Scratch<VkImageCopy2> regions = NRI_ALLOCATE_SCRATCH(m_Device, VkImageCopy2, regionNum);
+
+    if (isWholeResource) {
+        for (Dim_t i = 0; i < dstDesc.mipNum; i++) {
+            regions[i] = {VK_STRUCTURE_TYPE_IMAGE_COPY_2};
+            regions[i].srcSubresource = {GetImageAspectFlags(PlaneBits::ALL, srcDesc.format), i, 0, srcDesc.layerNum};
+            regions[i].srcOffset = {};
+            regions[i].dstSubresource = {GetImageAspectFlags(PlaneBits::ALL, dstDesc.format), i, 0, dstDesc.layerNum};
+            regions[i].dstOffset = {};
+            regions[i].extent = dst.GetExtent();
+        }
+    } else {
+        TextureRegionDesc wholeResource = {};
+        if (!srcRegion)
+            srcRegion = &wholeResource;
+        if (!dstRegion)
+            dstRegion = &wholeResource;
+
+        VkImageAspectFlags srcAspectFlags = GetImageAspectFlags(srcRegion->planes, srcDesc.format);
+        VkImageAspectFlags dstAspectFlags = GetImageAspectFlags(dstRegion->planes, dstDesc.format);
+
+        regions[0] = {VK_STRUCTURE_TYPE_IMAGE_COPY_2};
+        regions[0].srcSubresource = {
+            srcAspectFlags,
+            srcRegion->mipOffset,
+            srcRegion->layerOffset,
+            1,
+        };
+        regions[0].srcOffset = {
+            (int32_t)srcRegion->x,
+            (int32_t)srcRegion->y,
+            (int32_t)srcRegion->z,
+        };
+        regions[0].dstSubresource = {
+            dstAspectFlags,
+            dstRegion->mipOffset,
+            dstRegion->layerOffset,
+            1,
+        };
+        regions[0].dstOffset = {
+            (int32_t)dstRegion->x,
+            (int32_t)dstRegion->y,
+            (int32_t)dstRegion->z,
+        };
+        regions[0].extent = {
+            (srcRegion->width == WHOLE_SIZE) ? src.GetSize(0, srcRegion->mipOffset) : srcRegion->width,
+            (srcRegion->height == WHOLE_SIZE) ? src.GetSize(1, srcRegion->mipOffset) : srcRegion->height,
+            (srcRegion->depth == WHOLE_SIZE) ? src.GetSize(2, srcRegion->mipOffset) : srcRegion->depth,
+        };
+    }
+
+    const auto& vk = m_Device.GetDispatchTable();
+    if (m_Device.m_IsSupported.copyCommands2) {
+        VkCopyImageInfo2 info = {VK_STRUCTURE_TYPE_COPY_IMAGE_INFO_2};
+        info.srcImage = src.GetHandle();
+        info.srcImageLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+        info.dstImage = dst.GetHandle();
+        info.dstImageLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+        info.regionCount = regionNum;
+        info.pRegions = regions;
+
+        vk.CmdCopyImage2(m_Handle, &info);
+    } else {
+        Scratch<VkImageCopy> regionsLegacy = NRI_ALLOCATE_SCRATCH(m_Device, VkImageCopy, regionNum);
+        for (uint32_t i = 0; i < regionNum; i++) {
+            regionsLegacy[i].srcSubresource = regions[i].srcSubresource;
+            regionsLegacy[i].srcOffset = regions[i].srcOffset;
+            regionsLegacy[i].dstSubresource = regions[i].dstSubresource;
+            regionsLegacy[i].dstOffset = regions[i].dstOffset;
+            regionsLegacy[i].extent = regions[i].extent;
+        }
+
+        vk.CmdCopyImage(m_Handle, src.GetHandle(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, dst.GetHandle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, regionNum, regionsLegacy);
+    }
+}
+
+NRI_INLINE void CommandBufferVK::ResolveTexture(Texture& dstTexture, const TextureRegionDesc* dstRegion, const Texture& srcTexture, const TextureRegionDesc* srcRegion, ResolveOp resolveOp) {
+    const TextureVK& src = (TextureVK&)srcTexture;
+    const TextureVK& dst = (TextureVK&)dstTexture;
+    const TextureDesc& dstDesc = dst.GetDesc();
+    const TextureDesc& srcDesc = src.GetDesc();
+
+    bool isWholeResource = !dstRegion && !srcRegion;
+    uint32_t regionNum = isWholeResource ? dstDesc.mipNum : 1;
+    Scratch<VkImageResolve2> regions = NRI_ALLOCATE_SCRATCH(m_Device, VkImageResolve2, dstDesc.mipNum);
+
+    if (isWholeResource) {
+        for (Dim_t i = 0; i < dstDesc.mipNum; i++) {
+            regions[i] = {VK_STRUCTURE_TYPE_IMAGE_RESOLVE_2};
+            regions[i].srcSubresource = {GetImageAspectFlags(PlaneBits::ALL, srcDesc.format), i, 0, srcDesc.layerNum};
+            regions[i].srcOffset = {};
+            regions[i].dstSubresource = {GetImageAspectFlags(PlaneBits::ALL, dstDesc.format), i, 0, dstDesc.layerNum};
+            regions[i].dstOffset = {};
+            regions[i].extent = dst.GetExtent();
+        }
+    } else {
+        TextureRegionDesc wholeResource = {};
+        if (!srcRegion)
+            srcRegion = &wholeResource;
+        if (!dstRegion)
+            dstRegion = &wholeResource;
+
+        VkImageAspectFlags srcAspectFlags = GetImageAspectFlags(srcRegion->planes, srcDesc.format);
+        VkImageAspectFlags dstAspectFlags = GetImageAspectFlags(dstRegion->planes, dstDesc.format);
+
+        regions[0] = {VK_STRUCTURE_TYPE_IMAGE_RESOLVE_2};
+        regions[0].srcSubresource = {
+            srcAspectFlags,
+            srcRegion->mipOffset,
+            srcRegion->layerOffset,
+            1,
+        };
+        regions[0].srcOffset = {
+            (int32_t)srcRegion->x,
+            (int32_t)srcRegion->y,
+            (int32_t)srcRegion->z,
+        };
+        regions[0].dstSubresource = {
+            dstAspectFlags,
+            dstRegion->mipOffset,
+            dstRegion->layerOffset,
+            1,
+        };
+        regions[0].dstOffset = {
+            (int32_t)dstRegion->x,
+            (int32_t)dstRegion->y,
+            (int32_t)dstRegion->z,
+        };
+        regions[0].extent = {
+            (srcRegion->width == WHOLE_SIZE) ? src.GetSize(0, srcRegion->mipOffset) : srcRegion->width,
+            (srcRegion->height == WHOLE_SIZE) ? src.GetSize(1, srcRegion->mipOffset) : srcRegion->height,
+            (srcRegion->depth == WHOLE_SIZE) ? src.GetSize(2, srcRegion->mipOffset) : srcRegion->depth,
+        };
+    }
+
+    const auto& vk = m_Device.GetDispatchTable();
+    if (m_Device.m_IsSupported.copyCommands2) {
+        VkResolveImageInfo2 info = {VK_STRUCTURE_TYPE_RESOLVE_IMAGE_INFO_2};
+        info.srcImage = src.GetHandle();
+        info.srcImageLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+        info.dstImage = dst.GetHandle();
+        info.dstImageLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+        info.regionCount = regionNum;
+        info.pRegions = regions;
+
+        VkResolveImageModeInfoKHR resolveModeInfo = {VK_STRUCTURE_TYPE_RESOLVE_IMAGE_MODE_INFO_KHR};
+        if (m_Device.m_IsSupported.maintenance10) {
+            resolveModeInfo.resolveMode = GetResolveOp(resolveOp);
+            resolveModeInfo.stencilResolveMode = GetResolveOp(resolveOp);
+            // TODO: resolveModeInfo.flags?
+
+            info.pNext = &resolveModeInfo;
+        }
+
+        vk.CmdResolveImage2(m_Handle, &info);
+    } else {
+        Scratch<VkImageResolve> regionsLegacy = NRI_ALLOCATE_SCRATCH(m_Device, VkImageResolve, regionNum);
+        for (uint32_t i = 0; i < regionNum; i++) {
+            regionsLegacy[i].srcSubresource = regions[i].srcSubresource;
+            regionsLegacy[i].srcOffset = regions[i].srcOffset;
+            regionsLegacy[i].dstSubresource = regions[i].dstSubresource;
+            regionsLegacy[i].dstOffset = regions[i].dstOffset;
+            regionsLegacy[i].extent = regions[i].extent;
+        }
+
+        vk.CmdResolveImage(m_Handle, src.GetHandle(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, dst.GetHandle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, regionNum, regionsLegacy);
+    }
+}
+
+NRI_INLINE void CommandBufferVK::UploadBufferToTexture(Texture& dstTexture, const TextureRegionDesc& dstRegion, const Buffer& srcBuffer, const TextureDataLayoutDesc& srcDataLayout) {
+    const BufferVK& src = (BufferVK&)srcBuffer;
+    const TextureVK& dst = (TextureVK&)dstTexture;
+    const TextureDesc& dstDesc = dst.GetDesc();
+    const FormatProps& formatProps = GetFormatProps(dstDesc.format);
+
+    uint32_t rowBlockNum = srcDataLayout.rowPitch / formatProps.stride;
+    uint32_t bufferRowLength = rowBlockNum * formatProps.blockWidth;
+
+    uint32_t sliceRowNum = srcDataLayout.slicePitch / srcDataLayout.rowPitch;
+    uint32_t bufferImageHeight = sliceRowNum * formatProps.blockWidth;
+
+    VkImageAspectFlags dstAspectFlags = GetImageAspectFlags(dstRegion.planes, dstDesc.format);
+
+    VkBufferImageCopy2 region = {VK_STRUCTURE_TYPE_BUFFER_IMAGE_COPY_2};
+    region.bufferOffset = srcDataLayout.offset;
+    region.bufferRowLength = bufferRowLength;
+    region.bufferImageHeight = bufferImageHeight;
+    region.imageSubresource = VkImageSubresourceLayers{
+        dstAspectFlags,
+        dstRegion.mipOffset,
+        dstRegion.layerOffset,
+        1,
+    };
+    region.imageOffset = VkOffset3D{
+        dstRegion.x,
+        dstRegion.y,
+        dstRegion.z,
+    };
+    region.imageExtent = VkExtent3D{
+        (dstRegion.width == WHOLE_SIZE) ? dst.GetSize(0, dstRegion.mipOffset) : dstRegion.width,
+        (dstRegion.height == WHOLE_SIZE) ? dst.GetSize(1, dstRegion.mipOffset) : dstRegion.height,
+        (dstRegion.depth == WHOLE_SIZE) ? dst.GetSize(2, dstRegion.mipOffset) : dstRegion.depth,
+    };
+
+    const auto& vk = m_Device.GetDispatchTable();
+    if (m_Device.m_IsSupported.copyCommands2) {
+        VkCopyBufferToImageInfo2 info = {VK_STRUCTURE_TYPE_COPY_BUFFER_TO_IMAGE_INFO_2};
+        info.srcBuffer = src.GetHandle();
+        info.dstImage = dst.GetHandle();
+        info.dstImageLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+        info.regionCount = 1;
+        info.pRegions = &region;
+
+        vk.CmdCopyBufferToImage2(m_Handle, &info);
+    } else {
+        VkBufferImageCopy regionLegacy = {};
+        regionLegacy.bufferOffset = region.bufferOffset;
+        regionLegacy.bufferRowLength = region.bufferRowLength;
+        regionLegacy.bufferImageHeight = region.bufferImageHeight;
+        regionLegacy.imageSubresource = region.imageSubresource;
+        regionLegacy.imageOffset = region.imageOffset;
+        regionLegacy.imageExtent = region.imageExtent;
+
+        vk.CmdCopyBufferToImage(m_Handle, src.GetHandle(), dst.GetHandle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &regionLegacy);
+    }
+}
+
+NRI_INLINE void CommandBufferVK::ReadbackTextureToBuffer(Buffer& dstBuffer, const TextureDataLayoutDesc& dstDataLayout, const Texture& srcTexture, const TextureRegionDesc& srcRegion) {
+    const TextureVK& src = (TextureVK&)srcTexture;
+    const BufferVK& dst = (BufferVK&)dstBuffer;
+    const TextureDesc& srcDesc = src.GetDesc();
+    const FormatProps& formatProps = GetFormatProps(srcDesc.format);
+
+    uint32_t rowBlockNum = dstDataLayout.rowPitch / formatProps.stride;
+    uint32_t bufferRowLength = rowBlockNum * formatProps.blockWidth;
+
+    uint32_t sliceRowNum = dstDataLayout.slicePitch / dstDataLayout.rowPitch;
+    uint32_t bufferImageHeight = sliceRowNum * formatProps.blockWidth;
+
+    VkImageAspectFlags srcAspectFlags = GetImageAspectFlags(srcRegion.planes, srcDesc.format);
+
+    VkBufferImageCopy2 region = {VK_STRUCTURE_TYPE_BUFFER_IMAGE_COPY_2};
+    region.bufferOffset = dstDataLayout.offset;
+    region.bufferRowLength = bufferRowLength;
+    region.bufferImageHeight = bufferImageHeight;
+    region.imageSubresource = VkImageSubresourceLayers{
+        srcAspectFlags,
+        srcRegion.mipOffset,
+        srcRegion.layerOffset,
+        1,
+    };
+    region.imageOffset = VkOffset3D{
+        srcRegion.x,
+        srcRegion.y,
+        srcRegion.z,
+    };
+    region.imageExtent = VkExtent3D{
+        srcRegion.width == WHOLE_SIZE ? src.GetSize(0, srcRegion.mipOffset) : srcRegion.width,
+        srcRegion.height == WHOLE_SIZE ? src.GetSize(1, srcRegion.mipOffset) : srcRegion.height,
+        srcRegion.depth == WHOLE_SIZE ? src.GetSize(2, srcRegion.mipOffset) : srcRegion.depth,
+    };
+
+    const auto& vk = m_Device.GetDispatchTable();
+    if (m_Device.m_IsSupported.copyCommands2) {
+        VkCopyImageToBufferInfo2 info = {VK_STRUCTURE_TYPE_COPY_IMAGE_TO_BUFFER_INFO_2};
+        info.srcImage = src.GetHandle();
+        info.srcImageLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+        info.dstBuffer = dst.GetHandle();
+        info.regionCount = 1;
+        info.pRegions = &region;
+
+        vk.CmdCopyImageToBuffer2(m_Handle, &info);
+    } else {
+        VkBufferImageCopy regionLegacy = {};
+        regionLegacy.bufferOffset = region.bufferOffset;
+        regionLegacy.bufferRowLength = region.bufferRowLength;
+        regionLegacy.bufferImageHeight = region.bufferImageHeight;
+        regionLegacy.imageSubresource = region.imageSubresource;
+        regionLegacy.imageOffset = region.imageOffset;
+        regionLegacy.imageExtent = region.imageExtent;
+
+        vk.CmdCopyImageToBuffer(m_Handle, src.GetHandle(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, dst.GetHandle(), 1, &regionLegacy);
+    }
+}
+
+NRI_INLINE void CommandBufferVK::ZeroBuffer(Buffer& buffer, uint64_t offset, uint64_t size) {
+    BufferVK& dst = (BufferVK&)buffer;
+
+    if (size == WHOLE_SIZE)
+        size = dst.GetDesc().size;
+
+    const auto& vk = m_Device.GetDispatchTable();
+    vk.CmdFillBuffer(m_Handle, dst.GetHandle(), offset, size, 0);
+}
+
+NRI_INLINE void CommandBufferVK::Dispatch(const DispatchDesc& dispatchDesc) {
+    const auto& vk = m_Device.GetDispatchTable();
+    vk.CmdDispatch(m_Handle, dispatchDesc.x, dispatchDesc.y, dispatchDesc.z);
+}
+
+NRI_INLINE void CommandBufferVK::DispatchIndirect(const Buffer& buffer, uint64_t offset) {
+    static_assert(sizeof(DispatchDesc) == sizeof(VkDispatchIndirectCommand));
+
+    const BufferVK& bufferVK = (BufferVK&)buffer;
+    const auto& vk = m_Device.GetDispatchTable();
+    vk.CmdDispatchIndirect(m_Handle, bufferVK.GetHandle(), offset);
+}
+
+static inline VkAccessFlags2 GetAccessFlags(AccessBits accessBits) {
+    VkAccessFlags2 flags = VK_ACCESS_2_NONE; // = 0
+
+    if (accessBits & AccessBits::INDEX_BUFFER)
+        flags |= VK_ACCESS_2_INDEX_READ_BIT;
+
+    if (accessBits & AccessBits::VERTEX_BUFFER)
+        flags |= VK_ACCESS_2_VERTEX_ATTRIBUTE_READ_BIT;
+
+    if (accessBits & AccessBits::CONSTANT_BUFFER)
+        flags |= VK_ACCESS_2_UNIFORM_READ_BIT;
+
+    if (accessBits & AccessBits::ARGUMENT_BUFFER)
+        flags |= VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT;
+
+    if (accessBits & AccessBits::SCRATCH_BUFFER)
+        flags |= VK_ACCESS_2_ACCELERATION_STRUCTURE_READ_BIT_KHR | VK_ACCESS_2_ACCELERATION_STRUCTURE_WRITE_BIT_KHR;
+
+    if (accessBits & AccessBits::COLOR_ATTACHMENT_READ)
+        flags |= VK_ACCESS_2_COLOR_ATTACHMENT_READ_BIT;
+
+    if (accessBits & AccessBits::COLOR_ATTACHMENT_WRITE)
+        flags |= VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT;
+
+    if (accessBits & AccessBits::DEPTH_STENCIL_ATTACHMENT_READ)
+        flags |= VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
+
+    if (accessBits & AccessBits::DEPTH_STENCIL_ATTACHMENT_WRITE)
+        flags |= VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+    if (accessBits & AccessBits::SHADING_RATE_ATTACHMENT)
+        flags |= VK_ACCESS_2_FRAGMENT_SHADING_RATE_ATTACHMENT_READ_BIT_KHR;
+
+    if (accessBits & AccessBits::INPUT_ATTACHMENT)
+        flags |= VK_ACCESS_2_INPUT_ATTACHMENT_READ_BIT;
+
+    if (accessBits & AccessBits::ACCELERATION_STRUCTURE_READ)
+        flags |= VK_ACCESS_2_ACCELERATION_STRUCTURE_READ_BIT_KHR;
+
+    if (accessBits & AccessBits::ACCELERATION_STRUCTURE_WRITE)
+        flags |= VK_ACCESS_2_ACCELERATION_STRUCTURE_WRITE_BIT_KHR;
+
+    if (accessBits & AccessBits::MICROMAP_READ)
+        flags |= VK_ACCESS_2_MICROMAP_READ_BIT_EXT;
+
+    if (accessBits & AccessBits::MICROMAP_WRITE)
+        flags |= VK_ACCESS_2_MICROMAP_WRITE_BIT_EXT;
+
+    if (accessBits & AccessBits::SHADER_BINDING_TABLE)
+        flags |= VK_ACCESS_2_SHADER_BINDING_TABLE_READ_BIT_KHR;
+
+    if (accessBits & AccessBits::SHADER_RESOURCE)
+        flags |= VK_ACCESS_2_SHADER_READ_BIT;
+
+    if (accessBits & AccessBits::SHADER_RESOURCE_STORAGE)
+        flags |= VK_ACCESS_2_SHADER_READ_BIT | VK_ACCESS_2_SHADER_WRITE_BIT;
+
+    if (accessBits & (AccessBits::COPY_SOURCE | AccessBits::RESOLVE_SOURCE))
+        flags |= VK_ACCESS_2_TRANSFER_READ_BIT;
+
+    if (accessBits & (AccessBits::COPY_DESTINATION | AccessBits::RESOLVE_DESTINATION | AccessBits::CLEAR_STORAGE))
+        flags |= VK_ACCESS_2_TRANSFER_WRITE_BIT;
+
+    return flags;
+}
+
+NRI_INLINE void CommandBufferVK::Barrier(const BarrierDesc& barrierDesc) {
+    // Global
+    Scratch<VkMemoryBarrier2> memoryBarriers = NRI_ALLOCATE_SCRATCH(m_Device, VkMemoryBarrier2, barrierDesc.globalNum);
+    for (uint32_t i = 0; i < barrierDesc.globalNum; i++) {
+        const GlobalBarrierDesc& in = barrierDesc.globals[i];
+
+        VkMemoryBarrier2& out = memoryBarriers[i];
+        out = {VK_STRUCTURE_TYPE_MEMORY_BARRIER_2};
+        out.srcStageMask = GetPipelineStageFlags(in.before.stages);
+        out.srcAccessMask = GetAccessFlags(in.before.access);
+        out.dstStageMask = GetPipelineStageFlags(in.after.stages);
+        out.dstAccessMask = GetAccessFlags(in.after.access);
+    }
+
+    // Buffer
+    Scratch<VkBufferMemoryBarrier2> bufferBarriers = NRI_ALLOCATE_SCRATCH(m_Device, VkBufferMemoryBarrier2, barrierDesc.bufferNum);
+    for (uint32_t i = 0; i < barrierDesc.bufferNum; i++) {
+        const BufferBarrierDesc& in = barrierDesc.buffers[i];
+        const BufferVK& bufferVK = *(const BufferVK*)in.buffer;
+
+        VkBufferMemoryBarrier2& out = bufferBarriers[i];
+        out = {VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2};
+        out.srcStageMask = GetPipelineStageFlags(in.before.stages);
+        out.srcAccessMask = GetAccessFlags(in.before.access);
+        out.dstStageMask = GetPipelineStageFlags(in.after.stages);
+        out.dstAccessMask = GetAccessFlags(in.after.access);
+        out.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED; // "VK_SHARING_MODE_CONCURRENT" is intentionally used for buffers to match D3D12 spec
+        out.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        out.buffer = bufferVK.GetHandle();
+        out.offset = 0;
+        out.size = VK_WHOLE_SIZE;
+    }
+
+    // Texture
+    bool isRegionLocal = false;
+    Scratch<VkImageMemoryBarrier2> textureBarriers = NRI_ALLOCATE_SCRATCH(m_Device, VkImageMemoryBarrier2, barrierDesc.textureNum);
+    for (uint32_t i = 0; i < barrierDesc.textureNum; i++) {
+        const TextureBarrierDesc& in = barrierDesc.textures[i];
+        const TextureVK& textureVK = *(TextureVK*)in.texture;
+        const QueueVK* srcQueue = (QueueVK*)in.srcQueue;
+        const QueueVK* dstQueue = (QueueVK*)in.dstQueue;
+
+        VkImageAspectFlags aspectFlags = GetImageAspectFlags(in.planes, textureVK.GetDesc().format);
+
+        VkImageMemoryBarrier2& out = textureBarriers[i];
+        out = {VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2};
+        out.srcStageMask = GetPipelineStageFlags(in.before.stages);
+        out.srcAccessMask = GetAccessFlags(in.before.access);
+        out.dstStageMask = GetPipelineStageFlags(in.after.stages);
+        out.dstAccessMask = GetAccessFlags(in.after.access);
+        out.oldLayout = GetImageLayout(in.before.layout);
+        out.newLayout = GetImageLayout(in.after.layout);
+        out.srcQueueFamilyIndex = in.srcQueue ? srcQueue->GetFamilyIndex() : VK_QUEUE_FAMILY_IGNORED;
+        out.dstQueueFamilyIndex = in.dstQueue ? dstQueue->GetFamilyIndex() : VK_QUEUE_FAMILY_IGNORED;
+        out.image = textureVK.GetHandle();
+        out.subresourceRange = {
+            aspectFlags,
+            in.mipOffset,
+            (in.mipNum == REMAINING) ? VK_REMAINING_MIP_LEVELS : in.mipNum,
+            in.layerOffset,
+            (in.layerNum == REMAINING) ? VK_REMAINING_ARRAY_LAYERS : in.layerNum,
+        };
+
+        // Legacy render passes need input attachment references before vkCmdBeginRenderPass.
+        if (!m_Device.m_IsSupported.dynamicRendering) {
+            VkImageSubresourceRange range = GetSubresourceRange(textureVK, out.subresourceRange);
+            if (in.after.layout == Layout::INPUT_ATTACHMENT)
+                AddInputAttachmentRange(m_InputAttachmentRanges, textureVK.GetHandle(), range);
+            else
+                RemoveInputAttachmentRange(m_InputAttachmentRanges, textureVK.GetHandle(), range);
+        }
+
+        if (m_RenderPass && in.after.layout == Layout::INPUT_ATTACHMENT)
+            isRegionLocal = true;
+    }
+
+    // Submit
+    VkDependencyInfo dependencyInfo = {VK_STRUCTURE_TYPE_DEPENDENCY_INFO};
+    dependencyInfo.memoryBarrierCount = barrierDesc.globalNum;
+    dependencyInfo.pMemoryBarriers = memoryBarriers;
+    dependencyInfo.bufferMemoryBarrierCount = barrierDesc.bufferNum;
+    dependencyInfo.pBufferMemoryBarriers = bufferBarriers;
+    dependencyInfo.imageMemoryBarrierCount = barrierDesc.textureNum;
+    dependencyInfo.pImageMemoryBarriers = textureBarriers;
+
+    if (isRegionLocal)
+        dependencyInfo.dependencyFlags |= VK_DEPENDENCY_BY_REGION_BIT;
+
+    const auto& vk = m_Device.GetDispatchTable();
+    vk.CmdPipelineBarrier2(m_Handle, &dependencyInfo);
+}
+
+NRI_INLINE void CommandBufferVK::BeginQuery(QueryPool& queryPool, uint32_t offset) {
+    QueryPoolVK& queryPoolVK = (QueryPoolVK&)queryPool;
+    const auto& vk = m_Device.GetDispatchTable();
+    vk.CmdBeginQuery(m_Handle, queryPoolVK.GetHandle(), offset, (VkQueryControlFlagBits)0);
+}
+
+NRI_INLINE void CommandBufferVK::EndQuery(QueryPool& queryPool, uint32_t offset) {
+    QueryPoolVK& queryPoolVK = (QueryPoolVK&)queryPool;
+    const auto& vk = m_Device.GetDispatchTable();
+
+    if (queryPoolVK.GetType() == VK_QUERY_TYPE_TIMESTAMP) {
+        // TODO: https://registry.khronos.org/vulkan/specs/latest/man/html/vkCmdWriteTimestamp.html
+        // https://docs.vulkan.org/samples/latest/samples/api/timestamp_queries/README.html
+        vk.CmdWriteTimestamp2(m_Handle, VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT, queryPoolVK.GetHandle(), offset);
+    } else
+        vk.CmdEndQuery(m_Handle, queryPoolVK.GetHandle(), offset);
+}
+
+NRI_INLINE void CommandBufferVK::CopyQueries(const QueryPool& queryPool, uint32_t offset, uint32_t num, Buffer& dstBuffer, uint64_t dstOffset) {
+    const QueryPoolVK& queryPoolVK = (QueryPoolVK&)queryPool;
+    const BufferVK& bufferVK = (BufferVK&)dstBuffer;
+
+    // TODO: wait is questionable here, but it's needed to ensure that the destination buffer gets "complete" values (perf seems unaffected)
+    VkQueryResultFlags flags = VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WAIT_BIT;
+
+    const auto& vk = m_Device.GetDispatchTable();
+    vk.CmdCopyQueryPoolResults(m_Handle, queryPoolVK.GetHandle(), offset, num, bufferVK.GetHandle(), dstOffset, queryPoolVK.GetQuerySize(), flags);
+}
+
+NRI_INLINE void CommandBufferVK::ResetQueries(QueryPool& queryPool, uint32_t offset, uint32_t num) {
+    QueryPoolVK& queryPoolVK = (QueryPoolVK&)queryPool;
+
+    const auto& vk = m_Device.GetDispatchTable();
+    vk.CmdResetQueryPool(m_Handle, queryPoolVK.GetHandle(), offset, num);
+}
+
+NRI_INLINE void CommandBufferVK::BeginAnnotation(const char* name, uint32_t bgra) {
+    VkDebugUtilsLabelEXT info = {VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT};
+    info.pLabelName = name;
+    info.color[0] = ((bgra >> 16) & 0xFF) / 255.0f;
+    info.color[1] = ((bgra >> 8) & 0xFF) / 255.0f;
+    info.color[2] = ((bgra >> 0) & 0xFF) / 255.0f;
+    info.color[3] = 1.0f; // PIX sets alpha to 1
+
+    const auto& vk = m_Device.GetDispatchTable();
+    if (vk.CmdBeginDebugUtilsLabelEXT)
+        vk.CmdBeginDebugUtilsLabelEXT(m_Handle, &info);
+}
+
+NRI_INLINE void CommandBufferVK::EndAnnotation() {
+    const auto& vk = m_Device.GetDispatchTable();
+    if (vk.CmdEndDebugUtilsLabelEXT)
+        vk.CmdEndDebugUtilsLabelEXT(m_Handle);
+}
+
+NRI_INLINE void CommandBufferVK::Annotation(const char* name, uint32_t bgra) {
+    VkDebugUtilsLabelEXT info = {VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT};
+    info.pLabelName = name;
+    info.color[0] = ((bgra >> 16) & 0xFF) / 255.0f;
+    info.color[1] = ((bgra >> 8) & 0xFF) / 255.0f;
+    info.color[2] = ((bgra >> 0) & 0xFF) / 255.0f;
+    info.color[3] = 1.0f; // PIX sets alpha to 1
+
+    const auto& vk = m_Device.GetDispatchTable();
+    if (vk.CmdInsertDebugUtilsLabelEXT)
+        vk.CmdInsertDebugUtilsLabelEXT(m_Handle, &info);
+}
+
+NRI_INLINE void CommandBufferVK::BuildTopLevelAccelerationStructures(const BuildTopLevelAccelerationStructureDesc* buildTopLevelAccelerationStructureDescs, uint32_t buildTopLevelAccelerationStructureDescNum) {
+    static_assert(sizeof(VkAccelerationStructureInstanceKHR) == sizeof(TopLevelInstance), "Mismatched sizeof");
+
+    Scratch<VkAccelerationStructureBuildGeometryInfoKHR> infos = NRI_ALLOCATE_SCRATCH(m_Device, VkAccelerationStructureBuildGeometryInfoKHR, buildTopLevelAccelerationStructureDescNum);
+    Scratch<const VkAccelerationStructureBuildRangeInfoKHR*> pRanges = NRI_ALLOCATE_SCRATCH(m_Device, const VkAccelerationStructureBuildRangeInfoKHR*, buildTopLevelAccelerationStructureDescNum);
+    Scratch<VkAccelerationStructureGeometryKHR> geometries = NRI_ALLOCATE_SCRATCH(m_Device, VkAccelerationStructureGeometryKHR, buildTopLevelAccelerationStructureDescNum);
+    Scratch<VkAccelerationStructureBuildRangeInfoKHR> ranges = NRI_ALLOCATE_SCRATCH(m_Device, VkAccelerationStructureBuildRangeInfoKHR, buildTopLevelAccelerationStructureDescNum);
+
+    for (uint32_t i = 0; i < buildTopLevelAccelerationStructureDescNum; i++) {
+        const BuildTopLevelAccelerationStructureDesc& in = buildTopLevelAccelerationStructureDescs[i];
+
+        AccelerationStructureVK* dst = (AccelerationStructureVK*)in.dst;
+        AccelerationStructureVK* src = (AccelerationStructureVK*)in.src;
+        BufferVK* scratchBuffer = (BufferVK*)in.scratchBuffer;
+        BufferVK* instanceBuffer = (BufferVK*)in.instanceBuffer;
+
+        // Range
+        VkAccelerationStructureBuildRangeInfoKHR& range = ranges[i];
+        range = {};
+        range.primitiveCount = in.instanceNum;
+
+        pRanges[i] = &ranges[i];
+
+        // Geometry
+        VkAccelerationStructureGeometryKHR& geometry = geometries[i];
+        geometry = {VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR};
+        geometry.geometryType = VK_GEOMETRY_TYPE_INSTANCES_KHR;
+        geometry.geometry.instances.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_INSTANCES_DATA_KHR;
+        geometry.geometry.instances.data.deviceAddress = instanceBuffer->GetDeviceAddress() + in.instanceOffset;
+
+        // Info
+        VkAccelerationStructureBuildGeometryInfoKHR& info = infos[i];
+        info = {VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_GEOMETRY_INFO_KHR};
+        info.type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR;
+        info.flags = GetBuildAccelerationStructureFlags(dst->GetFlags());
+        info.dstAccelerationStructure = dst->GetHandle();
+        info.geometryCount = 1;
+        info.pGeometries = &geometry;
+        info.scratchData.deviceAddress = scratchBuffer->GetDeviceAddress() + in.scratchOffset;
+
+        if (in.src) {
+            info.mode = VK_BUILD_ACCELERATION_STRUCTURE_MODE_UPDATE_KHR;
+            info.srcAccelerationStructure = src->GetHandle();
+        } else
+            info.mode = VK_BUILD_ACCELERATION_STRUCTURE_MODE_BUILD_KHR;
+    }
+
+    const auto& vk = m_Device.GetDispatchTable();
+    vk.CmdBuildAccelerationStructuresKHR(m_Handle, buildTopLevelAccelerationStructureDescNum, infos, pRanges);
+}
+
+NRI_INLINE void CommandBufferVK::BuildBottomLevelAccelerationStructures(const BuildBottomLevelAccelerationStructureDesc* buildBottomLevelAccelerationStructureDescs, uint32_t buildBottomLevelAccelerationStructureDescNum) {
+    // Count
+    uint32_t geometryTotalNum = 0;
+    uint32_t micromapTotalNum = 0;
+
+    for (uint32_t i = 0; i < buildBottomLevelAccelerationStructureDescNum; i++) {
+        const BuildBottomLevelAccelerationStructureDesc& desc = buildBottomLevelAccelerationStructureDescs[i];
+
+        for (uint32_t j = 0; j < desc.geometryNum; j++) {
+            const BottomLevelGeometryDesc& geometry = desc.geometries[j];
+
+            if (geometry.type == BottomLevelGeometryType::TRIANGLES && geometry.triangles.micromap)
+                micromapTotalNum++;
+        }
+
+        geometryTotalNum += desc.geometryNum;
+    }
+
+    // Convert
+    Scratch<VkAccelerationStructureBuildGeometryInfoKHR> infos = NRI_ALLOCATE_SCRATCH(m_Device, VkAccelerationStructureBuildGeometryInfoKHR, buildBottomLevelAccelerationStructureDescNum);
+    Scratch<const VkAccelerationStructureBuildRangeInfoKHR*> pRanges = NRI_ALLOCATE_SCRATCH(m_Device, const VkAccelerationStructureBuildRangeInfoKHR*, buildBottomLevelAccelerationStructureDescNum);
+    Scratch<VkAccelerationStructureGeometryKHR> geometriesScratch = NRI_ALLOCATE_SCRATCH(m_Device, VkAccelerationStructureGeometryKHR, geometryTotalNum);
+    Scratch<VkAccelerationStructureBuildRangeInfoKHR> rangesScratch = NRI_ALLOCATE_SCRATCH(m_Device, VkAccelerationStructureBuildRangeInfoKHR, geometryTotalNum);
+    Scratch<VkAccelerationStructureTrianglesOpacityMicromapEXT> trianglesMicromapsScratch = NRI_ALLOCATE_SCRATCH(m_Device, VkAccelerationStructureTrianglesOpacityMicromapEXT, micromapTotalNum);
+
+    VkAccelerationStructureBuildRangeInfoKHR* ranges = rangesScratch;
+    VkAccelerationStructureGeometryKHR* geometries = geometriesScratch;
+    VkAccelerationStructureTrianglesOpacityMicromapEXT* trianglesMicromaps = trianglesMicromapsScratch;
+
+    for (uint32_t i = 0; i < buildBottomLevelAccelerationStructureDescNum; i++) {
+        const BuildBottomLevelAccelerationStructureDesc& in = buildBottomLevelAccelerationStructureDescs[i];
+
+        // Fill ranges and geometries
+        pRanges[i] = ranges;
+
+        uint32_t micromapNum = ConvertBotomLevelGeometries(ranges, geometries, trianglesMicromaps, in.geometries, in.geometryNum);
+
+        // Fill info
+        AccelerationStructureVK* dst = (AccelerationStructureVK*)in.dst;
+        AccelerationStructureVK* src = (AccelerationStructureVK*)in.src;
+
+        BufferVK* scratchBuffer = (BufferVK*)in.scratchBuffer;
+
+        VkAccelerationStructureBuildGeometryInfoKHR& info = infos[i];
+        info = {VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_GEOMETRY_INFO_KHR};
+        info.type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR;
+        info.flags = GetBuildAccelerationStructureFlags(dst->GetFlags());
+        info.dstAccelerationStructure = dst->GetHandle();
+        info.geometryCount = in.geometryNum;
+        info.pGeometries = geometries;
+        info.scratchData.deviceAddress = scratchBuffer->GetDeviceAddress() + in.scratchOffset;
+
+        if (in.src) {
+            info.mode = VK_BUILD_ACCELERATION_STRUCTURE_MODE_UPDATE_KHR;
+            info.srcAccelerationStructure = src->GetHandle();
+        } else
+            info.mode = VK_BUILD_ACCELERATION_STRUCTURE_MODE_BUILD_KHR;
+
+        // Increment
+        ranges += in.geometryNum;
+        geometries += in.geometryNum;
+        trianglesMicromaps += micromapNum;
+    }
+
+    // Build
+    const auto& vk = m_Device.GetDispatchTable();
+    vk.CmdBuildAccelerationStructuresKHR(m_Handle, buildBottomLevelAccelerationStructureDescNum, infos, pRanges);
+}
+
+NRI_INLINE void CommandBufferVK::BuildMicromaps(const BuildMicromapDesc* buildMicromapDescs, uint32_t buildMicromapDescNum) {
+    static_assert(sizeof(MicromapTriangle) == sizeof(VkMicromapTriangleEXT), "Mismatched sizeof");
+
+    Scratch<VkMicromapBuildInfoEXT> infos = NRI_ALLOCATE_SCRATCH(m_Device, VkMicromapBuildInfoEXT, buildMicromapDescNum);
+    for (uint32_t i = 0; i < buildMicromapDescNum; i++) {
+        const BuildMicromapDesc& in = buildMicromapDescs[i];
+
+        MicromapVK* dst = (MicromapVK*)in.dst;
+        BufferVK* scratchBuffer = (BufferVK*)in.scratchBuffer;
+        BufferVK* triangleBuffer = (BufferVK*)in.triangleBuffer;
+        BufferVK* dataBuffer = (BufferVK*)in.dataBuffer;
+
+        VkMicromapBuildInfoEXT& out = infos[i];
+        out = {VK_STRUCTURE_TYPE_MICROMAP_BUILD_INFO_EXT};
+        out.type = VK_MICROMAP_TYPE_OPACITY_MICROMAP_EXT;
+        out.flags = GetBuildMicromapFlags(dst->GetFlags());
+        out.mode = VK_BUILD_MICROMAP_MODE_BUILD_EXT;
+        out.dstMicromap = dst->GetHandle();
+        out.usageCountsCount = dst->GetUsageNum();
+        out.pUsageCounts = dst->GetUsages();
+        out.data.deviceAddress = dataBuffer->GetDeviceAddress() + in.dataOffset;
+        out.scratchData.deviceAddress = scratchBuffer->GetDeviceAddress() + in.scratchOffset;
+        out.triangleArray.deviceAddress = triangleBuffer->GetDeviceAddress() + in.triangleOffset;
+        out.triangleArrayStride = sizeof(MicromapTriangle);
+    }
+
+    const auto& vk = m_Device.GetDispatchTable();
+    vk.CmdBuildMicromapsEXT(m_Handle, buildMicromapDescNum, infos);
+}
+
+NRI_INLINE void CommandBufferVK::CopyAccelerationStructure(AccelerationStructure& dst, const AccelerationStructure& src, CopyMode copyMode) {
+    VkAccelerationStructureKHR dstHandle = ((AccelerationStructureVK&)dst).GetHandle();
+    VkAccelerationStructureKHR srcHandle = ((AccelerationStructureVK&)src).GetHandle();
+
+    VkCopyAccelerationStructureInfoKHR info = {VK_STRUCTURE_TYPE_COPY_ACCELERATION_STRUCTURE_INFO_KHR};
+    info.src = srcHandle;
+    info.dst = dstHandle;
+    info.mode = GetAccelerationStructureCopyMode(copyMode);
+
+    const auto& vk = m_Device.GetDispatchTable();
+    vk.CmdCopyAccelerationStructureKHR(m_Handle, &info);
+}
+
+NRI_INLINE void CommandBufferVK::CopyMicromap(Micromap& dst, const Micromap& src, CopyMode copyMode) {
+    VkMicromapEXT dstHandle = ((MicromapVK&)dst).GetHandle();
+    VkMicromapEXT srcHandle = ((MicromapVK&)src).GetHandle();
+
+    VkCopyMicromapInfoEXT info = {VK_STRUCTURE_TYPE_COPY_MICROMAP_INFO_EXT};
+    info.src = srcHandle;
+    info.dst = dstHandle;
+    info.mode = GetMicromapCopyMode(copyMode);
+
+    const auto& vk = m_Device.GetDispatchTable();
+    vk.CmdCopyMicromapEXT(m_Handle, &info);
+}
+
+NRI_INLINE void CommandBufferVK::WriteAccelerationStructuresSizes(const AccelerationStructure* const* accelerationStructures, uint32_t accelerationStructureNum, QueryPool& queryPool, uint32_t queryPoolOffset) {
+    Scratch<VkAccelerationStructureKHR> handles = NRI_ALLOCATE_SCRATCH(m_Device, VkAccelerationStructureKHR, accelerationStructureNum);
+    for (uint32_t i = 0; i < accelerationStructureNum; i++)
+        handles[i] = ((AccelerationStructureVK*)accelerationStructures[i])->GetHandle();
+
+    const QueryPoolVK& queryPoolVK = (QueryPoolVK&)queryPool;
+
+    const auto& vk = m_Device.GetDispatchTable();
+    vk.CmdWriteAccelerationStructuresPropertiesKHR(m_Handle, accelerationStructureNum, handles, queryPoolVK.GetType(), queryPoolVK.GetHandle(), queryPoolOffset);
+}
+
+NRI_INLINE void CommandBufferVK::WriteMicromapsSizes(const Micromap* const* micromaps, uint32_t micromapNum, QueryPool& queryPool, uint32_t queryPoolOffset) {
+    Scratch<VkMicromapEXT> handles = NRI_ALLOCATE_SCRATCH(m_Device, VkMicromapEXT, micromapNum);
+    for (uint32_t i = 0; i < micromapNum; i++)
+        handles[i] = ((MicromapVK*)micromaps[i])->GetHandle();
+
+    const QueryPoolVK& queryPoolVK = (QueryPoolVK&)queryPool;
+
+    const auto& vk = m_Device.GetDispatchTable();
+    vk.CmdWriteMicromapsPropertiesEXT(m_Handle, micromapNum, handles, queryPoolVK.GetType(), queryPoolVK.GetHandle(), queryPoolOffset);
+}
+
+NRI_INLINE void CommandBufferVK::DispatchRays(const DispatchRaysDesc& dispatchRaysDesc) {
+    VkStridedDeviceAddressRegionKHR raygen = {};
+    raygen.deviceAddress = GetBufferDeviceAddress(dispatchRaysDesc.raygenShader.buffer, dispatchRaysDesc.raygenShader.offset);
+    raygen.size = dispatchRaysDesc.raygenShader.size;
+    raygen.stride = dispatchRaysDesc.raygenShader.stride;
+
+    VkStridedDeviceAddressRegionKHR miss = {};
+    miss.deviceAddress = GetBufferDeviceAddress(dispatchRaysDesc.missShaders.buffer, dispatchRaysDesc.missShaders.offset);
+    miss.size = dispatchRaysDesc.missShaders.size;
+    miss.stride = dispatchRaysDesc.missShaders.stride;
+
+    VkStridedDeviceAddressRegionKHR hit = {};
+    hit.deviceAddress = GetBufferDeviceAddress(dispatchRaysDesc.hitShaderGroups.buffer, dispatchRaysDesc.hitShaderGroups.offset);
+    hit.size = dispatchRaysDesc.hitShaderGroups.size;
+    hit.stride = dispatchRaysDesc.hitShaderGroups.stride;
+
+    VkStridedDeviceAddressRegionKHR callable = {};
+    callable.deviceAddress = GetBufferDeviceAddress(dispatchRaysDesc.callableShaders.buffer, dispatchRaysDesc.callableShaders.offset);
+    callable.size = dispatchRaysDesc.callableShaders.size;
+    callable.stride = dispatchRaysDesc.callableShaders.stride;
+
+    const auto& vk = m_Device.GetDispatchTable();
+    vk.CmdTraceRaysKHR(m_Handle, &raygen, &miss, &hit, &callable, dispatchRaysDesc.x, dispatchRaysDesc.y, dispatchRaysDesc.z);
+}
+
+NRI_INLINE void CommandBufferVK::DispatchRaysIndirect(const Buffer& buffer, uint64_t offset) {
+    static_assert(sizeof(DispatchRaysIndirectDesc) == sizeof(VkTraceRaysIndirectCommand2KHR));
+
+    VkDeviceAddress deviceAddress = GetBufferDeviceAddress(&buffer, offset);
+
+    const auto& vk = m_Device.GetDispatchTable();
+    vk.CmdTraceRaysIndirect2KHR(m_Handle, deviceAddress);
+}
+
+NRI_INLINE void CommandBufferVK::DrawMeshTasks(const DrawMeshTasksDesc& drawMeshTasksDesc) {
+    const auto& vk = m_Device.GetDispatchTable();
+    vk.CmdDrawMeshTasksEXT(m_Handle, drawMeshTasksDesc.x, drawMeshTasksDesc.y, drawMeshTasksDesc.z);
+}
+
+NRI_INLINE void CommandBufferVK::DrawMeshTasksIndirect(const Buffer& buffer, uint64_t offset, uint32_t drawNum, uint32_t stride, const Buffer* countBuffer, uint64_t countBufferOffset) {
+    static_assert(sizeof(DrawMeshTasksDesc) == sizeof(VkDrawMeshTasksIndirectCommandEXT));
+
+    const BufferVK& bufferVK = (BufferVK&)buffer;
+    const auto& vk = m_Device.GetDispatchTable();
+
+    if (countBuffer) {
+        const BufferVK& countBufferVK = *(BufferVK*)countBuffer;
+        vk.CmdDrawMeshTasksIndirectCountEXT(m_Handle, bufferVK.GetHandle(), offset, countBufferVK.GetHandle(), countBufferOffset, drawNum, stride);
+    } else
+        vk.CmdDrawMeshTasksIndirectEXT(m_Handle, bufferVK.GetHandle(), offset, drawNum, stride);
+}

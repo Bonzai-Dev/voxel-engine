@@ -1,24 +1,54 @@
 [submodule "thirdparty/SDL"]
-	path = thirdparty/SDL
+	path = core/thirdparty/SDL
 	url = https://github.com/libsdl-org/SDL.git
 [submodule "thirdparty/glm"]
-	path = thirdparty/glm
+	path = core/thirdparty/glm
 	url = https://github.com/g-truc/glm.git
 [submodule "thirdparty/simdjson"]
-	path = thirdparty/simdjson
+	path = core/thirdparty/simdjson
 	url = https://github.com/simdjson/simdjson.git
 [submodule "thirdparty/spdlog"]
-	path = thirdparty/spdlog
+	path = core/thirdparty/spdlog
 	url = https://github.com/gabime/spdlog.git
 [submodule "thirdparty/vulkan/VulkanMemoryAllocator"]
-	path = thirdparty/vulkan/VulkanMemoryAllocator
+	path = core/thirdparty/vulkan/VulkanMemoryAllocator
 	url = https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
 [submodule "thirdparty/vulkan/volk"]
-	path = thirdparty/vulkan/volk
+	path = core/thirdparty/vulkan/volk
 	url = https://github.com/zeux/volk.git
 [submodule "thirdparty/vulkan/Vulkan-Headers"]
-	path = thirdparty/vulkan/Vulkan-Headers
+	path = core/thirdparty/vulkan/Vulkan-Headers
 	url = https://github.com/KhronosGroup/Vulkan-Headers.git
 [submodule "thirdparty/slang"]
-	path = thirdparty/slang
+	path = core/thirdparty/slang
 	url = https://github.com/shader-slang/slang.git
+[submodule "slang"]
+	path = slang
+	url = https://github.com/shader-slang/slang.git
+[submodule "spdlog"]
+	path = spdlog
+	url = https://github.com/gabime/spdlog.git
+[submodule "SDL"]
+	path = SDL
+	url = https://github.com/libsdl-org/SDL.git
+[submodule "core/thirdparty/SDL"]
+	path = core/thirdparty/SDL
+	url = https://github.com/libsdl-org/SDL.git
+[submodule "core/thirdparty/spdlog"]
+	path = core/thirdparty/spdlog
+	url = https://github.com/gabime/spdlog.git
+[submodule "core/thirdparty/slang"]
+	path = core/thirdparty/slang
+	url = https://github.com/shader-slang/slang.git
+[submodule "core/thirdparty/VulkanMemoryAllocator"]
+	path = core/thirdparty/VulkanMemoryAllocator
+	url = https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
+[submodule "core/thirdparty/Vulkan-Headers"]
+	path = core/thirdparty/Vulkan-Headers
+	url = https://github.com/KhronosGroup/Vulkan-Headers.git
+[submodule "core/thirdparty/volk"]
+	path = core/thirdparty/volk
+	url = https://github.com/zeux/volk.git
+[submodule "core/thirdparty/vulkan"]
+	path = core/thirdparty/vulkan
+	url = https://github.com/KhronosGroup/Vulkan-Headers.git

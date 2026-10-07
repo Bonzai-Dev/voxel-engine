@@ -1,0 +1,38 @@
+# SDL
+set(SDL_SHARED OFF CACHE BOOL "" FORCE)
+set(SDL_STATIC ON CACHE BOOL "" FORCE)
+set(SDL_DISABLE_INSTALL ON CACHE BOOL "" FORCE)
+set(SDL_TEST_LIBRARY OFF CACHE BOOL "" FORCE)
+add_subdirectory(SDL EXCLUDE_FROM_ALL)
+target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE SDL3::SDL3)
+
+# glm
+#add_subdirectory(glm EXCLUDE_FROM_ALL)
+#target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE glm::glm)
+
+#simdjson
+#add_subdirectory(simdjson EXCLUDE_FROM_ALL)
+#target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE simdjson::simdjson)
+
+# spdlog
+add_subdirectory(spdlog EXCLUDE_FROM_ALL)
+target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE spdlog::spdlog)
+
+# Vulkan
+add_subdirectory(vulkan EXCLUDE_FROM_ALL)
+target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC vulkan)
+
+# Slang
+set(SLANG_ENABLE_PCH OFF CACHE BOOL "" FORCE)
+set(SLANG_ENABLE_SLANG_RHI OFF CACHE BOOL "" FORCE)
+set(SLANG_ENABLE_GFX OFF CACHE BOOL "" FORCE)
+set(SLANG_ENABLE_TESTS OFF CACHE BOOL "" FORCE)
+set(SLANG_ENABLE_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(SLANG_ENABLE_SLANGI OFF CACHE BOOL "" FORCE)
+
+set(SLANG_ENABLE_CUDA OFF CACHE BOOL "" FORCE)
+set(SLANG_ENABLE_OPTIX OFF CACHE BOOL "" FORCE)
+
+set(SLANG_LIB_TYPE "SHARED" CACHE STRING "" FORCE)
+add_subdirectory(slang EXCLUDE_FROM_ALL)
+target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE slang)

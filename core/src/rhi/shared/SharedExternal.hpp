@@ -38,8 +38,8 @@ typedef uint32_t DXGI_FORMAT;
 #include <core/rhi/extensions/streamer.hpp>
 #include <core/rhi/extensions/swap_chain.hpp>
 #include <core/rhi/extensions/upscaler.hpp>
-#include <core/rhi/extensions/D3D11_wrapper.hpp>
-#include <core/rhi/extensions/D3D12_wrapper.hpp>
+#include <core/rhi/extensions/D3D11_wrapper.hxx>
+#include <core/rhi/extensions/D3D12_wrapper.hxx>
 #include <core/rhi/extensions/vulkan_wrapper.hpp>
 
 #include "Lock.hpp"

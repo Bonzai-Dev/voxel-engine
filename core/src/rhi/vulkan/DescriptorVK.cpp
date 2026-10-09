@@ -143,7 +143,7 @@ Result DescriptorVK::Create(const TextureViewDesc& textureViewDesc) {
     m_ViewDesc.texture.mipOffset = textureViewDesc.mipOffset;
     m_ViewDesc.texture.mipNum = mipNum;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 Result DescriptorVK::Create(const BufferViewDesc& bufferViewDesc) {
@@ -195,7 +195,7 @@ Result DescriptorVK::Create(const BufferViewDesc& bufferViewDesc) {
         NRI_RETURN_ON_BAD_VKRESULT(&m_Device, vkResult, "vkCreateBufferView");
     }
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 Result DescriptorVK::Create(const SamplerDesc& samplerDesc) {
@@ -210,14 +210,14 @@ Result DescriptorVK::Create(const SamplerDesc& samplerDesc) {
 
     m_Type = DescriptorType::SAMPLER;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 Result DescriptorVK::Create(VkAccelerationStructureKHR accelerationStructure) {
     m_Type = DescriptorType::ACCELERATION_STRUCTURE;
     m_View.accelerationStructure = accelerationStructure;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 NRI_INLINE void DescriptorVK::SetDebugName(const char* name) {

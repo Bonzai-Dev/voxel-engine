@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct AttachmentDescD3D11 {
     DescriptorD3D11* attachment;
@@ -112,4 +112,4 @@ private:
     bool m_IsShadingRateLookupTableSet = false;
 };
 
-} // namespace nri
+} // namespace Core::RHI

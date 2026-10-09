@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct TextureWGPU final : public DebugNameBase {
     inline TextureWGPU(DeviceWGPU& device)
@@ -55,4 +55,4 @@ private:
     bool m_IsSurfaceTexture = false;
 };
 
-} // namespace nri
+} // namespace Core::RHI

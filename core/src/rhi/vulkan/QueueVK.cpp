@@ -5,7 +5,7 @@ Result QueueVK::Create(QueueType type, uint32_t familyIndex, VkQueue handle) {
     m_FamilyIndex = familyIndex;
     m_Handle = handle;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 NRI_INLINE void QueueVK::SetDebugName(const char* name) {
@@ -117,7 +117,7 @@ NRI_INLINE Result QueueVK::Submit(const QueueSubmitDesc& queueSubmitDesc) {
     VkResult vkResult = vk.QueueSubmit2(m_Handle, 1, &submitInfo, VK_NULL_HANDLE);
     NRI_RETURN_ON_BAD_VKRESULT(&m_Device, vkResult, "QueueSubmit2");
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 NRI_INLINE Result QueueVK::WaitIdle() {
@@ -127,5 +127,5 @@ NRI_INLINE Result QueueVK::WaitIdle() {
     VkResult vkResult = vk.QueueWaitIdle(m_Handle);
     NRI_RETURN_ON_BAD_VKRESULT(&m_Device, vkResult, "QueueWaitIdle");
 
-    return Result::SUCCESS;
+    return Result::Success;
 }

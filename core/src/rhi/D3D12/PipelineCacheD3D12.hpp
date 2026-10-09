@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct PipelineCacheD3D12 final : public DebugNameBase {
     inline PipelineCacheD3D12(DeviceD3D12& device)
@@ -47,4 +47,4 @@ private:
     Lock m_StoreLock;
 };
 
-} // namespace nri
+} // namespace Core::RHI

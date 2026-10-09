@@ -3,7 +3,7 @@
 Result TextureD3D12::Create(const TextureDesc& textureDesc) {
     m_Desc = FixTextureDesc(textureDesc);
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 Result TextureD3D12::Create(const TextureD3D12Desc& textureD3D12Desc) {
@@ -12,7 +12,7 @@ Result TextureD3D12::Create(const TextureD3D12Desc& textureD3D12Desc) {
 
     m_Texture = (ID3D12ResourceBest*)textureD3D12Desc.d3d12Resource;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 Result TextureD3D12::Allocate(MemoryLocation memoryLocation, float priority, bool committed) {
@@ -74,7 +74,7 @@ Result TextureD3D12::Allocate(MemoryLocation memoryLocation, float priority, boo
         NRI_RETURN_ON_BAD_HRESULT(&m_Device, hr, "ID3D12Device1::SetResidencyPriority");
     }
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 Result TextureD3D12::BindMemory(const MemoryD3D12& memory, uint64_t offset) {
@@ -141,5 +141,5 @@ Result TextureD3D12::BindMemory(const MemoryD3D12& memory, uint64_t offset) {
         NRI_RETURN_ON_BAD_HRESULT(&m_Device, hr, "ID3D12Device1::SetResidencyPriority");
     }
 
-    return Result::SUCCESS;
+    return Result::Success;
 }

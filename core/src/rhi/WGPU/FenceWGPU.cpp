@@ -5,7 +5,7 @@ Result FenceWGPU::Create(uint64_t initialValue) {
     m_SubmittedValue = m_IsSwapChainSemaphore ? 0 : initialValue;
     m_CompletedValue = m_SubmittedValue;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 uint64_t FenceWGPU::GetValue() const {

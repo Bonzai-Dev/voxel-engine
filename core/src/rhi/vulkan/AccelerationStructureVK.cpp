@@ -55,7 +55,7 @@ Result AccelerationStructureVK::AllocateAndBindMemory(MemoryLocation memoryLocat
     NRI_CHECK(m_Buffer, "Unexpected");
 
     Result result = m_Buffer->AllocateAndBindMemory(memoryLocation, priority, committed);
-    if (result == Result::SUCCESS)
+    if (result == Result::Success)
         result = BindMemory(nullptr, 0);
 
     return result;
@@ -72,7 +72,7 @@ Result AccelerationStructureVK::BindMemory(const MemoryVK* memory, uint64_t offs
         desc.offset = offset;
 
         Result result = m_Device.BindBufferMemory(&desc, 1);
-        if(result != Result::SUCCESS)
+        if(result != Result::Success)
             return result;
     }
 
@@ -95,7 +95,7 @@ Result AccelerationStructureVK::BindMemory(const MemoryVK* memory, uint64_t offs
         m_DeviceAddress = vk.GetAccelerationStructureDeviceAddressKHR(m_Device, &deviceAddressInfo);
     }
 
-    return m_DeviceAddress ? Result::SUCCESS : Result::FAILURE;
+    return m_DeviceAddress ? Result::Success : Result::FAILURE;
 }
 
 NRI_INLINE void AccelerationStructureVK::SetDebugName(const char* name) {

@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct MicromapD3D12 final : public DebugNameBase {
     inline MicromapD3D12(DeviceD3D12& device)
@@ -62,4 +62,4 @@ private:
     MicromapBits m_Flags = MicromapBits::NONE;
 };
 
-} // namespace nri
+} // namespace Core::RHI

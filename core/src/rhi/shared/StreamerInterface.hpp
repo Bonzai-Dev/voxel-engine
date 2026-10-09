@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct BufferUpdateRequest {
     Buffer* dstBuffer;

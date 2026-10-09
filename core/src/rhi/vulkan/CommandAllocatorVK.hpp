@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct CommandAllocatorVK final : public DebugNameBase {
     inline CommandAllocatorVK(DeviceVK& device)
@@ -43,4 +43,4 @@ private:
     Lock m_Lock;
 };
 
-} // namespace nri
+} // namespace Core::RHI

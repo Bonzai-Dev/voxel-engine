@@ -195,7 +195,7 @@ static void FillStencilFace(WGPUStencilFaceState& out, const StencilDesc& in) {
 Result PipelineWGPU::Create(const GraphicsPipelineDesc& graphicsPipelineDesc) {
     m_PipelineLayoutWGPU = (PipelineLayoutWGPU*)graphicsPipelineDesc.pipelineLayout;
     Result result = m_PipelineLayoutWGPU->CreatePipelineLayout(graphicsPipelineDesc.shaders, graphicsPipelineDesc.shaderNum, GRAPHICS_SHADER_STAGE_MASK_WGPU, m_SetMappings, m_PipelineLayout);
-    if (result != Result::SUCCESS)
+    if (result != Result::Success)
         return result;
 
     if (!m_PipelineLayout)
@@ -331,13 +331,13 @@ Result PipelineWGPU::Create(const GraphicsPipelineDesc& graphicsPipelineDesc) {
     if (fragmentShader)
         wgpuShaderModuleRelease(fragmentShader);
 
-    return m_RenderPipeline ? Result::SUCCESS : Result::FAILURE;
+    return m_RenderPipeline ? Result::Success : Result::FAILURE;
 }
 
 Result PipelineWGPU::Create(const ComputePipelineDesc& computePipelineDesc) {
     m_PipelineLayoutWGPU = (PipelineLayoutWGPU*)computePipelineDesc.pipelineLayout;
     Result result = m_PipelineLayoutWGPU->CreatePipelineLayout(&computePipelineDesc.shader, 1, WGPUShaderStage_Compute, m_SetMappings, m_PipelineLayout);
-    if (result != Result::SUCCESS)
+    if (result != Result::Success)
         return result;
 
     if (!m_PipelineLayout)
@@ -357,5 +357,5 @@ Result PipelineWGPU::Create(const ComputePipelineDesc& computePipelineDesc) {
     m_ComputePipeline = wgpuDeviceCreateComputePipeline(m_Device, &desc);
     wgpuShaderModuleRelease(shader);
 
-    return m_ComputePipeline ? Result::SUCCESS : Result::FAILURE;
+    return m_ComputePipeline ? Result::Success : Result::FAILURE;
 }

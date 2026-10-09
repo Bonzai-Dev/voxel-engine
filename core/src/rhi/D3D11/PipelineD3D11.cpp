@@ -184,7 +184,7 @@ Result PipelineD3D11::Create(const GraphicsPipelineDesc& pipelineDesc) {
         NRI_RETURN_ON_BAD_HRESULT(&m_Device, hr, "ID3D11Device1::CreateBlendState1");
     }
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 Result PipelineD3D11::Create(const ComputePipelineDesc& pipelineDesc) {
@@ -196,7 +196,7 @@ Result PipelineD3D11::Create(const ComputePipelineDesc& pipelineDesc) {
 
     m_PipelineLayout = (PipelineLayoutD3D11*)pipelineDesc.pipelineLayout;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 void PipelineD3D11::ChangeRasterizerState(ID3D11DeviceContextBest* deferredContext, const SamplePositionsState& samplePositionState) {

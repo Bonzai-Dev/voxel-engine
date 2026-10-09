@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct RootSamplerMappingWGPU {
     WGPUSampler sampler = nullptr;
@@ -101,4 +101,4 @@ private:
     uint32_t m_ImmediateDataSize = 0;
 };
 
-} // namespace nri
+} // namespace Core::RHI

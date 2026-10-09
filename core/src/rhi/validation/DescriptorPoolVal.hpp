@@ -4,7 +4,7 @@
 
 #include "DescriptorSetVal.h"
 
-namespace nri {
+namespace Core::RHI {
 
 struct DescriptorPoolVal final : public ObjectVal {
     DescriptorPoolVal(DeviceVal& device, DescriptorPool* descriptorPool, uint32_t descriptorSetMaxNum)
@@ -56,4 +56,4 @@ private:
     bool m_SkipValidation = false;
 };
 
-} // namespace nri
+} // namespace Core::RHI

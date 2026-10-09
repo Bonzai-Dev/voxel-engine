@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct TextureD3D11 final : public DebugNameBase {
     inline TextureD3D11(DeviceD3D11& device)
@@ -65,4 +65,4 @@ private:
     TextureDesc m_Desc = {};
 };
 
-} // namespace nri
+} // namespace Core::RHI

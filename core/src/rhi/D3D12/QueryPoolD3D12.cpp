@@ -47,7 +47,7 @@ Result QueryPoolD3D12::Create(const QueryPoolDesc& queryPoolDesc) {
     HRESULT hr = m_Device->CreateQueryHeap(&desc, IID_PPV_ARGS(&m_QueryHeap));
     NRI_RETURN_ON_BAD_HRESULT(&m_Device, hr, "ID3D12Device::CreateQueryHeap");
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 Result QueryPoolD3D12::CreateBufferForAccelerationStructuresSizes(const QueryPoolDesc& queryPoolDesc) {
@@ -74,5 +74,5 @@ Result QueryPoolD3D12::CreateBufferForAccelerationStructuresSizes(const QueryPoo
     HRESULT hr = m_Device->CreateCommittedResource(&heapProperties, heapFlags, &resourceDesc, D3D12_RESOURCE_STATE_COMMON, nullptr, IID_PPV_ARGS(&m_BufferForAccelerationStructuresSizes));
     NRI_RETURN_ON_BAD_HRESULT(&m_Device, hr, "ID3D12Device::CreateCommittedResource");
 
-    return Result::SUCCESS;
+    return Result::Success;
 }

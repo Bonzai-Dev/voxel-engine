@@ -14,7 +14,7 @@ struct AGSContext;
 struct ID3D11DeviceContext4;
 typedef ID3D11DeviceContext4 ID3D11DeviceContextBest;
 
-namespace nri {
+namespace Core::RHI {
 
 struct BufferD3D11;
 struct BindingSet;
@@ -224,7 +224,7 @@ struct SamplePositionsState {
     }
 };
 
-} // namespace nri
+} // namespace Core::RHI
 
 #if NRI_ENABLE_AMDAGS
 #    define AGS_GCC // Fixes Clang warning: 'dllexport' attribute only applies to functions, variables, classes, and Objective-C interfaces [-Werror,-Wignored-attributes]

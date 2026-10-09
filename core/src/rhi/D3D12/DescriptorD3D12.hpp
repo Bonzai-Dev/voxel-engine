@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct TexViewDesc {
     Dim_t layerOffset;
@@ -74,4 +74,4 @@ private:
     Format m_Format = Format::UNKNOWN;
 };
 
-} // namespace nri
+} // namespace Core::RHI

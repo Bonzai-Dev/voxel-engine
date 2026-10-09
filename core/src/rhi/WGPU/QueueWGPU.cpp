@@ -4,7 +4,7 @@ Result QueueWGPU::Create(QueueType queueType, uint32_t queueIndex) {
     m_Type = queueType;
     m_Index = queueIndex;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 void QueueWGPU::BeginAnnotation(const char* name, uint32_t bgra) {
@@ -45,7 +45,7 @@ Result QueueWGPU::Submit(const QueueSubmitDesc& queueSubmitDesc) {
     for (uint32_t i = 0; i < queueSubmitDesc.signalFenceNum; i++)
         ((FenceWGPU*)queueSubmitDesc.signalFences[i].fence)->Signal(queueSubmitDesc.signalFences[i].value, submissionIndex);
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 Result QueueWGPU::WaitIdle() {

@@ -22,7 +22,7 @@ Result QueryPoolD3D11::Create(const QueryPoolDesc& queryPoolDesc) {
         m_QueryPool.push_back(query);
     }
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 void QueryPoolD3D11::BeginQuery(ID3D11DeviceContextBest* deferredContext, uint32_t offset) {

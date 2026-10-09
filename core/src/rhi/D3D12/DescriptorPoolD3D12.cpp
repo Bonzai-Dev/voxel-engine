@@ -37,7 +37,7 @@ Result DescriptorPoolD3D12::Create(const DescriptorPoolDesc& descriptorPoolDesc)
 
     m_DescriptorSets.resize(descriptorPoolDesc.descriptorSetMaxNum);
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 Result DescriptorPoolD3D12::Create(const DescriptorPoolD3D12Desc& descriptorPoolD3D12Desc) {
@@ -67,7 +67,7 @@ Result DescriptorPoolD3D12::Create(const DescriptorPoolD3D12Desc& descriptorPool
 
     m_DescriptorSets.resize(descriptorPoolD3D12Desc.descriptorSetMaxNum);
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 void DescriptorPoolD3D12::Bind(ID3D12GraphicsCommandList* graphicsCommandList) const {
@@ -123,7 +123,7 @@ NRI_INLINE Result DescriptorPoolD3D12::AllocateDescriptorSets(const PipelineLayo
         descriptorSets[i] = (DescriptorSet*)descriptorSet;
     }
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 NRI_INLINE void DescriptorPoolD3D12::Reset() {

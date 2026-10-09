@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct QueueD3D11 final : public DebugNameBase {
     inline QueueD3D11(DeviceD3D11& device)
@@ -27,4 +27,4 @@ private:
     DeviceD3D11& m_Device;
 };
 
-} // namespace nri
+} // namespace Core::RHI

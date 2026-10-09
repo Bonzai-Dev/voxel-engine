@@ -27,7 +27,7 @@ bool StreamerImpl::Grow() {
 
     Result result = m_iCore.CreateCommittedBuffer(m_Device, m_Desc.dynamicBufferMemoryLocation, 0.0f, bufferDesc, m_DynamicBuffer);
 
-    return result == Result::SUCCESS;
+    return result == Result::Success;
 }
 
 Result StreamerImpl::Create(const StreamerDesc& desc) {
@@ -38,13 +38,13 @@ Result StreamerImpl::Create(const StreamerDesc& desc) {
         bufferDesc.usage = BufferUsageBits::CONSTANT_BUFFER;
 
         Result result = m_iCore.CreateCommittedBuffer(m_Device, desc.constantBufferMemoryLocation, 0.0f, bufferDesc, m_ConstantBuffer);
-        if (result != Result::SUCCESS)
+        if (result != Result::Success)
             return result;
     }
 
     m_Desc = desc;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 uint32_t StreamerImpl::StreamConstantData(const void* data, uint32_t dataSize) {

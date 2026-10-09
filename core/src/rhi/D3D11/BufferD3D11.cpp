@@ -75,13 +75,13 @@ Result BufferD3D11::Allocate(MemoryLocation memoryLocation, float priority) {
     if (evictionPriority != 0)
         m_Buffer->SetEvictionPriority(evictionPriority);
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 Result BufferD3D11::Create(const BufferDesc& bufferDesc) {
     m_Desc = bufferDesc;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 Result BufferD3D11::Create(const BufferD3D11Desc& bufferD3D11Desc) {
@@ -92,7 +92,7 @@ Result BufferD3D11::Create(const BufferD3D11Desc& bufferD3D11Desc) {
 
     m_Buffer = (ID3D11Buffer*)bufferD3D11Desc.d3d11Resource;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 TextureD3D11& BufferD3D11::RecreateReadbackTexture(const TextureD3D11& srcTexture, const TextureRegionDesc& srcRegion, const TextureDataLayoutDesc& readbackDataLayoutDesc) {
@@ -122,9 +122,9 @@ TextureD3D11& BufferD3D11::RecreateReadbackTexture(const TextureD3D11& srcTextur
         Destroy(m_ReadbackTexture);
 
         Result result = m_Device.CreateImplementation<TextureD3D11>(m_ReadbackTexture, textureDesc);
-        if (result == Result::SUCCESS) {
+        if (result == Result::Success) {
             result = m_ReadbackTexture->Allocate(MemoryLocation::HOST_READBACK, 0.0f);
-            if (result != Result::SUCCESS)
+            if (result != Result::Success)
                 Destroy(m_ReadbackTexture);
         }
     }

@@ -638,7 +638,7 @@ WGPUComputePipeline CommandBufferWGPU::GetClearStorageTexturePipeline(Format for
 Result CommandBufferWGPU::Create(const CommandAllocator& commandAllocator) {
     MaybeUnused(commandAllocator);
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 Result CommandBufferWGPU::Begin(const DescriptorPool* descriptorPool) {
@@ -695,7 +695,7 @@ Result CommandBufferWGPU::Begin(const DescriptorPool* descriptorPool) {
     m_HasScissor = false;
     m_StencilReference = 0;
 
-    return m_CommandEncoder ? Result::SUCCESS : Result::FAILURE;
+    return m_CommandEncoder ? Result::Success : Result::FAILURE;
 }
 
 Result CommandBufferWGPU::End() {
@@ -706,7 +706,7 @@ Result CommandBufferWGPU::End() {
     wgpuCommandEncoderRelease(m_CommandEncoder);
     m_CommandEncoder = nullptr;
 
-    return m_CommandBuffer ? Result::SUCCESS : Result::FAILURE;
+    return m_CommandBuffer ? Result::Success : Result::FAILURE;
 }
 
 void CommandBufferWGPU::EndPass() {

@@ -43,14 +43,14 @@ Result DescriptorPoolVK::Create(const DescriptorPoolDesc& descriptorPoolDesc) {
 
     m_DescriptorSets.resize(descriptorPoolDesc.descriptorSetMaxNum);
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 Result DescriptorPoolVK::Create(const DescriptorPoolVKDesc& descriptorPoolVKDesc) {
     m_OwnsNativeObjects = false;
     m_Handle = (VkDescriptorPool)descriptorPoolVKDesc.vkDescriptorPool;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 NRI_INLINE void DescriptorPoolVK::SetDebugName(const char* name) {
@@ -96,7 +96,7 @@ NRI_INLINE Result DescriptorPoolVK::AllocateDescriptorSets(const PipelineLayout&
         descriptorSets[i] = (DescriptorSet*)descriptorSet;
     }
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 NRI_INLINE void DescriptorPoolVK::Reset() {

@@ -4,7 +4,7 @@
 
 #include "DescriptorSetVK.h"
 
-namespace nri {
+namespace Core::RHI {
 
 struct DescriptorPoolVK final : public DebugNameBase {
     inline DescriptorPoolVK(DeviceVK& device)
@@ -47,4 +47,4 @@ private:
     Lock m_Lock;
 };
 
-} // namespace nri
+} // namespace Core::RHI

@@ -6,7 +6,7 @@ Result PipelineCacheWGPU::Create(const PipelineCacheDesc& pipelineCacheDesc) {
         memcpy(m_Data.data(), pipelineCacheDesc.data, (size_t)pipelineCacheDesc.size);
     }
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 Result PipelineCacheWGPU::GetData(void* dst, uint64_t& size) const {
@@ -15,5 +15,5 @@ Result PipelineCacheWGPU::GetData(void* dst, uint64_t& size) const {
 
     size = m_Data.size();
 
-    return Result::SUCCESS;
+    return Result::Success;
 }

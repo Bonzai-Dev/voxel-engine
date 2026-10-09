@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct FenceD3D12 final : public DebugNameBase {
     inline FenceD3D12(DeviceD3D12& device)
@@ -44,4 +44,4 @@ private:
     HANDLE m_Event = 0;
 };
 
-} // namespace nri
+} // namespace Core::RHI

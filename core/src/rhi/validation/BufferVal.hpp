@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct BufferVal final : public ObjectVal {
     BufferVal(DeviceVal& device, Buffer* buffer, bool isBoundToMemory)
@@ -49,4 +49,4 @@ private:
     bool m_IsMapped = false;
 };
 
-} // namespace nri
+} // namespace Core::RHI

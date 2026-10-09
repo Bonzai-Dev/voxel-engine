@@ -1,33 +1,8 @@
-// © 2021 NVIDIA Corporation
-
 #pragma once
 
-#include <stddef.h>
-#include <stdint.h>
-
-#include "../core.hpp"
-
-#if defined(_WIN32)
-#define NRI_CALL __stdcall
-#else
-#define NRI_CALL
-#endif
-
-#ifndef NRI_API
-#if defined(__cplusplus)
-#define NRI_API extern "C"
-#else
-#define NRI_API extern
-#endif
-#endif
-
-#ifdef __cplusplus
-#if !defined(NRI_FORCE_C)
-#define NRI_CPP
-#endif
-#else
-#include <stdbool.h>
-#endif
+#include <cstddef>
+#include <cstdint>
+#include <core/core.hpp>
 
 // #include "NRIMacro.h"
 
@@ -63,9 +38,9 @@ namespace Core::RHI {
   class CommandAllocator {}; // an object that command buffer memory is allocated from
 
   // Basic types
-  typedef uint8_t Nri(Sample_t);
-  typedef uint16_t Nri(Dim_t);
-  typedef void Nri(Object);
+  typedef uint8_t Sample_t;
+  typedef uint16_t Dim_t;
+  typedef void Object;
 
   struct Uid_t {
     uint64_t low;
@@ -81,14 +56,10 @@ namespace Core::RHI {
   };
 
   // Aliases
-  static const uint32_t NriConstant(BGRA_UNUSED) = 0; // only for "bgra" color for profiling
-  static const uint32_t NriConstant(ALL) = 0; // only for "sampleMask"
-  static const Nri (Dim_t) NriConstant(WHOLE_SIZE) = 0; // only for "Dim_t" and "size"
-  static const Nri (Dim_t) NriConstant(REMAINING) = 0; // only for "mipNum" and "layerNum"
-
-  // Readability
-#define NriOptional // i.e. can be 0 (keep an eye on comments)
-#define NriOut      // highlights an output argument
+  constexpr uint32_t BGRA_UNUSED = 0; // only for "bgra" color for profiling
+  constexpr uint32_t ALL = 0; // only for "sampleMask"
+  static const Dim_t WHOLE_SIZE = 0; // only for "Dim_t" and "size"
+  static const Dim_t REMAINING = 0; // only for "mipNum" and "layerNum"
 
   // Implicit memory heaps for "CreatePlacedX"
 #define NriDeviceHeap 0, 0
@@ -103,13 +74,13 @@ namespace Core::RHI {
   // "AdapterDesc::supportedGraphicsAPIs" is a mask of supported graphics APIs
   ENGINE_BITS(GraphicsBackend, uint8_t,
     None = ENGINE_BIT(0),
-    // Supports everything, does nothing, returns dummy non-NULL objects and ~0-filled descs, available if "NRI_ENABLE_NONE_SUPPORT = ON" in CMake
+    // Supports everything, does nothing, returns dummy non-NULL objects and ~0-filled descs, available if "ENGINE_RHI_ENABLE_NONE = ON" in CMake
     D3D11 = ENGINE_BIT(1),
-    // Direct3D 11 (feature set 11.1), available if "NRI_ENABLE_D3D11_SUPPORT = ON" in CMake (https://microsoft.github.io/DirectX-Specs/d3d/archive/D3D11_3_FunctionalSpec.htm)
+    // Direct3D 11 (feature set 11.1), available if "ENGINE_RHI_ENABLE_D3D11 = ON" in CMake (https://microsoft.github.io/DirectX-Specs/d3d/archive/D3D11_3_FunctionalSpec.htm)
     D3D12 = ENGINE_BIT(2),
-    // Direct3D 12 (D3D12_SDK_VERSION 4 or 619+), available if "NRI_ENABLE_D3D12_SUPPORT = ON" in CMake (https://microsoft.github.io/DirectX-Specs/)
+    // Direct3D 12 (D3D12_SDK_VERSION 4 or 619+), available if "ENGINE_RHI_ENABLE_D3D12 = ON" in CMake (https://microsoft.github.io/DirectX-Specs/)
     Vulkan = ENGINE_BIT(3),
-    // Vulkan 1.4+, 1.3++ or 1.2+++ (can be used on MacOS via MoltenVK), available if "NRI_ENABLE_VK_SUPPORT = ON" in CMake (https://registry.khronos.org/vulkan/specs/latest/html/vkspec.html)
+    // Vulkan 1.4+, 1.3++ or 1.2+++ (can be used on MacOS via MoltenVK), available if "ENGINE_RHI_ENABLE_VULKAN = ON" in CMake (https://registry.khronos.org/vulkan/specs/latest/html/vkspec.html)
     WGPU = ENGINE_BIT(4)
     // WebGPU via "wgpu-native", available if "NRI_ENABLE_WGPU_SUPPORT = ON" in CMake (https://github.com/gfx-rs/wgpu-native). Has limitations similar to D3D11
   );
@@ -654,8 +625,8 @@ namespace Core::RHI {
 
     // Queue ownership transfer is potentially needed only for "SharingMode::EXCLUSIVE" textures
     // https://registry.khronos.org/vulkan/specs/latest/html/vkspec.html#synchronization-queue-transfers
-    NriOptional Queue *srcQueue;
-    NriOptional Queue *dstQueue;
+    Queue *srcQueue;
+    Queue *dstQueue;
   };
 
   // Using "CmdBarrier" inside a rendering pass is allowed, but only for "Layout::INPUT_ATTACHMENT" access transitions
@@ -755,9 +726,9 @@ namespace Core::RHI {
   };
 
   struct TextureDesc {
-    TextureType type;
+    TextureDimension type;
     TextureUsageBits usage;
-    Format format;
+    DataFormat format;
     Dim_t width;
     Dim_t height;
     Dim_t depth;
@@ -823,7 +794,7 @@ namespace Core::RHI {
     //  - https://github.com/GPUOpen-LibrariesAndSDKs/D3D12MemoryAllocator
     struct {
       bool enable;
-      NriOptional uint32_t alignment; // by default worst-case alignment applied
+      uint32_t alignment; // by default worst-case alignment applied
     } vma;
 
     // If "false", may reduce alignment requirements
@@ -949,7 +920,7 @@ namespace Core::RHI {
   struct TextureViewDesc {
     const Texture *texture;
     TextureView type;
-    Format format;
+    DataFormat format;
     Dim_t mipOffset;
     Dim_t mipNum; // can be "REMAINING"
     Dim_t layerOffset;
@@ -966,7 +937,7 @@ namespace Core::RHI {
     BufferView type;
     uint64_t offset; // expects "memoryAlignment.bufferShaderResourceOffset" for shader resources
     uint64_t size; // can be "WHOLE_SIZE"
-    Format format; // needed for typed views, i.e. "BUFFER" and "STORAGE_BUFFER"
+    DataFormat format; // needed for typed views, i.e. "BUFFER" and "STORAGE_BUFFER"
     uint32_t structureStride;
     // needed for structured views, i.e. "STRUCTURED_BUFFER" and "STORAGE_STRUCTURED_BUFFER" (= "BufferDesc::structureStride", if not provided)
   };
@@ -1304,7 +1275,7 @@ namespace Core::RHI {
     VertexAttributeD3D d3d;
     VertexAttributeVK vk;
     uint32_t offset;
-    Format format;
+    DataFormat format;
     uint16_t streamIndex;
   };
 
@@ -1575,7 +1546,7 @@ namespace Core::RHI {
   };
 
   struct ColorAttachmentDesc {
-    Format format;
+    DataFormat format;
     BlendDesc colorBlend;
     BlendDesc alphaBlend;
     ColorWriteBits colorWriteMask;
@@ -1587,7 +1558,7 @@ namespace Core::RHI {
     uint32_t colorNum;
     DepthAttachmentDesc depth;
     StencilAttachmentDesc stencil;
-    Format depthStencilFormat;
+    DataFormat depthStencilFormat;
     LogicOp logicOp; // requires "features.logicOp"
     uint32_t viewMask; // if non-0, requires "viewMaxNum > 1"
     Multiview multiview; // if "viewMask != 0", requires "features.(xxx)Multiview"
@@ -1647,7 +1618,7 @@ namespace Core::RHI {
 
   struct ComputePipelineDesc {
     const PipelineLayout *pipelineLayout;
-    ShaderDesc shader;
+    ShaderInfo shader;
     ComputePipelineBits flags;
     Robustness robustness;
     const PipelineCache *cache; // uses a cached blob on a hit and stores the result on a miss
@@ -1933,7 +1904,8 @@ namespace Core::RHI {
     Compute,
     Copy,
     VideoDecode,
-    VideoEncode
+    VideoEncode,
+    Count
   };
 
   struct AdapterDesc {
@@ -1943,7 +1915,7 @@ namespace Core::RHI {
     uint64_t sharedSystemMemorySize;
     uint32_t deviceId;
     uint32_t driverVersion; // GAPI and OS dependent
-    uint32_t queueNum[(uint32_t)NriScopedMember(QueueType, MAX_NUM)];
+    uint32_t queueNum[static_cast<uint32_t>(QueueType::Count)];
     // per type; queues of different types may alias the same native queue
     Vendor vendor;
     Architecture architecture;
@@ -2392,4 +2364,236 @@ namespace Core::RHI {
     } videoFeatures;
   };
 #pragma endregion
+
+  /*clang-format off*/
+  struct CoreInterface;
+
+  // Example: Result result = getInterface(device, NRI_INTERFACE(CoreInterface), &coreInterface)
+  Result getInterface(Device &device, CoreInterface &coreInterface);
+
+  // Annotations for profiling tools: host
+  // - Host annotations currently use NVTX (NVIDIA Nsight Systems)
+  // - Device (command buffer and queue) annotations use GAPI or PIX (if "WinPixEventRuntime.dll" is nearby)
+  // - Colorization requires PIX or NVTX
+  void beginAnnotation(const char* name, uint32_t bgra);  // start a named range
+  void endAnnotation();                                   // end the last opened range
+  void annotation(const char* name, uint32_t bgra);       // emit a named simultaneous event
+  void setThreadName(const char* name);                   // assign a name to the current thread
+
+  // Threadsafe: yes
+  struct CoreInterface {
+    // Get
+    const DeviceInfo       &(*getDeviceDesc)           (const Device &device);
+    const BufferDesc       &(*getBufferDesc)           (const Buffer &buffer);
+    const TextureDesc      &(*getTextureDesc)          (const Texture &texture);
+    FormatSupportBits      (*getFormatSupport)        (const Device &device, DataFormat format);
+
+    // Returns one of the pre-created queues (see "DeviceCreationDesc" or wrapper extensions)
+    // Return codes: "UNSUPPORTED" (no queues of "queueType") or "INVALID_ARGUMENT" (if "queueIndex" is out of bounds).
+    // Getting "COMPUTE" and/or "COPY" queues switches VK sharing mode to "VK_SHARING_MODE_CONCURRENT" for resources created without "queueExclusive" flag.
+    // This approach is used to minimize number of "queue ownership transfers", but also adds a requirement to "get" all async queues BEFORE creation of
+    // resources participating into multi-queue activities. Explicit use of "queueExclusive" removes any restrictions.
+    Result         (*getQueue)                        (const Device &device, QueueType queueType, uint32_t queueIndex, Queue *queue);
+
+    // Create (doesn't assume allocation of big chunks of memory on the device, but it happens for some entities implicitly)
+    Result         (*createCommandAllocator)          (Queue &queue, CommandAllocator *&commandAllocator);
+    Result         (*createCommandBuffer)             (CommandAllocator &commandAllocator, CommandBuffer *&commandBuffer);
+    Result         (*createFence)                     (Device &device, uint64_t initialValue, Fence *&fence);
+    Result         (*createDescriptorPool)            (Device &device, const DescriptorPoolDesc &descriptorPoolDesc, DescriptorPool *&descriptorPool);
+    Result         (*createPipelineLayout)            (Device &device, const PipelineLayoutDesc &pipelineLayoutDesc, PipelineLayout *&pipelineLayout);
+    Result         (*createGraphicsPipeline)          (Device &device, const GraphicsPipelineDesc &graphicsPipelineDesc, Pipeline *&pipeline);
+    Result         (*createComputePipeline)           (Device &device, const ComputePipelineDesc &computePipelineDesc, Pipeline *&pipeline);
+    Result         (*createPipelineCache)             (Device &device, const PipelineCacheDesc &pipelineCacheDesc, PipelineCache *&pipelineCache); // "OUT_OF_DATE" is returned on stale data, try to start over with an empty cache
+    Result         (*createQueryPool)                 (Device &device, const QueryPoolDesc &queryPoolDesc, QueryPool *&queryPool);
+    Result         (*createSampler)                   (Device &device, const SamplerDesc &samplerDesc, Descriptor *&sampler);
+    Result         (*createBufferView)                (const BufferViewDesc &bufferViewDesc, Descriptor *&bufferView);
+    Result         (*createTextureView)               (const TextureViewDesc &textureViewDesc, Descriptor *&textureView);
+
+    // Destroy
+    void           (*destroyCommandAllocator)         (CommandAllocator *commandAllocator);
+    void           (*destroyCommandBuffer)            (CommandBuffer *commandBuffer);
+    void           (*destroyDescriptorPool)           (DescriptorPool *descriptorPool);
+    void           (*destroyBuffer)                   (Buffer *buffer);
+    void           (*destroyTexture)                  (Texture *texture);
+    void           (*destroyDescriptor)               (Descriptor *descriptor);
+    void           (*destroyPipelineLayout)           (PipelineLayout *pipelineLayout);
+    void           (*destroyPipeline)                 (Pipeline *pipeline);
+    void           (*destroyPipelineCache)            (PipelineCache *pipelineCache);
+    void           (*destroyQueryPool)                (QueryPool *queryPool);
+    void           (*destroyFence)                    (Fence *fence);
+
+    // Memory
+    Result         (*allocateMemory)                  (Device &device, const AllocateMemoryDesc &allocateMemoryDesc, Memory *&memory);
+    void           (*freeMemory)                      (Memory *memory);
+
+    // Resources and memory (VK style)
+    // - create a resource (buffer or texture)
+    // - use "Get[Resource]MemoryDesc" to get "MemoryDesc" ("usageBits" and "MemoryLocation" affect returned "MemoryType")
+    // - (optional) group returned "MemoryDesc"s by "MemoryType", but don't group if "mustBeDedicated = true"
+    // - (optional) sort returned "MemoryDesc"s by alignment
+    // - call "AllocateMemory" (even if "mustBeDedicated = true")
+    // - call "Bind[Resource]Memory" to bind resources to "Memory" objects
+    // - (optional) "CalculateAllocationNumber" and "AllocateAndBindMemory" from "NRIHelper" interface simplify this process for buffers and textures
+    Result         (*createBuffer)                    (Device &device, const BufferDesc &bufferDesc, Buffer *&buffer);
+    Result         (*createTexture)                   (Device &device, const TextureDesc &textureDesc, Texture *&texture);
+    void           (*getBufferMemoryDesc)             (const Buffer &buffer, MemoryLocation memoryLocation, MemoryDesc &memoryDesc);
+    void           (*getTextureMemoryDesc)            (const Texture &texture, MemoryLocation memoryLocation, MemoryDesc &memoryDesc);
+    Result         (*bindBufferMemory)                (const BindBufferMemoryDesc *bindBufferMemoryDescs, uint32_t bindBufferMemoryDescNum);
+    Result         (*bindTextureMemory)               (const BindTextureMemoryDesc *bindTextureMemoryDescs, uint32_t bindTextureMemoryDescNum);
+
+    // Resources and memory (D3D12 style)
+    // - "Get[Resource]MemoryDesc2" requires "maintenance4" support on Vulkan
+    // - "memory, offset" pair can be replaced with a "Nri[Device/DeviceUpload/HostUpload/HostReadback]Heap" macro to create a placed resource in the corresponding memory using VMA (AMD Virtual Memory Allocator) implicitly
+    void           (*getBufferMemoryDesc2)            (const Device &device, const BufferDesc &bufferDesc, MemoryLocation memoryLocation, MemoryDesc &memoryDesc); // requires "features.getMemoryDesc2"
+    void           (*getTextureMemoryDesc2)           (const Device &device, const TextureDesc &textureDesc, MemoryLocation memoryLocation, MemoryDesc &memoryDesc); // requires "features.getMemoryDesc2"
+    Result         (*createCommittedBuffer)           (Device &device, MemoryLocation memoryLocation, float priority, const BufferDesc &bufferDesc, Buffer*& buffer);
+    Result         (*createCommittedTexture)          (Device &device, MemoryLocation memoryLocation, float priority, const TextureDesc &textureDesc, Texture*& texture);
+    Result         (*createPlacedBuffer)              (Device &device, Memory *memory, uint64_t offset, const BufferDesc &bufferDesc, Buffer*& buffer);
+    Result         (*createPlacedTexture)             (Device &device, Memory *memory, uint64_t offset, const TextureDesc &textureDesc, Texture*& texture);
+
+    // Descriptor set management (entities don't require destroying)
+    // - if "ALLOW_UPDATE_AFTER_SET" not used, descriptor sets (and data pointed to by descriptors) must be updated before "CmdSetDescriptorSet"
+    // - "ResetDescriptorPool" resets the entire pool and wipes out all allocated descriptor sets. "DescriptorSet" is a tiny struct (<= 48 bytes),
+    //   so lots of descriptor sets can be created in advance and reused without calling "ResetDescriptorPool"
+    // - if there is a directly indexed descriptor heap:
+    //   - D3D12: "GetDescriptorSetOffsets" returns offsets in resource and sampler descriptor heaps
+    //     - these offsets are needed in shaders, if the corresponding descriptor set is not the first allocated from the descriptor pool
+    //   - VK: "GetDescriptorSetOffsets" returns "0"
+    //     - use "-fvk-bind-resource-heap" and "-fvk-bind-sampler-heap" DXC options to define bindings mimicking corresponding heaps
+    Result              (*allocateDescriptorSets)          (DescriptorPool &descriptorPool, const PipelineLayout &pipelineLayout, uint32_t setIndex, DescriptorSet** descriptorSets, uint32_t instanceNum, uint32_t variableDescriptorNum);
+    void                (*updateDescriptorRanges)          (const UpdateDescriptorRangeDesc *updateDescriptorRangeDescs, uint32_t updateDescriptorRangeDescNum);
+    void                (*copyDescriptorRanges)            (const CopyDescriptorRangeDesc *copyDescriptorRangeDescs, uint32_t copyDescriptorRangeDescNum);
+    void                (*resetDescriptorPool)             (DescriptorPool &descriptorPool);
+    void                (*getDescriptorSetOffsets)         (const DescriptorSet &descriptorSet, uint32_t &resourceHeapOffset, uint32_t &samplerHeapOffset);
+
+    // Command buffer (one time submit)
+    Result              (*beginCommandBuffer)              (CommandBuffer &commandBuffer, const DescriptorPool *descriptorPool);
+    // {                {
+        // Set descriptor pool (initially can be set via "BeginCommandBuffer")
+        void                (*cmdSetDescriptorPool)        (CommandBuffer &commandBuffer, const DescriptorPool &descriptorPool);
+
+        // Resource binding (expect "CmdSetPipelineLayout" to be called first)
+        void                (*cmdSetPipelineLayout)        (CommandBuffer &commandBuffer, BindPoint bindPoint, const PipelineLayout &pipelineLayout);
+        void                (*cmdSetDescriptorSet)         (CommandBuffer &commandBuffer, const SetDescriptorSetDesc &setDescriptorSetDesc);
+        void                (*cmdSetRootConstants)         (CommandBuffer &commandBuffer, const SetRootConstantsDesc &setRootConstantsDesc);
+        void                (*cmdSetRootDescriptor)        (CommandBuffer &commandBuffer, const SetRootDescriptorDesc &setRootDescriptorDesc);
+
+        // Pipeline
+        void                (*cmdSetPipeline)              (CommandBuffer &commandBuffer, const Pipeline &pipeline);
+
+        // Barrier (outside of rendering)
+        void                (*cmdBarrier)                  (CommandBuffer &commandBuffer, const BarrierDesc &barrierDesc);
+
+        // Input assembly
+        void                (*cmdSetIndexBuffer)           (CommandBuffer &commandBuffer, const Buffer &buffer, uint64_t offset, IndexType indexType);
+        void                (*cmdSetVertexBuffers)         (CommandBuffer &commandBuffer, uint32_t baseSlot, const VertexBufferDesc *vertexBufferDescs, uint32_t vertexBufferNum);
+
+        // Initial state (mandatory)
+        void                (*cmdSetViewports)             (CommandBuffer &commandBuffer, const Viewport *viewports, uint32_t viewportNum);
+        void                (*cmdSetScissors)              (CommandBuffer &commandBuffer, const Rect *rects, uint32_t rectNum);
+
+        // Initial state (if enabled)
+        void                (*cmdSetStencilReference)      (CommandBuffer &commandBuffer, uint8_t frontRef, uint8_t backRef); // "backRef" requires "features.independentFrontAndBackStencilReferenceAndMasks"
+        void                (*cmdSetDepthBounds)           (CommandBuffer &commandBuffer, float boundsMin, float boundsMax); // requires "features.depthBoundsTest"
+        void                (*cmdSetBlendConstants)        (CommandBuffer &commandBuffer, const Color32f &color);
+        void                (*cmdSetSampleLocations)       (CommandBuffer &commandBuffer, const SampleLocation *locations, Sample_t locationNum, Sample_t sampleNum); // requires "tiers.sampleLocations != 0"
+        void                (*cmdSetShadingRate)           (CommandBuffer &commandBuffer, const ShadingRateDesc &shadingRateDesc); // requires "tiers.shadingRate != 0"
+        void                (*cmdSetDepthBias)             (CommandBuffer &commandBuffer, const DepthBiasDesc &depthBiasDesc); // requires "features.dynamicDepthBias", actually it's an override
+
+        // Graphics
+        void                (*cmdBeginRendering)           (CommandBuffer &commandBuffer, const RenderingDesc &renderingDesc);
+        // {                {
+            // Clear
+            void                (*cmdClearAttachments)     (CommandBuffer &commandBuffer, const ClearAttachmentDesc *clearAttachmentDescs, uint32_t clearAttachmentDescNum, const Rect *rects, uint32_t rectNum);
+
+            // Draw
+            void                (*cmdDraw)                 (CommandBuffer &commandBuffer, const DrawDesc &drawDesc);
+            void                (*cmdDrawIndexed)          (CommandBuffer &commandBuffer, const DrawIndexedDesc &drawIndexedDesc);
+
+            // Draw indirect:
+            // - drawNum = min(drawNum, countBuffer ? countBuffer[countBufferOffset] : INF)
+            // - see "Modified draw command signatures"
+            void                (*cmdDrawIndirect)         (CommandBuffer &commandBuffer, const Buffer &buffer, uint64_t offset, uint32_t drawNum, uint32_t stride, const Buffer *countBuffer, uint64_t countBufferOffset); // "buffer" contains "Draw(Base)Desc" commands
+            void                (*cmdDrawIndexedIndirect)  (CommandBuffer &commandBuffer, const Buffer &buffer, uint64_t offset, uint32_t drawNum, uint32_t stride, const Buffer *countBuffer, uint64_t countBufferOffset); // "buffer" contains "DrawIndexed(Base)Desc" commands
+        // }                }
+        void                (*cmdEndRendering)             (CommandBuffer &commandBuffer);
+
+        // Compute (outside of rendering)
+        void                (*cmdDispatch)                 (CommandBuffer &commandBuffer, const DispatchDesc &dispatchDesc);
+        void                (*cmdDispatchIndirect)         (CommandBuffer &commandBuffer, const Buffer &buffer, uint64_t offset); // buffer contains "DispatchDesc" commands
+
+        // Copy (outside of rendering)
+        void                (*cmdCopyBuffer)               (CommandBuffer &commandBuffer, Buffer &dstBuffer, uint64_t dstOffset, const Buffer &srcBuffer, uint64_t srcOffset, uint64_t size);
+        void                (*cmdCopyTexture)              (CommandBuffer &commandBuffer, Texture &dstTexture, const TextureRegionDesc *dstRegion, const Texture &srcTexture, const TextureRegionDesc *srcRegion);
+        void                (*cmdUploadBufferToTexture)    (CommandBuffer &commandBuffer, Texture &dstTexture, const TextureRegionDesc &dstRegion, const Buffer &srcBuffer, const TextureDataLayoutDesc &srcDataLayout);
+        void                (*cmdReadbackTextureToBuffer)  (CommandBuffer &commandBuffer, Buffer &dstBuffer, const TextureDataLayoutDesc &dstDataLayout, const Texture &srcTexture, const TextureRegionDesc &srcRegion);
+        void                (*cmdZeroBuffer)               (CommandBuffer &commandBuffer, Buffer &buffer, uint64_t offset, uint64_t size);
+
+        // Resolve (outside of rendering)
+        void                (*cmdResolveTexture)           (CommandBuffer &commandBuffer, Texture &dstTexture, const TextureRegionDesc *dstRegion, const Texture &srcTexture, const TextureRegionDesc *srcRegion, ResolveOp resolveOp); // "features.regionResolve" is needed for region specification
+
+        // Clear (outside of rendering)
+        void                (*cmdClearStorage)             (CommandBuffer &commandBuffer, const ClearStorageDesc &clearStorageDesc);
+
+        // Query (outside of rendering, except Begin/End query)
+        void                (*cmdResetQueries)             (CommandBuffer &commandBuffer, QueryPool &queryPool, uint32_t offset, uint32_t num);
+        void                (*cmdBeginQuery)               (CommandBuffer &commandBuffer, QueryPool &queryPool, uint32_t offset);
+        void                (*cmdEndQuery)                 (CommandBuffer &commandBuffer, QueryPool &queryPool, uint32_t offset);
+        void                (*cmdCopyQueries)              (CommandBuffer &commandBuffer, const QueryPool &queryPool, uint32_t offset, uint32_t num, Buffer &dstBuffer, uint64_t dstOffset);
+
+        // Annotations for profiling tools: command buffer
+        void                (*cmdBeginAnnotation)          (CommandBuffer &commandBuffer, const char* name, uint32_t bgra);
+        void                (*cmdEndAnnotation)            (CommandBuffer &commandBuffer);
+        void                (*cmdAnnotation)               (CommandBuffer &commandBuffer, const char* name, uint32_t bgra);
+    // }                }
+    Result         (*endCommandBuffer)                     (CommandBuffer &commandBuffer); // D3D11 performs state tracking and resets it there
+
+    // Annotations for profiling tools: command queue - D3D11: NOP
+    void                (*queueBeginAnnotation)            (Queue &queue, const char* name, uint32_t bgra);
+    void                (*queueEndAnnotation)              (Queue &queue);
+    void                (*queueAnnotation)                 (Queue &queue, const char* name, uint32_t bgra);
+
+    // Queries and timestamps
+    void                (*resetQueries)                    (QueryPool &queryPool, uint32_t offset, uint32_t num); // on host
+    uint32_t            (*getQuerySize)                    (const QueryPool &queryPool);
+    void                (*getCalibratedTimestamps)         (Queue &queue, uint64_t &timestampGPU, uint64_t &timestampCPU);
+
+    // Work submission and synchronization
+    Result         (*queueSubmit)                          (Queue &queue, const QueueSubmitDesc &queueSubmitDesc); // to device
+    Result         (*queueWaitIdle)                        (Queue &queue);
+    Result         (*deviceWaitIdle)                       (Device &device);
+    void                (*wait)                            (Fence &fence, uint64_t value); // on host
+    uint64_t            (*getFenceValue)                   (Fence &fence);
+
+    // Command allocator
+    void                (*resetCommandAllocator)           (CommandAllocator &commandAllocator);
+
+    // Host address
+    // D3D11: no persistent mapping
+    // D3D12: persistent mapping, "Map/Unmap" do nothing
+    // VK: persistent mapping, but "Unmap" can do a flush if underlying memory is not "HOST_COHERENT" (unlikely)
+    void*               (*mapBuffer)                       (Buffer &buffer, uint64_t offset, uint64_t size);
+    void                (*unmapBuffer)                     (Buffer &buffer);
+
+    // Device address (aka GPU virtual address)
+    // D3D11: returns "0"
+    uint64_t            (*getBufferDeviceAddress)          (const Buffer &buffer);
+
+    // Pipeline cache (PSO blob storage, persisted across runs)
+    // - Threadsafe: no, external synchronization required, call after all pipeline creations using this cache have completed
+    // - 2-call pattern: pass "dst = NULL" to query required "size", then call again with allocated "dst"
+    Result         (*getPipelineCacheData)                 (PipelineCache &pipelineCache, void* dst, uint64_t &size);
+
+    // Debug name for any object declared as "NriForwardStruct" (skipped for buffers & textures in D3D if they are not bound to a memory)
+    void                (*setDebugName)                    (Object *object, const char* name);
+
+    // Native objects                                                                            ___D3D11 (latest interface)________|_D3D12 (latest interface)____|_VK_________________________________|_WGPU__________________________________
+    void*               (*getDeviceNativeObject)           (const Device *device);               // ID3D11Device*                   | ID3D12Device*               | VkDevice                           | WGPUDevice
+    void*               (*getQueueNativeObject)            (const Queue *queue);                 // -                               | ID3D12CommandQueue*         | VkQueue                            | WGPUQueue
+    void*               (*getCommandBufferNativeObject)    (const CommandBuffer *commandBuffer); // ID3D11DeviceContext*            | ID3D12GraphicsCommandList*  | VkCommandBuffer                    | WGPUCommandBuffer
+    uint64_t            (*getBufferNativeObject)           (const Buffer *buffer);               // ID3D11Buffer*                   | ID3D12Resource*             | VkBuffer                           | WGPUBuffer
+    uint64_t            (*getTextureNativeObject)          (const Texture *texture);             // ID3D11Resource*                 | ID3D12Resource*             | VkImage                            | WGPUTexture
+    uint64_t            (*getDescriptorNativeObject)       (const Descriptor *descriptor);       // ID3D11View/ID3D11SamplerState*  | D3D12_CPU_DESCRIPTOR_HANDLE | VkImageView/VkBufferView/VkSampler | WGPUTextureView/WGPUBuffer/WGPUSampler
+  };
+  /*clang-format on*/
 }

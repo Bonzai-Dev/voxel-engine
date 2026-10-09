@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct DescriptorSetVK final : public DebugNameBase {
     inline DescriptorSetVK() {
@@ -38,4 +38,4 @@ private:
     const DescriptorSetDesc* m_Desc = nullptr;
 };
 
-} // namespace nri
+} // namespace Core::RHI

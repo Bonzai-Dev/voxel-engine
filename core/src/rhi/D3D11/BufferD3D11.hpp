@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct QueryRange {
     const QueryPoolD3D11* pool;
@@ -67,4 +67,4 @@ private:
     bool m_IsReadbackDataChanged = false;
 };
 
-} // namespace nri
+} // namespace Core::RHI

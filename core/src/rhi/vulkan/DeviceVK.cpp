@@ -187,7 +187,7 @@ static VkBool32 VKAPI_PTR MessageCallback(VkDebugUtilsMessageSeverityFlagBitsEXT
     }
 
     Message severity = Message::INFO;
-    Result result = Result::SUCCESS;
+    Result result = Result::Success;
     if (messageSeverity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
         severity = Message::ERROR;
         result = Result::FAILURE;
@@ -455,7 +455,7 @@ Result DeviceVK::Create(const DeviceCreationDesc& desc, const DeviceCreationVKDe
             desiredInstanceExts.push_back(desc.vkExtensions.instanceExtensions[i]);
 
         Result res = ResolvePreInstanceDispatchTable();
-        if (res != Result::SUCCESS)
+        if (res != Result::Success)
             return res;
 
         m_Instance = (VkInstance)descVK.vkInstance;
@@ -464,12 +464,12 @@ Result DeviceVK::Create(const DeviceCreationDesc& desc, const DeviceCreationVKDe
             ProcessInstanceExtensions(desiredInstanceExts);
 
             res = CreateInstance(desc.enableGraphicsAPIValidation, desiredInstanceExts);
-            if (res != Result::SUCCESS)
+            if (res != Result::Success)
                 return res;
         }
 
         res = ResolveInstanceDispatchTable(desiredInstanceExts);
-        if (res != Result::SUCCESS)
+        if (res != Result::Success)
             return res;
     }
 
@@ -749,7 +749,7 @@ Result DeviceVK::Create(const DeviceCreationDesc& desc, const DeviceCreationVKDe
         }
 
         Result res = ResolveDispatchTable(desiredDeviceExts);
-        if (res != Result::SUCCESS)
+        if (res != Result::Success)
             return res;
     }
 
@@ -772,7 +772,7 @@ Result DeviceVK::Create(const DeviceCreationDesc& desc, const DeviceCreationVKDe
 
                     QueueVK* queue;
                     Result result = CreateImplementation<QueueVK>(queue, queueFamilyVKDesc.queueType, queueFamilyVKDesc.familyIndex, handle);
-                    if (result == Result::SUCCESS)
+                    if (result == Result::Success)
                         queueFamily.push_back(queue);
                 }
 
@@ -797,7 +797,7 @@ Result DeviceVK::Create(const DeviceCreationDesc& desc, const DeviceCreationVKDe
 
                     QueueVK* queue;
                     Result result = CreateImplementation<QueueVK>(queue, queueFamilyDesc.queueType, queueInfo.queueFamilyIndex, handle);
-                    if (result == Result::SUCCESS)
+                    if (result == Result::Success)
                         queueFamily.push_back(queue);
                 }
 
@@ -1635,7 +1635,7 @@ Result DeviceVK::CreateInstance(bool enableGraphicsAPIValidation, const Vector<c
         NRI_RETURN_ON_BAD_VKRESULT(this, vkResult, "vkCreateDebugUtilsMessengerEXT");
     }
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 void DeviceVK::SetDebugNameToTrivialObject(VkObjectType objectType, uint64_t handle, const char* name) {
@@ -1753,7 +1753,7 @@ Result DeviceVK::ResolvePreInstanceDispatchTable() {
     GET_INSTANCE_FUNC(EnumerateInstanceExtensionProperties);
     GET_INSTANCE_FUNC(EnumerateInstanceLayerProperties);
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 Result DeviceVK::ResolveInstanceDispatchTable(const Vector<const char*>& desiredInstanceExts) {
@@ -1806,7 +1806,7 @@ Result DeviceVK::ResolveInstanceDispatchTable(const Vector<const char*>& desired
 #endif
     }
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 Result DeviceVK::ResolveDispatchTable(const Vector<const char*>& desiredDeviceExts) {
@@ -2004,7 +2004,7 @@ Result DeviceVK::ResolveDispatchTable(const Vector<const char*>& desiredDeviceEx
         GET_DEVICE_FUNC(SetLatencySleepModeNV);
     }
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 #undef MERGE_TOKENS2
@@ -2308,7 +2308,7 @@ NRI_INLINE Result DeviceVK::GetQueue(QueueType queueType, uint32_t queueIndex, Q
                 m_ActiveQueueFamilyIndices[m_NumActiveFamilyIndices++] = queueVK->GetFamilyIndex();
         }
 
-        return Result::SUCCESS;
+        return Result::Success;
     }
 
     return Result::FAILURE;
@@ -2319,12 +2319,12 @@ NRI_INLINE Result DeviceVK::WaitIdle() {
     for (auto& queueFamily : m_QueueFamilies) {
         for (auto queue : queueFamily) {
             Result result = queue->WaitIdle();
-            if (result != Result::SUCCESS)
+            if (result != Result::Success)
                 return result;
         }
     }
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 NRI_INLINE void DeviceVK::CopyDescriptorRanges(const CopyDescriptorRangeDesc* copyDescriptorRangeDescs, uint32_t copyDescriptorRangeDescNum) {
@@ -2555,7 +2555,7 @@ NRI_INLINE Result DeviceVK::BindBufferMemory(const BindBufferMemoryDesc* bindBuf
         bufferVK.BindMemory(memoryVK, bindBufferMemoryDesc.offset, false);
     }
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 NRI_INLINE Result DeviceVK::BindTextureMemory(const BindTextureMemoryDesc* bindTextureMemoryDescs, uint32_t bindTextureMemoryDescNum) {
@@ -2580,7 +2580,7 @@ NRI_INLINE Result DeviceVK::BindTextureMemory(const BindTextureMemoryDesc* bindT
     VkResult vkResult = m_VK.BindImageMemory2(m_Device, bindTextureMemoryDescNum, infos);
     NRI_RETURN_ON_BAD_VKRESULT(this, vkResult, "vkBindImageMemory2");
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 NRI_INLINE Result DeviceVK::BindAccelerationStructureMemory(const BindAccelerationStructureMemoryDesc* bindAccelerationStructureMemoryDescs, uint32_t bindAccelerationStructureMemoryDescNum) {
@@ -2599,7 +2599,7 @@ NRI_INLINE Result DeviceVK::BindAccelerationStructureMemory(const BindAccelerati
 
     Result result = BindBufferMemory(bufferMemoryBindingDescs, bindAccelerationStructureMemoryDescNum);
 
-    for (uint32_t i = 0; i < bindAccelerationStructureMemoryDescNum && result == Result::SUCCESS; i++) {
+    for (uint32_t i = 0; i < bindAccelerationStructureMemoryDescNum && result == Result::Success; i++) {
         const BindAccelerationStructureMemoryDesc& bindAccelerationStructureMemoryDesc = bindAccelerationStructureMemoryDescs[i];
         AccelerationStructureVK& accelerationStructureVK = *(AccelerationStructureVK*)bindAccelerationStructureMemoryDesc.accelerationStructure;
 
@@ -2625,7 +2625,7 @@ NRI_INLINE Result DeviceVK::BindMicromapMemory(const BindMicromapMemoryDesc* bin
 
     Result result = BindBufferMemory(bindBufferMemoryDescs, bindMicromapMemoryDescNum);
 
-    for (uint32_t i = 0; i < bindMicromapMemoryDescNum && result == Result::SUCCESS; i++) {
+    for (uint32_t i = 0; i < bindMicromapMemoryDescNum && result == Result::Success; i++) {
         const BindMicromapMemoryDesc& bindMicromapMemoryDesc = bindMicromapMemoryDescs[i];
         MicromapVK& micromap = *(MicromapVK*)bindMicromapMemoryDesc.micromap;
 
@@ -2738,5 +2738,5 @@ NRI_INLINE Result DeviceVK::QueryVideoMemoryInfo(MemoryLocation memoryLocation, 
             videoMemoryInfo.usageSize += size;
     }
 
-    return Result::SUCCESS;
+    return Result::Success;
 }

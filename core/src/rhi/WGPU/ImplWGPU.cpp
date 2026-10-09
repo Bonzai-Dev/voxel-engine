@@ -28,7 +28,7 @@
 #include "StreamerInterface.h"
 #include "UpscalerInterface.h"
 
-using namespace nri;
+using namespace Core::RHI;
 
 #include "BufferWGPU.hpp"
 #include "CommandAllocatorWGPU.hpp"
@@ -58,7 +58,7 @@ Result CreateDeviceWGPU(const DeviceCreationDesc& desc, DeviceBase*& device) {
     }
 
     Result result = impl->Create(desc);
-    if (result != Result::SUCCESS) {
+    if (result != Result::Success) {
         Destroy(desc.allocationCallbacks, impl);
         device = nullptr;
     } else
@@ -70,192 +70,192 @@ Result CreateDeviceWGPU(const DeviceCreationDesc& desc, DeviceBase*& device) {
 //============================================================================================================================================================================================
 #pragma region[  Core  ]
 
-static const DeviceInfo& NRI_CALL GetDeviceInfo(const Device& device) {
+static const DeviceInfo& GetDeviceInfo(const Device& device) {
     return ((DeviceWGPU&)device).GetDesc();
 }
 
-static const BufferDesc& NRI_CALL GetBufferDesc(const Buffer& buffer) {
+static const BufferDesc& GetBufferDesc(const Buffer& buffer) {
     return ((BufferWGPU&)buffer).GetDesc();
 }
 
-static const TextureDesc& NRI_CALL GetTextureDesc(const Texture& texture) {
+static const TextureDesc& GetTextureDesc(const Texture& texture) {
     return ((TextureWGPU&)texture).GetDesc();
 }
 
-static FormatSupportBits NRI_CALL GetFormatSupport(const Device& device, Format format) {
+static FormatSupportBits GetFormatSupport(const Device& device, Format format) {
     return ((DeviceWGPU&)device).GetFormatSupport(format);
 }
 
-static Result NRI_CALL GetQueue(Device& device, QueueType queueType, uint32_t queueIndex, Queue*& queue) {
+static Result GetQueue(Device& device, QueueType queueType, uint32_t queueIndex, Queue*& queue) {
     return ((DeviceWGPU&)device).GetQueue(queueType, queueIndex, queue);
 }
 
-static Result NRI_CALL CreateCommandAllocator(Queue& queue, CommandAllocator*& commandAllocator) {
+static Result CreateCommandAllocator(Queue& queue, CommandAllocator*& commandAllocator) {
     DeviceWGPU& device = ((QueueWGPU&)queue).GetDevice();
     return device.CreateImplementation<CommandAllocatorWGPU>(commandAllocator, queue);
 }
 
-static Result NRI_CALL CreateCommandBuffer(CommandAllocator& commandAllocator, CommandBuffer*& commandBuffer) {
+static Result CreateCommandBuffer(CommandAllocator& commandAllocator, CommandBuffer*& commandBuffer) {
     return ((CommandAllocatorWGPU&)commandAllocator).CreateCommandBuffer(commandBuffer);
 }
 
-static Result NRI_CALL CreateFence(Device& device, uint64_t initialValue, Fence*& fence) {
+static Result CreateFence(Device& device, uint64_t initialValue, Fence*& fence) {
     return ((DeviceWGPU&)device).CreateImplementation<FenceWGPU>(fence, initialValue);
 }
 
-static Result NRI_CALL CreateDescriptorPool(Device& device, const DescriptorPoolDesc& descriptorPoolDesc, DescriptorPool*& descriptorPool) {
+static Result CreateDescriptorPool(Device& device, const DescriptorPoolDesc& descriptorPoolDesc, DescriptorPool*& descriptorPool) {
     return ((DeviceWGPU&)device).CreateImplementation<DescriptorPoolWGPU>(descriptorPool, descriptorPoolDesc);
 }
 
-static Result NRI_CALL CreatePipelineLayout(Device& device, const PipelineLayoutDesc& pipelineLayoutDesc, PipelineLayout*& pipelineLayout) {
+static Result CreatePipelineLayout(Device& device, const PipelineLayoutDesc& pipelineLayoutDesc, PipelineLayout*& pipelineLayout) {
     return ((DeviceWGPU&)device).CreateImplementation<PipelineLayoutWGPU>(pipelineLayout, pipelineLayoutDesc);
 }
 
-static Result NRI_CALL CreateGraphicsPipeline(Device& device, const GraphicsPipelineDesc& graphicsPipelineDesc, Pipeline*& pipeline) {
+static Result CreateGraphicsPipeline(Device& device, const GraphicsPipelineDesc& graphicsPipelineDesc, Pipeline*& pipeline) {
     return ((DeviceWGPU&)device).CreateImplementation<PipelineWGPU>(pipeline, graphicsPipelineDesc);
 }
 
-static Result NRI_CALL CreateComputePipeline(Device& device, const ComputePipelineDesc& computePipelineDesc, Pipeline*& pipeline) {
+static Result CreateComputePipeline(Device& device, const ComputePipelineDesc& computePipelineDesc, Pipeline*& pipeline) {
     return ((DeviceWGPU&)device).CreateImplementation<PipelineWGPU>(pipeline, computePipelineDesc);
 }
 
-static Result NRI_CALL CreatePipelineCache(Device& device, const PipelineCacheDesc& pipelineCacheDesc, PipelineCache*& pipelineCache) {
+static Result CreatePipelineCache(Device& device, const PipelineCacheDesc& pipelineCacheDesc, PipelineCache*& pipelineCache) {
     return ((DeviceWGPU&)device).CreateImplementation<PipelineCacheWGPU>(pipelineCache, pipelineCacheDesc);
 }
 
-static Result NRI_CALL CreateQueryPool(Device& device, const QueryPoolDesc& queryPoolDesc, QueryPool*& queryPool) {
+static Result CreateQueryPool(Device& device, const QueryPoolDesc& queryPoolDesc, QueryPool*& queryPool) {
     return ((DeviceWGPU&)device).CreateImplementation<QueryPoolWGPU>(queryPool, queryPoolDesc);
 }
 
-static Result NRI_CALL CreateSampler(Device& device, const SamplerDesc& samplerDesc, Descriptor*& sampler) {
+static Result CreateSampler(Device& device, const SamplerDesc& samplerDesc, Descriptor*& sampler) {
     return ((DeviceWGPU&)device).CreateImplementation<DescriptorWGPU>(sampler, samplerDesc);
 }
 
-static Result NRI_CALL CreateBufferView(const BufferViewDesc& bufferViewDesc, Descriptor*& bufferView) {
+static Result CreateBufferView(const BufferViewDesc& bufferViewDesc, Descriptor*& bufferView) {
     DeviceWGPU& device = ((BufferWGPU*)bufferViewDesc.buffer)->GetDevice();
     return device.CreateImplementation<DescriptorWGPU>(bufferView, bufferViewDesc);
 }
 
-static Result NRI_CALL CreateTextureView(const TextureViewDesc& textureViewDesc, Descriptor*& textureView) {
+static Result CreateTextureView(const TextureViewDesc& textureViewDesc, Descriptor*& textureView) {
     DeviceWGPU& device = ((TextureWGPU*)textureViewDesc.texture)->GetDevice();
     return device.CreateImplementation<DescriptorWGPU>(textureView, textureViewDesc);
 }
 
-static void NRI_CALL DestroyCommandAllocator(CommandAllocator* commandAllocator) {
+static void DestroyCommandAllocator(CommandAllocator* commandAllocator) {
     Destroy((CommandAllocatorWGPU*)commandAllocator);
 }
 
-static void NRI_CALL DestroyCommandBuffer(CommandBuffer* commandBuffer) {
+static void DestroyCommandBuffer(CommandBuffer* commandBuffer) {
     Destroy((CommandBufferWGPU*)commandBuffer);
 }
 
-static void NRI_CALL DestroyDescriptorPool(DescriptorPool* descriptorPool) {
+static void DestroyDescriptorPool(DescriptorPool* descriptorPool) {
     Destroy((DescriptorPoolWGPU*)descriptorPool);
 }
 
-static void NRI_CALL DestroyBuffer(Buffer* buffer) {
+static void DestroyBuffer(Buffer* buffer) {
     Destroy((BufferWGPU*)buffer);
 }
 
-static void NRI_CALL DestroyTexture(Texture* texture) {
+static void DestroyTexture(Texture* texture) {
     Destroy((TextureWGPU*)texture);
 }
 
-static void NRI_CALL DestroyDescriptor(Descriptor* descriptor) {
+static void DestroyDescriptor(Descriptor* descriptor) {
     Destroy((DescriptorWGPU*)descriptor);
 }
 
-static void NRI_CALL DestroyPipelineLayout(PipelineLayout* pipelineLayout) {
+static void DestroyPipelineLayout(PipelineLayout* pipelineLayout) {
     Destroy((PipelineLayoutWGPU*)pipelineLayout);
 }
 
-static void NRI_CALL DestroyPipeline(Pipeline* pipeline) {
+static void DestroyPipeline(Pipeline* pipeline) {
     Destroy((PipelineWGPU*)pipeline);
 }
 
-static void NRI_CALL DestroyPipelineCache(PipelineCache* pipelineCache) {
+static void DestroyPipelineCache(PipelineCache* pipelineCache) {
     Destroy((PipelineCacheWGPU*)pipelineCache);
 }
 
-static Result NRI_CALL GetPipelineCacheData(PipelineCache& pipelineCache, void* dst, uint64_t& size) {
+static Result GetPipelineCacheData(PipelineCache& pipelineCache, void* dst, uint64_t& size) {
     return ((PipelineCacheWGPU&)pipelineCache).GetData(dst, size);
 }
 
-static void NRI_CALL DestroyQueryPool(QueryPool* queryPool) {
+static void DestroyQueryPool(QueryPool* queryPool) {
     Destroy((QueryPoolWGPU*)queryPool);
 }
 
-static void NRI_CALL DestroyFence(Fence* fence) {
+static void DestroyFence(Fence* fence) {
     Destroy((FenceWGPU*)fence);
 }
 
-static Result NRI_CALL AllocateMemory(Device& device, const AllocateMemoryDesc& allocateMemoryDesc, Memory*& memory) {
+static Result AllocateMemory(Device& device, const AllocateMemoryDesc& allocateMemoryDesc, Memory*& memory) {
     return ((DeviceWGPU&)device).CreateImplementation<MemoryWGPU>(memory, allocateMemoryDesc);
 }
 
-static void NRI_CALL FreeMemory(Memory* memory) {
+static void FreeMemory(Memory* memory) {
     Destroy((MemoryWGPU*)memory);
 }
 
-static Result NRI_CALL CreateBuffer(Device& device, const BufferDesc& bufferDesc, Buffer*& buffer) {
+static Result CreateBuffer(Device& device, const BufferDesc& bufferDesc, Buffer*& buffer) {
     return ((DeviceWGPU&)device).CreateImplementation<BufferWGPU>(buffer, bufferDesc);
 }
 
-static Result NRI_CALL CreateTexture(Device& device, const TextureDesc& textureDesc, Texture*& texture) {
+static Result CreateTexture(Device& device, const TextureDesc& textureDesc, Texture*& texture) {
     return ((DeviceWGPU&)device).CreateImplementation<TextureWGPU>(texture, textureDesc);
 }
 
-static void NRI_CALL GetBufferMemoryDesc(const Buffer& buffer, MemoryLocation memoryLocation, MemoryDesc& memoryDesc) {
+static void GetBufferMemoryDesc(const Buffer& buffer, MemoryLocation memoryLocation, MemoryDesc& memoryDesc) {
     const BufferDesc& bufferDesc = ((BufferWGPU&)buffer).GetDesc();
     memoryDesc = {std::max(bufferDesc.size, 1ull), 1, (MemoryType)memoryLocation, false};
 }
 
-static void NRI_CALL GetTextureMemoryDesc(const Texture& texture, MemoryLocation memoryLocation, MemoryDesc& memoryDesc) {
+static void GetTextureMemoryDesc(const Texture& texture, MemoryLocation memoryLocation, MemoryDesc& memoryDesc) {
     const TextureDesc& textureDesc = ((TextureWGPU&)texture).GetDesc();
     uint64_t size = (uint64_t)textureDesc.width * std::max((Dim_t)1, textureDesc.height) * std::max((Dim_t)1, textureDesc.depth) * std::max((Dim_t)1, textureDesc.layerNum) * std::max((Dim_t)1, textureDesc.mipNum);
 
     memoryDesc = {std::max(size, 1ull), 1, (MemoryType)memoryLocation, false};
 }
 
-static Result NRI_CALL BindBufferMemory(const BindBufferMemoryDesc* bindBufferMemoryDescs, uint32_t bindBufferMemoryDescNum) {
+static Result BindBufferMemory(const BindBufferMemoryDesc* bindBufferMemoryDescs, uint32_t bindBufferMemoryDescNum) {
     for (uint32_t i = 0; i < bindBufferMemoryDescNum; i++) {
         BufferWGPU& buffer = *(BufferWGPU*)bindBufferMemoryDescs[i].buffer;
         const MemoryWGPU& memory = *(MemoryWGPU*)bindBufferMemoryDescs[i].memory;
         Result result = buffer.SetHostVisible(memory.GetMemoryLocation());
-        if (result != Result::SUCCESS)
+        if (result != Result::Success)
             return result;
     }
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
-static Result NRI_CALL BindTextureMemory(const BindTextureMemoryDesc*, uint32_t) {
-    return Result::SUCCESS;
+static Result BindTextureMemory(const BindTextureMemoryDesc*, uint32_t) {
+    return Result::Success;
 }
 
-static void NRI_CALL GetBufferMemoryDesc2(const Device&, const BufferDesc& bufferDesc, MemoryLocation memoryLocation, MemoryDesc& memoryDesc) {
+static void GetBufferMemoryDesc2(const Device&, const BufferDesc& bufferDesc, MemoryLocation memoryLocation, MemoryDesc& memoryDesc) {
     memoryDesc = {std::max(bufferDesc.size, 1ull), 1, (MemoryType)memoryLocation, false};
 }
 
-static void NRI_CALL GetTextureMemoryDesc2(const Device&, const TextureDesc& textureDesc, MemoryLocation memoryLocation, MemoryDesc& memoryDesc) {
+static void GetTextureMemoryDesc2(const Device&, const TextureDesc& textureDesc, MemoryLocation memoryLocation, MemoryDesc& memoryDesc) {
     uint64_t size = (uint64_t)textureDesc.width * std::max((Dim_t)1, textureDesc.height) * std::max((Dim_t)1, textureDesc.depth) * std::max((Dim_t)1, textureDesc.layerNum) * std::max((Dim_t)1, textureDesc.mipNum);
 
     memoryDesc = {std::max(size, 1ull), 1, (MemoryType)memoryLocation, false};
 }
 
-static Result NRI_CALL CreateCommittedBuffer(Device& device, MemoryLocation memoryLocation, float priority, const BufferDesc& bufferDesc, Buffer*& buffer) {
+static Result CreateCommittedBuffer(Device& device, MemoryLocation memoryLocation, float priority, const BufferDesc& bufferDesc, Buffer*& buffer) {
     MaybeUnused(priority);
 
     return ((DeviceWGPU&)device).CreateImplementation<BufferWGPU>(buffer, bufferDesc, memoryLocation);
 }
 
-static Result NRI_CALL CreateCommittedTexture(Device& device, MemoryLocation memoryLocation, float priority, const TextureDesc& textureDesc, Texture*& texture) {
+static Result CreateCommittedTexture(Device& device, MemoryLocation memoryLocation, float priority, const TextureDesc& textureDesc, Texture*& texture) {
     MaybeUnused(memoryLocation, priority);
 
     return ((DeviceWGPU&)device).CreateImplementation<TextureWGPU>(texture, textureDesc);
 }
 
-static Result NRI_CALL CreatePlacedBuffer(Device& device, Memory* memory, uint64_t offset, const BufferDesc& bufferDesc, Buffer*& buffer) {
+static Result CreatePlacedBuffer(Device& device, Memory* memory, uint64_t offset, const BufferDesc& bufferDesc, Buffer*& buffer) {
     MaybeUnused(offset);
 
     MemoryLocation memoryLocation = memory ? ((MemoryWGPU*)memory)->GetMemoryLocation() : MemoryLocation::DEVICE;
@@ -263,13 +263,13 @@ static Result NRI_CALL CreatePlacedBuffer(Device& device, Memory* memory, uint64
     return ((DeviceWGPU&)device).CreateImplementation<BufferWGPU>(buffer, bufferDesc, memoryLocation);
 }
 
-static Result NRI_CALL CreatePlacedTexture(Device& device, Memory* memory, uint64_t offset, const TextureDesc& textureDesc, Texture*& texture) {
+static Result CreatePlacedTexture(Device& device, Memory* memory, uint64_t offset, const TextureDesc& textureDesc, Texture*& texture) {
     MaybeUnused(memory, offset);
 
     return ((DeviceWGPU&)device).CreateImplementation<TextureWGPU>(texture, textureDesc);
 }
 
-static Result NRI_CALL AllocateDescriptorSets(DescriptorPool& descriptorPool, const PipelineLayout& pipelineLayout, uint32_t setIndex, DescriptorSet** descriptorSets, uint32_t instanceNum, uint32_t variableDescriptorNum) {
+static Result AllocateDescriptorSets(DescriptorPool& descriptorPool, const PipelineLayout& pipelineLayout, uint32_t setIndex, DescriptorSet** descriptorSets, uint32_t instanceNum, uint32_t variableDescriptorNum) {
     return ((DescriptorPoolWGPU&)descriptorPool).AllocateDescriptorSets(pipelineLayout, setIndex, descriptorSets, instanceNum, variableDescriptorNum);
 }
 
@@ -282,7 +282,7 @@ static void AddTouchedDescriptorSet(DescriptorSetWGPU** touchedSets, uint32_t& t
     touchedSets[touchedSetNum++] = descriptorSet;
 }
 
-static void NRI_CALL UpdateDescriptorRanges(const UpdateDescriptorRangeDesc* updateDescriptorRangeDescs, uint32_t updateDescriptorRangeDescNum) {
+static void UpdateDescriptorRanges(const UpdateDescriptorRangeDesc* updateDescriptorRangeDescs, uint32_t updateDescriptorRangeDescNum) {
     if (!updateDescriptorRangeDescNum)
         return;
 
@@ -302,7 +302,7 @@ static void NRI_CALL UpdateDescriptorRanges(const UpdateDescriptorRangeDesc* upd
         touchedSets[i]->FinalizeUpdate();
 }
 
-static void NRI_CALL CopyDescriptorRanges(const CopyDescriptorRangeDesc* copyDescriptorRangeDescs, uint32_t copyDescriptorRangeDescNum) {
+static void CopyDescriptorRanges(const CopyDescriptorRangeDesc* copyDescriptorRangeDescs, uint32_t copyDescriptorRangeDescNum) {
     if (!copyDescriptorRangeDescNum)
         return;
 
@@ -322,243 +322,243 @@ static void NRI_CALL CopyDescriptorRanges(const CopyDescriptorRangeDesc* copyDes
         touchedSets[i]->FinalizeUpdate();
 }
 
-static void NRI_CALL ResetDescriptorPool(DescriptorPool& descriptorPool) {
+static void ResetDescriptorPool(DescriptorPool& descriptorPool) {
     ((DescriptorPoolWGPU&)descriptorPool).Reset();
 }
 
-static void NRI_CALL GetDescriptorSetOffsets(const DescriptorSet& descriptorSet, uint32_t& resourceHeapOffset, uint32_t& samplerHeapOffset) {
+static void GetDescriptorSetOffsets(const DescriptorSet& descriptorSet, uint32_t& resourceHeapOffset, uint32_t& samplerHeapOffset) {
     ((DescriptorSetWGPU&)descriptorSet).GetOffsets(resourceHeapOffset, samplerHeapOffset);
 }
 
-static Result NRI_CALL BeginCommandBuffer(CommandBuffer& commandBuffer, const DescriptorPool* descriptorPool) {
+static Result BeginCommandBuffer(CommandBuffer& commandBuffer, const DescriptorPool* descriptorPool) {
     return ((CommandBufferWGPU&)commandBuffer).Begin(descriptorPool);
 }
 
-static void NRI_CALL CmdSetDescriptorPool(CommandBuffer&, const DescriptorPool&) {
+static void CmdSetDescriptorPool(CommandBuffer&, const DescriptorPool&) {
 }
 
-static void NRI_CALL CmdSetPipelineLayout(CommandBuffer& commandBuffer, BindPoint bindPoint, const PipelineLayout& pipelineLayout) {
+static void CmdSetPipelineLayout(CommandBuffer& commandBuffer, BindPoint bindPoint, const PipelineLayout& pipelineLayout) {
     ((CommandBufferWGPU&)commandBuffer).SetPipelineLayout(bindPoint, pipelineLayout);
 }
 
-static void NRI_CALL CmdSetDescriptorSet(CommandBuffer& commandBuffer, const SetDescriptorSetDesc& setDescriptorSetDesc) {
+static void CmdSetDescriptorSet(CommandBuffer& commandBuffer, const SetDescriptorSetDesc& setDescriptorSetDesc) {
     ((CommandBufferWGPU&)commandBuffer).SetDescriptorSet(setDescriptorSetDesc);
 }
 
-static void NRI_CALL CmdSetRootConstants(CommandBuffer& commandBuffer, const SetRootConstantsDesc& setRootConstantsDesc) {
+static void CmdSetRootConstants(CommandBuffer& commandBuffer, const SetRootConstantsDesc& setRootConstantsDesc) {
     ((CommandBufferWGPU&)commandBuffer).SetRootConstants(setRootConstantsDesc);
 }
 
-static void NRI_CALL CmdSetRootDescriptor(CommandBuffer& commandBuffer, const SetRootDescriptorDesc& setRootDescriptorDesc) {
+static void CmdSetRootDescriptor(CommandBuffer& commandBuffer, const SetRootDescriptorDesc& setRootDescriptorDesc) {
     ((CommandBufferWGPU&)commandBuffer).SetRootDescriptor(setRootDescriptorDesc);
 }
 
-static void NRI_CALL CmdSetPipeline(CommandBuffer& commandBuffer, const Pipeline& pipeline) {
+static void CmdSetPipeline(CommandBuffer& commandBuffer, const Pipeline& pipeline) {
     ((CommandBufferWGPU&)commandBuffer).SetPipeline(pipeline);
 }
 
-static void NRI_CALL CmdBarrier(CommandBuffer& commandBuffer, const BarrierDesc& barrierDesc) {
+static void CmdBarrier(CommandBuffer& commandBuffer, const BarrierDesc& barrierDesc) {
     ((CommandBufferWGPU&)commandBuffer).Barrier(barrierDesc);
 }
 
-static void NRI_CALL CmdSetIndexBuffer(CommandBuffer& commandBuffer, const Buffer& buffer, uint64_t offset, IndexType indexType) {
+static void CmdSetIndexBuffer(CommandBuffer& commandBuffer, const Buffer& buffer, uint64_t offset, IndexType indexType) {
     ((CommandBufferWGPU&)commandBuffer).SetIndexBuffer(buffer, offset, indexType);
 }
 
-static void NRI_CALL CmdSetVertexBuffers(CommandBuffer& commandBuffer, uint32_t baseSlot, const VertexBufferDesc* vertexBufferDescs, uint32_t vertexBufferNum) {
+static void CmdSetVertexBuffers(CommandBuffer& commandBuffer, uint32_t baseSlot, const VertexBufferDesc* vertexBufferDescs, uint32_t vertexBufferNum) {
     ((CommandBufferWGPU&)commandBuffer).SetVertexBuffers(baseSlot, vertexBufferDescs, vertexBufferNum);
 }
 
-static void NRI_CALL CmdSetViewports(CommandBuffer& commandBuffer, const Viewport* viewports, uint32_t viewportNum) {
+static void CmdSetViewports(CommandBuffer& commandBuffer, const Viewport* viewports, uint32_t viewportNum) {
     ((CommandBufferWGPU&)commandBuffer).SetViewports(viewports, viewportNum);
 }
 
-static void NRI_CALL CmdSetScissors(CommandBuffer& commandBuffer, const Rect* rects, uint32_t rectNum) {
+static void CmdSetScissors(CommandBuffer& commandBuffer, const Rect* rects, uint32_t rectNum) {
     ((CommandBufferWGPU&)commandBuffer).SetScissors(rects, rectNum);
 }
 
-static void NRI_CALL CmdSetStencilReference(CommandBuffer& commandBuffer, uint8_t frontRef, uint8_t backRef) {
+static void CmdSetStencilReference(CommandBuffer& commandBuffer, uint8_t frontRef, uint8_t backRef) {
     ((CommandBufferWGPU&)commandBuffer).SetStencilReference(frontRef, backRef);
 }
 
-static void NRI_CALL CmdSetDepthBounds(CommandBuffer&, float, float) {
+static void CmdSetDepthBounds(CommandBuffer&, float, float) {
     // TODO: WebGPU does not support dynamic depth bounds. Keep "features.depthBoundsTest = false".
 }
 
-static void NRI_CALL CmdSetBlendConstants(CommandBuffer& commandBuffer, const Color32f& color) {
+static void CmdSetBlendConstants(CommandBuffer& commandBuffer, const Color32f& color) {
     ((CommandBufferWGPU&)commandBuffer).SetBlendConstants(color);
 }
 
-static void NRI_CALL CmdSetSampleLocations(CommandBuffer&, const SampleLocation*, Sample_t, Sample_t) {
+static void CmdSetSampleLocations(CommandBuffer&, const SampleLocation*, Sample_t, Sample_t) {
     // TODO: WebGPU does not support programmable sample locations. Keep "tiers.sampleLocations = 0".
 }
 
-static void NRI_CALL CmdSetShadingRate(CommandBuffer&, const ShadingRateDesc&) {
+static void CmdSetShadingRate(CommandBuffer&, const ShadingRateDesc&) {
     // TODO: WebGPU does not support variable rate shading. Keep "tiers.shadingRate = 0".
 }
 
-static void NRI_CALL CmdSetDepthBias(CommandBuffer&, const DepthBiasDesc&) {
+static void CmdSetDepthBias(CommandBuffer&, const DepthBiasDesc&) {
     // TODO: WebGPU supports pipeline depth bias only, not dynamic depth bias. Keep "features.dynamicDepthBias = false".
 }
 
-static void NRI_CALL CmdBeginRendering(CommandBuffer& commandBuffer, const RenderingDesc& renderingDesc) {
+static void CmdBeginRendering(CommandBuffer& commandBuffer, const RenderingDesc& renderingDesc) {
     ((CommandBufferWGPU&)commandBuffer).BeginRendering(renderingDesc);
 }
 
-static void NRI_CALL CmdClearAttachments(CommandBuffer& commandBuffer, const ClearAttachmentDesc* clearAttachmentDescs, uint32_t clearAttachmentDescNum, const Rect* rects, uint32_t rectNum) {
+static void CmdClearAttachments(CommandBuffer& commandBuffer, const ClearAttachmentDesc* clearAttachmentDescs, uint32_t clearAttachmentDescNum, const Rect* rects, uint32_t rectNum) {
     ((CommandBufferWGPU&)commandBuffer).ClearAttachments(clearAttachmentDescs, clearAttachmentDescNum, rects, rectNum);
 }
 
-static void NRI_CALL CmdDraw(CommandBuffer& commandBuffer, const DrawDesc& drawDesc) {
+static void CmdDraw(CommandBuffer& commandBuffer, const DrawDesc& drawDesc) {
     ((CommandBufferWGPU&)commandBuffer).Draw(drawDesc);
 }
 
-static void NRI_CALL CmdDrawIndexed(CommandBuffer& commandBuffer, const DrawIndexedDesc& drawIndexedDesc) {
+static void CmdDrawIndexed(CommandBuffer& commandBuffer, const DrawIndexedDesc& drawIndexedDesc) {
     ((CommandBufferWGPU&)commandBuffer).DrawIndexed(drawIndexedDesc);
 }
 
-static void NRI_CALL CmdDrawIndirect(CommandBuffer& commandBuffer, const Buffer& buffer, uint64_t offset, uint32_t drawNum, uint32_t stride, const Buffer* countBuffer, uint64_t countBufferOffset) {
+static void CmdDrawIndirect(CommandBuffer& commandBuffer, const Buffer& buffer, uint64_t offset, uint32_t drawNum, uint32_t stride, const Buffer* countBuffer, uint64_t countBufferOffset) {
     ((CommandBufferWGPU&)commandBuffer).DrawIndirect(buffer, offset, drawNum, stride, countBuffer, countBufferOffset);
 }
 
-static void NRI_CALL CmdDrawIndexedIndirect(CommandBuffer& commandBuffer, const Buffer& buffer, uint64_t offset, uint32_t drawNum, uint32_t stride, const Buffer* countBuffer, uint64_t countBufferOffset) {
+static void CmdDrawIndexedIndirect(CommandBuffer& commandBuffer, const Buffer& buffer, uint64_t offset, uint32_t drawNum, uint32_t stride, const Buffer* countBuffer, uint64_t countBufferOffset) {
     ((CommandBufferWGPU&)commandBuffer).DrawIndexedIndirect(buffer, offset, drawNum, stride, countBuffer, countBufferOffset);
 }
 
-static void NRI_CALL CmdEndRendering(CommandBuffer& commandBuffer) {
+static void CmdEndRendering(CommandBuffer& commandBuffer) {
     ((CommandBufferWGPU&)commandBuffer).EndRendering();
 }
 
-static void NRI_CALL CmdDispatch(CommandBuffer& commandBuffer, const DispatchDesc& dispatchDesc) {
+static void CmdDispatch(CommandBuffer& commandBuffer, const DispatchDesc& dispatchDesc) {
     ((CommandBufferWGPU&)commandBuffer).Dispatch(dispatchDesc);
 }
 
-static void NRI_CALL CmdDispatchIndirect(CommandBuffer& commandBuffer, const Buffer& buffer, uint64_t offset) {
+static void CmdDispatchIndirect(CommandBuffer& commandBuffer, const Buffer& buffer, uint64_t offset) {
     ((CommandBufferWGPU&)commandBuffer).DispatchIndirect(buffer, offset);
 }
 
-static void NRI_CALL CmdCopyBuffer(CommandBuffer& commandBuffer, Buffer& dstBuffer, uint64_t dstOffset, const Buffer& srcBuffer, uint64_t srcOffset, uint64_t size) {
+static void CmdCopyBuffer(CommandBuffer& commandBuffer, Buffer& dstBuffer, uint64_t dstOffset, const Buffer& srcBuffer, uint64_t srcOffset, uint64_t size) {
     ((CommandBufferWGPU&)commandBuffer).CopyBuffer(dstBuffer, dstOffset, srcBuffer, srcOffset, size);
 }
 
-static void NRI_CALL CmdCopyTexture(CommandBuffer& commandBuffer, Texture& dstTexture, const TextureRegionDesc* dstRegion, const Texture& srcTexture, const TextureRegionDesc* srcRegion) {
+static void CmdCopyTexture(CommandBuffer& commandBuffer, Texture& dstTexture, const TextureRegionDesc* dstRegion, const Texture& srcTexture, const TextureRegionDesc* srcRegion) {
     ((CommandBufferWGPU&)commandBuffer).CopyTexture(dstTexture, dstRegion, srcTexture, srcRegion);
 }
 
-static void NRI_CALL CmdUploadBufferToTexture(CommandBuffer& commandBuffer, Texture& dstTexture, const TextureRegionDesc& dstRegion, const Buffer& srcBuffer, const TextureDataLayoutDesc& srcDataLayout) {
+static void CmdUploadBufferToTexture(CommandBuffer& commandBuffer, Texture& dstTexture, const TextureRegionDesc& dstRegion, const Buffer& srcBuffer, const TextureDataLayoutDesc& srcDataLayout) {
     ((CommandBufferWGPU&)commandBuffer).UploadBufferToTexture(dstTexture, dstRegion, srcBuffer, srcDataLayout);
 }
 
-static void NRI_CALL CmdReadbackTextureToBuffer(CommandBuffer& commandBuffer, Buffer& dstBuffer, const TextureDataLayoutDesc& dstDataLayout, const Texture& srcTexture, const TextureRegionDesc& srcRegion) {
+static void CmdReadbackTextureToBuffer(CommandBuffer& commandBuffer, Buffer& dstBuffer, const TextureDataLayoutDesc& dstDataLayout, const Texture& srcTexture, const TextureRegionDesc& srcRegion) {
     ((CommandBufferWGPU&)commandBuffer).ReadbackTextureToBuffer(dstBuffer, dstDataLayout, srcTexture, srcRegion);
 }
 
-static void NRI_CALL CmdZeroBuffer(CommandBuffer& commandBuffer, Buffer& buffer, uint64_t offset, uint64_t size) {
+static void CmdZeroBuffer(CommandBuffer& commandBuffer, Buffer& buffer, uint64_t offset, uint64_t size) {
     ((CommandBufferWGPU&)commandBuffer).ZeroBuffer(buffer, offset, size);
 }
 
-static void NRI_CALL CmdResolveTexture(CommandBuffer& commandBuffer, Texture& dstTexture, const TextureRegionDesc* dstRegion, const Texture& srcTexture, const TextureRegionDesc* srcRegion, ResolveOp resolveOp) {
+static void CmdResolveTexture(CommandBuffer& commandBuffer, Texture& dstTexture, const TextureRegionDesc* dstRegion, const Texture& srcTexture, const TextureRegionDesc* srcRegion, ResolveOp resolveOp) {
     ((CommandBufferWGPU&)commandBuffer).ResolveTexture(dstTexture, dstRegion, srcTexture, srcRegion, resolveOp);
 }
 
-static void NRI_CALL CmdClearStorage(CommandBuffer& commandBuffer, const ClearStorageDesc& clearStorageDesc) {
+static void CmdClearStorage(CommandBuffer& commandBuffer, const ClearStorageDesc& clearStorageDesc) {
     ((CommandBufferWGPU&)commandBuffer).ClearStorage(clearStorageDesc);
 }
 
-static void NRI_CALL CmdResetQueries(CommandBuffer& commandBuffer, QueryPool& queryPool, uint32_t offset, uint32_t num) {
+static void CmdResetQueries(CommandBuffer& commandBuffer, QueryPool& queryPool, uint32_t offset, uint32_t num) {
     ((CommandBufferWGPU&)commandBuffer).ResetQueries(queryPool, offset, num);
 }
 
-static void NRI_CALL CmdBeginQuery(CommandBuffer& commandBuffer, QueryPool& queryPool, uint32_t offset) {
+static void CmdBeginQuery(CommandBuffer& commandBuffer, QueryPool& queryPool, uint32_t offset) {
     ((CommandBufferWGPU&)commandBuffer).BeginQuery(queryPool, offset);
 }
 
-static void NRI_CALL CmdEndQuery(CommandBuffer& commandBuffer, QueryPool& queryPool, uint32_t offset) {
+static void CmdEndQuery(CommandBuffer& commandBuffer, QueryPool& queryPool, uint32_t offset) {
     ((CommandBufferWGPU&)commandBuffer).EndQuery(queryPool, offset);
 }
 
-static void NRI_CALL CmdCopyQueries(CommandBuffer& commandBuffer, const QueryPool& queryPool, uint32_t offset, uint32_t num, Buffer& dstBuffer, uint64_t dstOffset) {
+static void CmdCopyQueries(CommandBuffer& commandBuffer, const QueryPool& queryPool, uint32_t offset, uint32_t num, Buffer& dstBuffer, uint64_t dstOffset) {
     ((CommandBufferWGPU&)commandBuffer).CopyQueries(queryPool, offset, num, dstBuffer, dstOffset);
 }
 
-static void NRI_CALL CmdBeginAnnotation(CommandBuffer& commandBuffer, const char* name, uint32_t bgra) {
+static void CmdBeginAnnotation(CommandBuffer& commandBuffer, const char* name, uint32_t bgra) {
     ((CommandBufferWGPU&)commandBuffer).BeginAnnotation(name, bgra);
 }
 
-static void NRI_CALL CmdEndAnnotation(CommandBuffer& commandBuffer) {
+static void CmdEndAnnotation(CommandBuffer& commandBuffer) {
     ((CommandBufferWGPU&)commandBuffer).EndAnnotation();
 }
 
-static void NRI_CALL CmdAnnotation(CommandBuffer& commandBuffer, const char* name, uint32_t bgra) {
+static void CmdAnnotation(CommandBuffer& commandBuffer, const char* name, uint32_t bgra) {
     ((CommandBufferWGPU&)commandBuffer).Annotation(name, bgra);
 }
 
-static Result NRI_CALL EndCommandBuffer(CommandBuffer& commandBuffer) {
+static Result EndCommandBuffer(CommandBuffer& commandBuffer) {
     return ((CommandBufferWGPU&)commandBuffer).End();
 }
 
-static void NRI_CALL QueueBeginAnnotation(Queue& queue, const char* name, uint32_t bgra) {
+static void QueueBeginAnnotation(Queue& queue, const char* name, uint32_t bgra) {
     ((QueueWGPU&)queue).BeginAnnotation(name, bgra);
 }
 
-static void NRI_CALL QueueEndAnnotation(Queue& queue) {
+static void QueueEndAnnotation(Queue& queue) {
     ((QueueWGPU&)queue).EndAnnotation();
 }
 
-static void NRI_CALL QueueAnnotation(Queue& queue, const char* name, uint32_t bgra) {
+static void QueueAnnotation(Queue& queue, const char* name, uint32_t bgra) {
     ((QueueWGPU&)queue).Annotation(name, bgra);
 }
 
-static void NRI_CALL GetCalibratedTimestamps(Queue& queue, uint64_t& timestampGPU, uint64_t& timestampCPU) {
+static void GetCalibratedTimestamps(Queue& queue, uint64_t& timestampGPU, uint64_t& timestampCPU) {
     ((QueueWGPU&)queue).GetCalibratedTimestamps(timestampGPU, timestampCPU);
 }
 
-static void NRI_CALL ResetQueries(QueryPool& queryPool, uint32_t offset, uint32_t num) {
+static void ResetQueries(QueryPool& queryPool, uint32_t offset, uint32_t num) {
     ((QueryPoolWGPU&)queryPool).Reset(offset, num);
 }
 
-static uint32_t NRI_CALL GetQuerySize(const QueryPool& queryPool) {
+static uint32_t GetQuerySize(const QueryPool& queryPool) {
     return ((QueryPoolWGPU&)queryPool).GetQuerySize();
 }
 
-static Result NRI_CALL QueueSubmit(Queue& queue, const QueueSubmitDesc& queueSubmitDesc) {
+static Result QueueSubmit(Queue& queue, const QueueSubmitDesc& queueSubmitDesc) {
     return ((QueueWGPU&)queue).Submit(queueSubmitDesc);
 }
 
-static Result NRI_CALL DeviceWaitIdle(Device* device) {
+static Result DeviceWaitIdle(Device* device) {
     return ((DeviceWGPU*)device)->WaitIdle();
 }
 
-static Result NRI_CALL QueueWaitIdle(Queue* queue) {
+static Result QueueWaitIdle(Queue* queue) {
     return ((QueueWGPU*)queue)->WaitIdle();
 }
 
-static void NRI_CALL Wait(Fence& fence, uint64_t value) {
+static void Wait(Fence& fence, uint64_t value) {
     ((FenceWGPU&)fence).Wait(value);
 }
 
-static uint64_t NRI_CALL GetFenceValue(Fence& fence) {
+static uint64_t GetFenceValue(Fence& fence) {
     return ((FenceWGPU&)fence).GetValue();
 }
 
-static void NRI_CALL ResetCommandAllocator(CommandAllocator& commandAllocator) {
+static void ResetCommandAllocator(CommandAllocator& commandAllocator) {
     ((CommandAllocatorWGPU&)commandAllocator).Reset();
 }
 
-static void* NRI_CALL MapBuffer(Buffer& buffer, uint64_t offset, uint64_t size) {
+static void* MapBuffer(Buffer& buffer, uint64_t offset, uint64_t size) {
     return ((BufferWGPU&)buffer).Map(offset, size);
 }
 
-static void NRI_CALL UnmapBuffer(Buffer& buffer) {
+static void UnmapBuffer(Buffer& buffer) {
     ((BufferWGPU&)buffer).Unmap();
 }
 
-static uint64_t NRI_CALL GetBufferDeviceAddress(const Buffer&) {
+static uint64_t GetBufferDeviceAddress(const Buffer&) {
     // TODO: WebGPU does not expose buffer device addresses. Keep device-address/ray-tracing features disabled.
     return 0;
 }
 
-static void NRI_CALL SetDebugName(Object* object, const char* name) {
+static void SetDebugName(Object* object, const char* name) {
     MaybeUnused(object, name);
 #if NRI_ENABLE_DEBUG_NAMES_AND_ANNOTATIONS
     if (object)
@@ -566,42 +566,42 @@ static void NRI_CALL SetDebugName(Object* object, const char* name) {
 #endif
 }
 
-static void* NRI_CALL GetDeviceNativeObject(const Device* device) {
+static void* GetDeviceNativeObject(const Device* device) {
     if (!device)
         return nullptr;
 
     return (WGPUDevice)(*(DeviceWGPU*)device);
 }
 
-static void* NRI_CALL GetQueueNativeObject(const Queue* queue) {
+static void* GetQueueNativeObject(const Queue* queue) {
     if (!queue)
         return nullptr;
 
     return ((QueueWGPU*)queue)->GetDevice().GetQueue();
 }
 
-static void* NRI_CALL GetCommandBufferNativeObject(const CommandBuffer* commandBuffer) {
+static void* GetCommandBufferNativeObject(const CommandBuffer* commandBuffer) {
     if (!commandBuffer)
         return nullptr;
 
     return ((CommandBufferWGPU*)commandBuffer)->GetCommandBuffer();
 }
 
-static uint64_t NRI_CALL GetBufferNativeObject(const Buffer* buffer) {
+static uint64_t GetBufferNativeObject(const Buffer* buffer) {
     if (!buffer)
         return 0;
 
     return uint64_t((WGPUBuffer)(*(BufferWGPU*)buffer));
 }
 
-static uint64_t NRI_CALL GetTextureNativeObject(const Texture* texture) {
+static uint64_t GetTextureNativeObject(const Texture* texture) {
     if (!texture)
         return 0;
 
     return uint64_t((WGPUTexture)(*(TextureWGPU*)texture));
 }
 
-static uint64_t NRI_CALL GetDescriptorNativeObject(const Descriptor* descriptor) {
+static uint64_t GetDescriptorNativeObject(const Descriptor* descriptor) {
     if (!descriptor)
         return 0;
 
@@ -733,7 +733,7 @@ Result DeviceWGPU::FillFunctionTable(CoreInterface& table) const {
     table.GetTextureNativeObject = ::GetTextureNativeObject;
     table.GetDescriptorNativeObject = ::GetDescriptorNativeObject;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 #pragma endregion
@@ -741,7 +741,7 @@ Result DeviceWGPU::FillFunctionTable(CoreInterface& table) const {
 //============================================================================================================================================================================================
 #pragma region[  Helper  ]
 
-static Result NRI_CALL UploadData(Queue& queue, const TextureUploadDesc* textureUploadDescs, uint32_t textureUploadDescNum, const BufferUploadDesc* bufferUploadDescs, uint32_t bufferUploadDescNum) {
+static Result UploadData(Queue& queue, const TextureUploadDesc* textureUploadDescs, uint32_t textureUploadDescNum, const BufferUploadDesc* bufferUploadDescs, uint32_t bufferUploadDescNum) {
     QueueWGPU& queueWGPU = (QueueWGPU&)queue;
     DeviceWGPU& deviceWGPU = queueWGPU.GetDevice();
     HelperDataUpload helperDataUpload(deviceWGPU.GetCoreInterface(), (Device&)deviceWGPU, queue);
@@ -749,24 +749,24 @@ static Result NRI_CALL UploadData(Queue& queue, const TextureUploadDesc* texture
     return helperDataUpload.UploadData(textureUploadDescs, textureUploadDescNum, bufferUploadDescs, bufferUploadDescNum);
 }
 
-static uint32_t NRI_CALL CalculateAllocationNumber(const Device& device, const ResourceGroupDesc& resourceGroupDesc) {
+static uint32_t CalculateAllocationNumber(const Device& device, const ResourceGroupDesc& resourceGroupDesc) {
     DeviceWGPU& deviceWGPU = (DeviceWGPU&)device;
     HelperDeviceMemoryAllocator allocator(deviceWGPU.GetCoreInterface(), (Device&)device);
 
     return allocator.CalculateAllocationNumber(resourceGroupDesc);
 }
 
-static Result NRI_CALL AllocateAndBindMemory(Device& device, const ResourceGroupDesc& resourceGroupDesc, Memory** allocations) {
+static Result AllocateAndBindMemory(Device& device, const ResourceGroupDesc& resourceGroupDesc, Memory** allocations) {
     DeviceWGPU& deviceWGPU = (DeviceWGPU&)device;
     HelperDeviceMemoryAllocator allocator(deviceWGPU.GetCoreInterface(), device);
 
     return allocator.AllocateAndBindMemory(resourceGroupDesc, allocations);
 }
 
-static Result NRI_CALL QueryVideoMemoryInfo(const Device&, MemoryLocation, VideoMemoryInfo& videoMemoryInfo) {
+static Result QueryVideoMemoryInfo(const Device&, MemoryLocation, VideoMemoryInfo& videoMemoryInfo) {
     videoMemoryInfo = {};
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 Result DeviceWGPU::FillFunctionTable(HelperInterface& table) const {
@@ -775,7 +775,7 @@ Result DeviceWGPU::FillFunctionTable(HelperInterface& table) const {
     table.UploadData = ::UploadData;
     table.QueryVideoMemoryInfo = ::QueryVideoMemoryInfo;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 #pragma endregion
@@ -785,7 +785,7 @@ Result DeviceWGPU::FillFunctionTable(HelperInterface& table) const {
 
 #if NRI_ENABLE_IMGUI_EXTENSION
 
-static Result NRI_CALL CreateImgui(Device& device, const ImguiDesc& imguiDesc, Imgui*& imgui) {
+static Result CreateImgui(Device& device, const ImguiDesc& imguiDesc, Imgui*& imgui) {
     DeviceWGPU& deviceWGPU = (DeviceWGPU&)device;
     ImguiImpl* impl = Allocate<ImguiImpl>(deviceWGPU.GetAllocationCallbacks(), device, deviceWGPU.GetCoreInterface());
     if (!impl)
@@ -793,7 +793,7 @@ static Result NRI_CALL CreateImgui(Device& device, const ImguiDesc& imguiDesc, I
 
     Result result = impl->Create(imguiDesc);
 
-    if (result != Result::SUCCESS) {
+    if (result != Result::Success) {
         Destroy(impl);
         imgui = nullptr;
     } else
@@ -802,17 +802,17 @@ static Result NRI_CALL CreateImgui(Device& device, const ImguiDesc& imguiDesc, I
     return result;
 }
 
-static void NRI_CALL DestroyImgui(Imgui* imgui) {
+static void DestroyImgui(Imgui* imgui) {
     Destroy((ImguiImpl*)imgui);
 }
 
-static void NRI_CALL CmdCopyImguiData(CommandBuffer& commandBuffer, Streamer& streamer, Imgui& imgui, const CopyImguiDataDesc& copyImguiDataDesc) {
+static void CmdCopyImguiData(CommandBuffer& commandBuffer, Streamer& streamer, Imgui& imgui, const CopyImguiDataDesc& copyImguiDataDesc) {
     ImguiImpl& imguiImpl = (ImguiImpl&)imgui;
 
     return imguiImpl.CmdCopyData(commandBuffer, streamer, copyImguiDataDesc);
 }
 
-static void NRI_CALL CmdDrawImgui(CommandBuffer& commandBuffer, Imgui& imgui, const DrawImguiDesc& drawImguiDesc) {
+static void CmdDrawImgui(CommandBuffer& commandBuffer, Imgui& imgui, const DrawImguiDesc& drawImguiDesc) {
     ImguiImpl& imguiImpl = (ImguiImpl&)imgui;
 
     return imguiImpl.CmdDraw(commandBuffer, drawImguiDesc);
@@ -824,7 +824,7 @@ Result DeviceWGPU::FillFunctionTable(ImguiInterface& table) const {
     table.CmdCopyImguiData = ::CmdCopyImguiData;
     table.CmdDrawImgui = ::CmdDrawImgui;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 #endif
@@ -864,7 +864,7 @@ Result DeviceWGPU::FillFunctionTable(RayTracingInterface&) const {
 //============================================================================================================================================================================================
 #pragma region[  Streamer  ]
 
-static Result NRI_CALL CreateStreamer(Device& device, const StreamerDesc& streamerDesc, Streamer*& streamer) {
+static Result CreateStreamer(Device& device, const StreamerDesc& streamerDesc, Streamer*& streamer) {
     DeviceWGPU& deviceWGPU = (DeviceWGPU&)device;
     StreamerImpl* impl = Allocate<StreamerImpl>(deviceWGPU.GetAllocationCallbacks(), device, deviceWGPU.GetCoreInterface());
     if (!impl)
@@ -872,7 +872,7 @@ static Result NRI_CALL CreateStreamer(Device& device, const StreamerDesc& stream
 
     Result result = impl->Create(streamerDesc);
 
-    if (result != Result::SUCCESS) {
+    if (result != Result::Success) {
         Destroy(impl);
         streamer = nullptr;
     } else
@@ -881,31 +881,31 @@ static Result NRI_CALL CreateStreamer(Device& device, const StreamerDesc& stream
     return result;
 }
 
-static void NRI_CALL DestroyStreamer(Streamer* streamer) {
+static void DestroyStreamer(Streamer* streamer) {
     Destroy((StreamerImpl*)streamer);
 }
 
-static Buffer* NRI_CALL GetStreamerConstantBuffer(Streamer& streamer) {
+static Buffer* GetStreamerConstantBuffer(Streamer& streamer) {
     return ((StreamerImpl&)streamer).GetConstantBuffer();
 }
 
-static uint32_t NRI_CALL StreamConstantData(Streamer& streamer, const void* data, uint32_t dataSize) {
+static uint32_t StreamConstantData(Streamer& streamer, const void* data, uint32_t dataSize) {
     return ((StreamerImpl&)streamer).StreamConstantData(data, dataSize);
 }
 
-static BufferOffset NRI_CALL StreamBufferData(Streamer& streamer, const StreamBufferDataDesc& streamBufferDataDesc) {
+static BufferOffset StreamBufferData(Streamer& streamer, const StreamBufferDataDesc& streamBufferDataDesc) {
     return ((StreamerImpl&)streamer).StreamBufferData(streamBufferDataDesc);
 }
 
-static BufferOffset NRI_CALL StreamTextureData(Streamer& streamer, const StreamTextureDataDesc& streamTextureDataDesc) {
+static BufferOffset StreamTextureData(Streamer& streamer, const StreamTextureDataDesc& streamTextureDataDesc) {
     return ((StreamerImpl&)streamer).StreamTextureData(streamTextureDataDesc);
 }
 
-static void NRI_CALL EndStreamerFrame(Streamer& streamer) {
+static void EndStreamerFrame(Streamer& streamer) {
     ((StreamerImpl&)streamer).EndFrame();
 }
 
-static void NRI_CALL CmdCopyStreamedData(CommandBuffer& commandBuffer, Streamer& streamer) {
+static void CmdCopyStreamedData(CommandBuffer& commandBuffer, Streamer& streamer) {
     ((StreamerImpl&)streamer).CmdCopyStreamedData(commandBuffer);
 }
 
@@ -919,7 +919,7 @@ Result DeviceWGPU::FillFunctionTable(StreamerInterface& table) const {
     table.EndStreamerFrame = ::EndStreamerFrame;
     table.CmdCopyStreamedData = ::CmdCopyStreamedData;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 #pragma endregion
@@ -927,31 +927,31 @@ Result DeviceWGPU::FillFunctionTable(StreamerInterface& table) const {
 //============================================================================================================================================================================================
 #pragma region[  SwapChain  ]
 
-static Result NRI_CALL CreateSwapChain(Device& device, const SwapChainDesc& swapChainDesc, SwapChain*& swapChain) {
+static Result CreateSwapChain(Device& device, const SwapChainDesc& swapChainDesc, SwapChain*& swapChain) {
     return ((DeviceWGPU&)device).CreateImplementation<SwapChainWGPU>(swapChain, swapChainDesc);
 }
 
-static void NRI_CALL DestroySwapChain(SwapChain* swapChain) {
+static void DestroySwapChain(SwapChain* swapChain) {
     Destroy((SwapChainWGPU*)swapChain);
 }
 
-static Texture* const* NRI_CALL GetSwapChainTextures(const SwapChain& swapChain, uint32_t& textureNum) {
+static Texture* const* GetSwapChainTextures(const SwapChain& swapChain, uint32_t& textureNum) {
     return ((SwapChainWGPU&)swapChain).GetTextures(textureNum);
 }
 
-static Result NRI_CALL GetDisplayDesc(SwapChain& swapChain, DisplayDesc& displayDesc) {
+static Result GetDisplayDesc(SwapChain& swapChain, DisplayDesc& displayDesc) {
     return ((SwapChainWGPU&)swapChain).GetDisplayDesc(displayDesc);
 }
 
-static Result NRI_CALL AcquireNextTexture(SwapChain& swapChain, Fence&, uint32_t& textureIndex) {
+static Result AcquireNextTexture(SwapChain& swapChain, Fence&, uint32_t& textureIndex) {
     return ((SwapChainWGPU&)swapChain).AcquireNextTexture(textureIndex);
 }
 
-static Result NRI_CALL WaitForPresent(SwapChain& swapChain) {
+static Result WaitForPresent(SwapChain& swapChain) {
     return ((SwapChainWGPU&)swapChain).WaitForPresent();
 }
 
-static Result NRI_CALL QueuePresent(SwapChain& swapChain, Fence&) {
+static Result QueuePresent(SwapChain& swapChain, Fence&) {
     return ((SwapChainWGPU&)swapChain).Present();
 }
 
@@ -967,7 +967,7 @@ Result DeviceWGPU::FillFunctionTable(SwapChainInterface& table) const {
     table.WaitForPresent = ::WaitForPresent;
     table.QueuePresent = ::QueuePresent;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 #pragma endregion

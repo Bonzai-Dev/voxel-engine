@@ -8,14 +8,14 @@ Result FenceD3D12::Create(uint64_t initialValue) {
         m_Event = CreateEventA(nullptr, FALSE, FALSE, nullptr);
     }
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 Result FenceD3D12::Create(const FenceD3D12Desc& fenceD3D12Desc) {
     m_Fence = fenceD3D12Desc.d3d12Fence;
     m_Event = CreateEventA(nullptr, FALSE, FALSE, nullptr);
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 NRI_INLINE uint64_t FenceD3D12::GetFenceValue() const {

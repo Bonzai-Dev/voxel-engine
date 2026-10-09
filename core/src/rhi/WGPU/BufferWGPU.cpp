@@ -37,17 +37,17 @@ Result BufferWGPU::CreateNativeBuffer() {
     else
         m_CpuMemory.clear();
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 Result BufferWGPU::SetHostVisible(MemoryLocation memoryLocation) {
     if (m_MemoryLocation == memoryLocation)
-        return Result::SUCCESS;
+        return Result::Success;
 
     MemoryLocation oldMemoryLocation = m_MemoryLocation;
     m_MemoryLocation = memoryLocation;
 
-    if (m_Buffer && CreateNativeBuffer() != Result::SUCCESS) {
+    if (m_Buffer && CreateNativeBuffer() != Result::Success) {
         m_MemoryLocation = oldMemoryLocation;
         return Result::FAILURE;
     }
@@ -55,7 +55,7 @@ Result BufferWGPU::SetHostVisible(MemoryLocation memoryLocation) {
     if (m_MemoryLocation != MemoryLocation::DEVICE && m_MemoryLocation != MemoryLocation::HOST_READBACK && m_CpuMemory.empty())
         m_CpuMemory.resize((size_t)Align(std::max(m_Desc.size, 4ull), 4));
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 void* BufferWGPU::Map(uint64_t offset, uint64_t size) {

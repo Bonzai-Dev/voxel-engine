@@ -423,7 +423,7 @@ Result SwapChainVK::Create(const SwapChainDesc& swapChainDesc) {
     if (!m_Device.GetDesc().features.waitableSwapChain)
         m_Flags &= ~SwapChainBits::WAITABLE;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 NRI_INLINE void SwapChainVK::SetDebugName(const char* name) {
@@ -453,7 +453,7 @@ NRI_INLINE Result SwapChainVK::AcquireNextTexture(FenceVK& acquireSemaphore, uin
 
     textureIndex = m_TextureIndex;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 NRI_INLINE Result SwapChainVK::WaitForPresent() {
@@ -464,7 +464,7 @@ NRI_INLINE Result SwapChainVK::WaitForPresent() {
     VkResult vkResult = vk.WaitForPresentKHR(m_Device, m_Handle, m_PresentId - 1, MsToUs(NRI_TIMEOUT_PRESENT));
     NRI_RETURN_ON_BAD_VKRESULT(&m_Device, vkResult, "WaitForPresentKHR");
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 NRI_INLINE Result SwapChainVK::Present(FenceVK& releaseSemaphore) {
@@ -500,7 +500,7 @@ NRI_INLINE Result SwapChainVK::Present(FenceVK& releaseSemaphore) {
 
     NRI_RETURN_ON_BAD_VKRESULT(&m_Device, vkResult, "QueuePresentKHR");
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 NRI_INLINE Result SwapChainVK::SetLatencySleepMode(const LatencySleepMode& latencySleepMode) {
@@ -513,7 +513,7 @@ NRI_INLINE Result SwapChainVK::SetLatencySleepMode(const LatencySleepMode& laten
     VkResult vkResult = vk.SetLatencySleepModeNV(m_Device, m_Handle, &sleepModeInfo);
     NRI_RETURN_ON_BAD_VKRESULT(&m_Device, vkResult, "SetLatencySleepModeNV");
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 NRI_INLINE Result SwapChainVK::SetLatencyMarker(LatencyMarker latencyMarker) {
@@ -524,7 +524,7 @@ NRI_INLINE Result SwapChainVK::SetLatencyMarker(LatencyMarker latencyMarker) {
     const auto& vk = m_Device.GetDispatchTable();
     vk.SetLatencyMarkerNV(m_Device, m_Handle, &markerInfo);
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 NRI_INLINE Result SwapChainVK::LatencySleep() {
@@ -538,7 +538,7 @@ NRI_INLINE Result SwapChainVK::LatencySleep() {
 
     m_LatencyFence->Wait(m_PresentId); // VK_SUCCESS is guaranteed by "NRI_RETURN_ON_BAD_VKRESULT"
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 NRI_INLINE Result SwapChainVK::GetLatencyReport(LatencyReport& latencyReport) {
@@ -571,5 +571,5 @@ NRI_INLINE Result SwapChainVK::GetLatencyReport(LatencyReport& latencyReport) {
         latencyReport.gpuRenderEndTimeUs = timingsInfo[i].gpuRenderEndTimeUs;
     }
 
-    return Result::SUCCESS;
+    return Result::Success;
 }

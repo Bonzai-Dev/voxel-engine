@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct MicromapVal final : public ObjectVal {
     MicromapVal(DeviceVal& device, Micromap* micromap, bool isBoundToMemory)
@@ -39,4 +39,4 @@ private:
     bool m_IsBoundToMemory = false;
 };
 
-} // namespace nri
+} // namespace Core::RHI

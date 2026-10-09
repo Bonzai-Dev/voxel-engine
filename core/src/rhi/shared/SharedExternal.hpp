@@ -6,6 +6,8 @@
 #include <cinttypes> // PRIu64
 #include <cstring>   // memcpy
 #include <numeric>   // lcm
+#include <cstdint>
+#include <cstddef>
 
 #include <array>
 #include <map>
@@ -13,7 +15,7 @@
 #include <unordered_map>
 #include <vector>
 
-#if (NRI_ENABLE_D3D11_SUPPORT || NRI_ENABLE_D3D12_SUPPORT)
+#if (ENGINE_RHI_ENABLE_D3D11 || ENGINE_RHI_ENABLE_D3D12)
 #    include <dxgi1_6.h>
 #else
 typedef uint32_t DXGI_FORMAT;
@@ -24,26 +26,26 @@ typedef uint32_t DXGI_FORMAT;
 #endif
 
 // IMPORTANT: "SharedExternal.h" must be included after inclusion of "windows.h" (can be implicit) because ERROR gets undef-ed below
-#include "NRI.h"
-#include "NRI.hlsl"
+#include <core/rhi/rhi.hpp>
+// #include "NRI.hlsl"
 
-#include "Extensions/NRIDeviceCreation.h"
-#include "Extensions/NRIHelper.h"
-#include "Extensions/NRIImgui.h"
-#include "Extensions/NRILowLatency.h"
-#include "Extensions/NRIMeshShader.h"
-#include "Extensions/NRIRayTracing.h"
-#include "Extensions/NRIStreamer.h"
-#include "Extensions/NRISwapChain.h"
-#include "Extensions/NRIUpscaler.h"
-#include "Extensions/NRIWrapperD3D11.h"
-#include "Extensions/NRIWrapperD3D12.h"
-#include "Extensions/NRIWrapperVK.h"
+#include <core/rhi/extensions/device_creation.hpp>
+#include <core/rhi/extensions/helper.hpp>
+#include <core/rhi/extensions/imgui.hpp>
+#include <core/rhi/extensions/low_latency.hpp>
+#include <core/rhi/extensions/mesh_shader.hpp>
+#include <core/rhi/extensions/ray_tracing.hpp>
+#include <core/rhi/extensions/streamer.hpp>
+#include <core/rhi/extensions/swap_chain.hpp>
+#include <core/rhi/extensions/upscaler.hpp>
+#include <core/rhi/extensions/D3D11_wrapper.hpp>
+#include <core/rhi/extensions/D3D12_wrapper.hpp>
+#include <core/rhi/extensions/vulkan_wrapper.hpp>
 
-#include "Lock.h"
+#include "Lock.hpp"
 
 // NRI default settings (if not provided in "NRIConfig.h")
-#include "../NRIConfig.h"
+// #include "../NRIConfig.h"
 
 #ifndef NRI_TIMEOUT_PRESENT
 #    define NRI_TIMEOUT_PRESENT 1000u // 1 sec
@@ -140,106 +142,106 @@ typedef uint32_t DXGI_FORMAT;
 #endif
 
 // ComPtr
-#if (NRI_ENABLE_D3D11_SUPPORT || NRI_ENABLE_D3D12_SUPPORT)
+#if (ENGINE_RHI_ENABLE_D3D11 || ENGINE_RHI_ENABLE_D3D12)
 
 struct IUnknown;
 
 template <typename T>
 struct ComPtr {
-    inline ComPtr(T* lComPtr = nullptr)
-        : m_ComPtr(lComPtr) {
-        static_assert(std::is_base_of<IUnknown, T>::value, "T needs to be IUnknown based");
+  inline ComPtr(T *lComPtr = nullptr)
+    : m_ComPtr(lComPtr) {
+    static_assert(std::is_base_of<IUnknown, T>::value, "T needs to be IUnknown based");
 
-        if (m_ComPtr)
-            m_ComPtr->AddRef();
+    if (m_ComPtr)
+      m_ComPtr->AddRef();
+  }
+
+  inline ComPtr(const ComPtr<T> &lComPtrObj) {
+    static_assert(std::is_base_of<IUnknown, T>::value, "T needs to be IUnknown based");
+
+    m_ComPtr = lComPtrObj.m_ComPtr;
+
+    if (m_ComPtr)
+      m_ComPtr->AddRef();
+  }
+
+  inline ComPtr(ComPtr<T> &&lComPtrObj) {
+    m_ComPtr = lComPtrObj.m_ComPtr;
+    lComPtrObj.m_ComPtr = nullptr;
+  }
+
+  inline T *operator=(T *lComPtr) {
+    if (m_ComPtr)
+      m_ComPtr->Release();
+
+    m_ComPtr = lComPtr;
+
+    if (m_ComPtr)
+      m_ComPtr->AddRef();
+
+    return m_ComPtr;
+  }
+
+  inline T *operator=(const ComPtr<T> &lComPtrObj) {
+    if (m_ComPtr)
+      m_ComPtr->Release();
+
+    m_ComPtr = lComPtrObj.m_ComPtr;
+
+    if (m_ComPtr)
+      m_ComPtr->AddRef();
+
+    return m_ComPtr;
+  }
+
+  inline ~ComPtr() {
+    if (m_ComPtr) {
+      m_ComPtr->Release();
+      m_ComPtr = nullptr;
     }
+  }
 
-    inline ComPtr(const ComPtr<T>& lComPtrObj) {
-        static_assert(std::is_base_of<IUnknown, T>::value, "T needs to be IUnknown based");
+  inline T **operator&() {
+    // The assert on operator& usually indicates a bug. Could be a potential memory leak.
+    // If this really what is needed, however, use GetInterface() explicitly.
+    assert(m_ComPtr == nullptr);
+    return &m_ComPtr;
+  }
 
-        m_ComPtr = lComPtrObj.m_ComPtr;
+  inline operator T*() const {
+    return m_ComPtr;
+  }
 
-        if (m_ComPtr)
-            m_ComPtr->AddRef();
-    }
+  inline T *GetInterface() const {
+    return m_ComPtr;
+  }
 
-    inline ComPtr(ComPtr<T>&& lComPtrObj) {
-        m_ComPtr = lComPtrObj.m_ComPtr;
-        lComPtrObj.m_ComPtr = nullptr;
-    }
+  inline T &operator*() const {
+    return *m_ComPtr;
+  }
 
-    inline T* operator=(T* lComPtr) {
-        if (m_ComPtr)
-            m_ComPtr->Release();
+  inline T *operator->() const {
+    return m_ComPtr;
+  }
 
-        m_ComPtr = lComPtr;
+  inline bool operator!() const {
+    return (nullptr == m_ComPtr);
+  }
 
-        if (m_ComPtr)
-            m_ComPtr->AddRef();
+  inline bool operator<(T *lComPtr) const {
+    return m_ComPtr < lComPtr;
+  }
 
-        return m_ComPtr;
-    }
+  inline bool operator!=(T *lComPtr) const {
+    return !operator==(lComPtr);
+  }
 
-    inline T* operator=(const ComPtr<T>& lComPtrObj) {
-        if (m_ComPtr)
-            m_ComPtr->Release();
+  inline bool operator==(T *lComPtr) const {
+    return m_ComPtr == lComPtr;
+  }
 
-        m_ComPtr = lComPtrObj.m_ComPtr;
-
-        if (m_ComPtr)
-            m_ComPtr->AddRef();
-
-        return m_ComPtr;
-    }
-
-    inline ~ComPtr() {
-        if (m_ComPtr) {
-            m_ComPtr->Release();
-            m_ComPtr = nullptr;
-        }
-    }
-
-    inline T** operator&() {
-        // The assert on operator& usually indicates a bug. Could be a potential memory leak.
-        // If this really what is needed, however, use GetInterface() explicitly.
-        assert(m_ComPtr == nullptr);
-        return &m_ComPtr;
-    }
-
-    inline operator T*() const {
-        return m_ComPtr;
-    }
-
-    inline T* GetInterface() const {
-        return m_ComPtr;
-    }
-
-    inline T& operator*() const {
-        return *m_ComPtr;
-    }
-
-    inline T* operator->() const {
-        return m_ComPtr;
-    }
-
-    inline bool operator!() const {
-        return (nullptr == m_ComPtr);
-    }
-
-    inline bool operator<(T* lComPtr) const {
-        return m_ComPtr < lComPtr;
-    }
-
-    inline bool operator!=(T* lComPtr) const {
-        return !operator==(lComPtr);
-    }
-
-    inline bool operator==(T* lComPtr) const {
-        return m_ComPtr == lComPtr;
-    }
-
-protected:
-    T* m_ComPtr;
+  protected:
+    T *m_ComPtr;
 };
 
 #endif
@@ -298,8 +300,8 @@ protected:
         return returnCode; \
     }
 
-#define NRI_REPORT_INFO(deviceBase, format, ...)    (deviceBase)->ReportMessage(Message::INFO, Result::SUCCESS, __FILE__, __LINE__, format, ##__VA_ARGS__)
-#define NRI_REPORT_WARNING(deviceBase, format, ...) (deviceBase)->ReportMessage(Message::WARNING, Result::SUCCESS, __FILE__, __LINE__, "%s(): " format, __FUNCTION__, ##__VA_ARGS__)
+#define NRI_REPORT_INFO(deviceBase, format, ...)    (deviceBase)->ReportMessage(Message::INFO, Result::Success, __FILE__, __LINE__, format, ##__VA_ARGS__)
+#define NRI_REPORT_WARNING(deviceBase, format, ...) (deviceBase)->ReportMessage(Message::WARNING, Result::Success, __FILE__, __LINE__, "%s(): " format, __FUNCTION__, ##__VA_ARGS__)
 #define NRI_REPORT_ERROR(deviceBase, format, ...)   (deviceBase)->ReportMessage(Message::ERROR, Result::FAILURE, __FILE__, __LINE__, "%s(): " format, __FUNCTION__, ##__VA_ARGS__)
 
 // Array validation
@@ -324,224 +326,224 @@ protected:
     }
 // clang-format on
 
-namespace nri {
+namespace Core::RHI {
+  // Internal consts
+  constexpr uint32_t NODE_MASK = 0x1; // mGPU is not planned`
+  constexpr uint32_t ROOT_SIGNATURE_DWORD_NUM = 64;
+  // https://learn.microsoft.com/en-us/windows/win32/direct3d12/root-signature-limits
+  constexpr uint64_t PRESENT_INDEX_BIT_NUM = 56ull;
 
-// Internal consts
-constexpr uint32_t NODE_MASK = 0x1;               // mGPU is not planned`
-constexpr uint32_t ROOT_SIGNATURE_DWORD_NUM = 64; // https://learn.microsoft.com/en-us/windows/win32/direct3d12/root-signature-limits
-constexpr uint64_t PRESENT_INDEX_BIT_NUM = 56ull;
-
-// Scratch
-template <typename T>
-class Scratch {
-public:
-    Scratch(const AllocationCallbacks& allocator, T* mem, size_t num)
+  // Scratch
+  template <typename T>
+  class Scratch {
+    public:
+      Scratch(const AllocationCallbacks &allocator, T *mem, size_t num)
         : m_Allocator(allocator)
-        , m_Mem(mem)
-        , m_Num(num) {
+          , m_Mem(mem)
+          , m_Num(num) {
         m_IsHeap = (num * sizeof(T) + alignof(T)) > NRI_MAX_STACK_ALLOC_SIZE;
-    }
+      }
 
-    ~Scratch() {
+      ~Scratch() {
         if (m_IsHeap)
-            m_Allocator.Free(m_Allocator.userArg, m_Mem);
-    }
+          m_Allocator.Free(m_Allocator.userArg, m_Mem);
+      }
 
-    inline operator T*() const {
+      inline operator T*() const {
         return m_Mem;
-    }
+      }
 
-    inline T& operator[](size_t i) const {
+      inline T &operator[](size_t i) const {
         assert(i < m_Num);
         return m_Mem[i];
-    }
+      }
 
-private:
-    const AllocationCallbacks& m_Allocator;
-    T* m_Mem = nullptr;
-    size_t m_Num = 0;
-    bool m_IsHeap = false;
-};
+    private:
+      const AllocationCallbacks &m_Allocator;
+      T *m_Mem = nullptr;
+      size_t m_Num = 0;
+      bool m_IsHeap = false;
+  };
 
-// Shared library
-struct Library;
+  // Shared library
+  struct Library;
 
-Library* LoadSharedLibrary(const char* path);
-void* GetSharedLibraryFunction(Library& library, const char* name);
-void UnloadSharedLibrary(Library& library);
+  Library *LoadSharedLibrary(const char *path);
+  void *GetSharedLibraryFunction(Library &library, const char *name);
+  void UnloadSharedLibrary(Library &library);
 
-// Helpers
-template <typename T>
-inline T Align(T x, size_t alignment) {
+  // Helpers
+  template <typename T>
+  inline T Align(T x, size_t alignment) {
     return (T)((size_t(x) + alignment - 1) & ~(alignment - 1));
-}
+  }
 
-template <typename... Args>
-constexpr void MaybeUnused([[maybe_unused]] const Args&... args) {
-}
+  template <typename... Args>
+  constexpr void MaybeUnused([[maybe_unused]] const Args &... args) {
+  }
 
-template <typename T, uint32_t N>
-constexpr uint32_t GetCountOf(T const (&)[N]) {
+  template <typename T, uint32_t N>
+  constexpr uint32_t GetCountOf(T const (&)[N]) {
     return N;
-}
+  }
 
-template <typename T, size_t N>
-constexpr uint32_t GetCountOf(const std::array<T, N>& v) {
+  template <typename T, size_t N>
+  constexpr uint32_t GetCountOf(const std::array<T, N> &v) {
     return (uint32_t)v.size();
-}
+  }
 
-template <typename T, typename... Args>
-constexpr void Construct(T* objects, size_t number, Args&&... args) {
+  template <typename T, typename... Args>
+  constexpr void Construct(T *objects, size_t number, Args &&... args) {
     for (size_t i = 0; i < number; i++)
-        new (objects + i) T(std::forward<Args>(args)...);
-}
+      new(objects + i) T(std::forward<Args>(args)...);
+  }
 
-template <typename T, typename... Args>
-inline T* Allocate(const AllocationCallbacks& allocationCallbacks, Args&&... args) {
-    T* object = (T*)allocationCallbacks.Allocate(allocationCallbacks.userArg, sizeof(T), alignof(T));
+  template <typename T, typename... Args>
+  inline T *Allocate(const AllocationCallbacks &allocationCallbacks, Args &&... args) {
+    T *object = (T*)allocationCallbacks.Allocate(allocationCallbacks.userArg, sizeof(T), alignof(T));
     if (object)
-        new (object) T(std::forward<Args>(args)...);
+      new(object) T(std::forward<Args>(args)...);
 
     return object;
-}
+  }
 
-template <typename T>
-inline void Destroy(const AllocationCallbacks& allocationCallbacks, T* object) {
+  template <typename T>
+  inline void Destroy(const AllocationCallbacks &allocationCallbacks, T *object) {
     if (object) {
-        object->~T();
-        allocationCallbacks.Free(allocationCallbacks.userArg, object);
+      object->~T();
+      allocationCallbacks.Free(allocationCallbacks.userArg, object);
     }
-}
+  }
 
-constexpr uint64_t MsToUs(uint32_t x) {
+  constexpr uint64_t MsToUs(uint32_t x) {
     return x * 1000000ull;
-}
+  }
 
-constexpr void ReturnVoid() {
-}
+  constexpr void ReturnVoid() {
+  }
 
-// Allocator
-template <typename T>
-struct StdAllocator {
+  // Allocator
+  template <typename T>
+  struct StdAllocator {
     typedef T value_type;
     typedef size_t size_type;
     typedef ptrdiff_t difference_type;
     typedef std::true_type propagate_on_container_move_assignment;
     typedef std::false_type is_always_equal;
 
-    StdAllocator(const AllocationCallbacks& allocationCallbacks)
-        : m_Interface(allocationCallbacks) {
+    StdAllocator(const AllocationCallbacks &allocationCallbacks)
+      : m_Interface(allocationCallbacks) {
     }
 
-    StdAllocator(const StdAllocator<T>& allocator)
-        : m_Interface(allocator.GetInterface()) {
+    StdAllocator(const StdAllocator<T> &allocator)
+      : m_Interface(allocator.GetInterface()) {
     }
 
     template <class U>
-    StdAllocator(const StdAllocator<U>& allocator)
-        : m_Interface(allocator.GetInterface()) {
+    StdAllocator(const StdAllocator<U> &allocator)
+      : m_Interface(allocator.GetInterface()) {
     }
 
-    StdAllocator<T>& operator=(const StdAllocator<T>& allocator) {
-        m_Interface = allocator.GetInterface();
-        return *this;
+    StdAllocator<T> &operator=(const StdAllocator<T> &allocator) {
+      m_Interface = allocator.GetInterface();
+      return *this;
     }
 
-    T* allocate(size_t n) noexcept {
-        return (T*)m_Interface.Allocate(m_Interface.userArg, n * sizeof(T), alignof(T));
+    T *allocate(size_t n) noexcept {
+      return (T*)m_Interface.Allocate(m_Interface.userArg, n * sizeof(T), alignof(T));
     }
 
-    void deallocate(T* memory, size_t) noexcept {
-        m_Interface.Free(m_Interface.userArg, memory);
+    void deallocate(T *memory, size_t) noexcept {
+      m_Interface.Free(m_Interface.userArg, memory);
     }
 
-    const AllocationCallbacks& GetInterface() const {
-        return m_Interface;
+    const AllocationCallbacks &GetInterface() const {
+      return m_Interface;
     }
 
     template <typename U>
     using other = StdAllocator<U>;
 
-private:
-    const AllocationCallbacks& m_Interface = {}; // IMPORTANT: yes, it's a pointer to the real location (DeviceBase)
-};
+    private:
+      const AllocationCallbacks &m_Interface = {}; // IMPORTANT: yes, it's a pointer to the real location (DeviceBase)
+  };
 
-template <typename T>
-bool operator==(const StdAllocator<T>& left, const StdAllocator<T>& right) {
+  template <typename T>
+  bool operator==(const StdAllocator<T> &left, const StdAllocator<T> &right) {
     return left.GetInterface() == right.GetInterface();
-}
+  }
 
-template <typename T>
-bool operator!=(const StdAllocator<T>& left, const StdAllocator<T>& right) {
+  template <typename T>
+  bool operator!=(const StdAllocator<T> &left, const StdAllocator<T> &right) {
     return !operator==(left, right);
-}
+  }
 
-// Types with "StdAllocator"
-template <typename T>
-using Vector = std::vector<T, StdAllocator<T>>;
+  // Types with "StdAllocator"
+  template <typename T>
+  using Vector = std::vector<T, StdAllocator<T>>;
 
-template <typename U, typename T>
-using UnorderedMap = std::unordered_map<U, T, std::hash<U>, std::equal_to<U>, StdAllocator<std::pair<const U, T>>>;
+  template <typename U, typename T>
+  using UnorderedMap = std::unordered_map<U, T, std::hash<U>, std::equal_to<U>, StdAllocator<std::pair<const U, T>>>;
 
-template <typename U, typename T>
-using Map = std::map<U, T, std::less<U>, StdAllocator<std::pair<const U, T>>>;
+  template <typename U, typename T>
+  using Map = std::map<U, T, std::less<U>, StdAllocator<std::pair<const U, T>>>;
 
-using String = std::basic_string<char, std::char_traits<char>, StdAllocator<char>>;
+  using String = std::basic_string<char, std::char_traits<char>, StdAllocator<char>>;
 
-// Format conversion
-struct DxgiFormat {
+  // Format conversion
+  struct DxgiFormat {
     DXGI_FORMAT typeless;
     DXGI_FORMAT typed;
-};
+  };
 
-const DxgiFormat& GetDxgiFormat(Format format);
-const FormatProps& GetFormatProps(Format format);
+  const DxgiFormat &GetDxgiFormat(Format format);
+  const FormatProps &GetFormatProps(Format format);
 
-Format DXGIFormatToNRIFormat(uint32_t dxgiFormat);
-Format VKFormatToNRIFormat(uint32_t vkFormat);
+  Format DXGIFormatToNRIFormat(uint32_t dxgiFormat);
+  Format VKFormatToNRIFormat(uint32_t vkFormat);
 
-uint32_t NRIFormatToDXGIFormat(Format format);
-uint32_t NRIFormatToVKFormat(Format format);
+  uint32_t NRIFormatToDXGIFormat(Format format);
+  uint32_t NRIFormatToVKFormat(Format format);
 
-// Misc
-Result GetResultFromHRESULT(long result);
+  // Misc
+  Result GetResultFromHRESULT(long result);
 
-inline Vendor GetVendorFromID(uint32_t vendorID) {
+  inline Vendor GetVendorFromID(uint32_t vendorID) {
     switch (vendorID) {
-        case 0x10DE:
-            return Vendor::NVIDIA;
-        case 0x1002:
-            return Vendor::AMD;
-        case 0x8086:
-            return Vendor::INTEL;
+      case 0x10DE:
+        return Vendor::NVIDIA;
+      case 0x1002:
+        return Vendor::AMD;
+      case 0x8086:
+        return Vendor::INTEL;
     }
 
     return Vendor::UNKNOWN;
-}
+  }
 
-inline Dim_t GetDimension(GraphicsBackend api, const TextureDesc& textureDesc, Dim_t dimensionIndex, Dim_t mip) {
+  inline Dim_t GetDimension(GraphicsBackend api, const TextureDesc &textureDesc, Dim_t dimensionIndex, Dim_t mip) {
     assert(dimensionIndex < 3);
 
     Dim_t dim = textureDesc.depth;
     if (dimensionIndex == 0)
-        dim = textureDesc.width;
+      dim = textureDesc.width;
     else if (dimensionIndex == 1)
-        dim = textureDesc.height;
+      dim = textureDesc.height;
 
     dim = (Dim_t)std::max(dim >> mip, 1);
 
     // TODO: VK doesn't require manual alignment, but probably we should use it here and during texture creation
     if (api != GraphicsBackend::Vulkan)
-        dim = Align(dim, dimensionIndex < 2 ? GetFormatProps(textureDesc.format).blockWidth : 1);
+      dim = Align(dim, dimensionIndex < 2 ? GetFormatProps(textureDesc.format).blockWidth : 1);
 
     return dim;
-}
+  }
 
-inline bool IsDepthBiasEnabled(const DepthBiasDesc& depthBiasDesc) {
+  inline bool IsDepthBiasEnabled(const DepthBiasDesc &depthBiasDesc) {
     return depthBiasDesc.constant != 0.0f || depthBiasDesc.slope != 0.0f;
-}
+  }
 
-inline TextureDesc FixTextureDesc(const TextureDesc& textureDesc) {
+  inline TextureDesc FixTextureDesc(const TextureDesc &textureDesc) {
     TextureDesc desc = textureDesc;
     desc.height = std::max(desc.height, (Dim_t)1);
     desc.depth = std::max(desc.depth, (Dim_t)1);
@@ -550,55 +552,56 @@ inline TextureDesc FixTextureDesc(const TextureDesc& textureDesc) {
     desc.sampleNum = std::max(desc.sampleNum, (Sample_t)1);
 
     return desc;
-}
+  }
 
-inline bool CompareUid(const Uid_t& a, const Uid_t& b) {
+  inline bool CompareUid(const Uid_t &a, const Uid_t &b) {
     return a.low == b.low && a.high == b.high;
-}
+  }
 
-// Strings
-void ConvertCharToWchar(const char* in, wchar_t* out, size_t outLen);
-void ConvertWcharToChar(const wchar_t* in, char* out, size_t outLen);
+  // Strings
+  void ConvertCharToWchar(const char *in, wchar_t *out, size_t outLen);
+  void ConvertWcharToChar(const wchar_t *in, char *out, size_t outLen);
 
-// Swap chain ID
-uint64_t GetSwapChainId();
+  // Swap chain ID
+  uint64_t GetSwapChainId();
 
-inline uint64_t GetPresentIndex(uint64_t presentId) {
+  inline uint64_t GetPresentIndex(uint64_t presentId) {
     return presentId & ((1ull << PRESENT_INDEX_BIT_NUM) - 1ull);
-}
+  }
 
-// Windows/D3D specific
-#if (NRI_ENABLE_D3D11_SUPPORT || NRI_ENABLE_D3D12_SUPPORT)
+  // Windows/D3D specific
+#if (ENGINE_RHI_ENABLE_D3D11 || ENGINE_RHI_ENABLE_D3D12)
 
-bool HasOutput();
-Result QueryVideoMemoryInfoDXGI(uint64_t luid, MemoryLocation memoryLocation, VideoMemoryInfo& videoMemoryInfo);
+  bool HasOutput();
+  Result QueryVideoMemoryInfoDXGI(uint64_t luid, MemoryLocation memoryLocation, VideoMemoryInfo &videoMemoryInfo);
 
-struct DisplayDescHelper {
-    Result GetDisplayDesc(void* hwnd, DisplayDesc& displayDesc);
+  struct DisplayDescHelper {
+    Result GetDisplayDesc(void *hwnd, DisplayDesc &displayDesc);
 
     ComPtr<IDXGIFactory2> m_DxgiFactory2;
     DisplayDesc m_DisplayDesc = {};
     bool m_HasDisplayDesc = false;
-};
+  };
 
 #else
 
-struct DisplayDescHelper {
-    inline Result GetDisplayDesc(void*, DisplayDesc& displayDesc) { // TODO: non-Windows - query somehow? Windows - allow DXGI usage even if D3D is disabled?
-        displayDesc = {};
-        displayDesc.sdrLuminance = 80.0f;
-        displayDesc.maxLuminance = 80.0f;
+  struct DisplayDescHelper {
+    inline Result GetDisplayDesc(void *, DisplayDesc &displayDesc) {
+      // TODO: non-Windows - query somehow? Windows - allow DXGI usage even if D3D is disabled?
+      displayDesc = {};
+      displayDesc.sdrLuminance = 80.0f;
+      displayDesc.maxLuminance = 80.0f;
 
-        return Result::UNSUPPORTED;
+      return Result::Unsupported;
     }
-};
+  };
 
 #endif
 
-// VK related
-#if NRI_ENABLE_VK_SUPPORT
+  // VK related
+#if ENGINE_RHI_ENABLE_VULKAN
 
-struct QueueFamilyProps {
+  struct QueueFamilyProps {
     uint32_t queueCount;
     bool graphics;
     bool compute;
@@ -608,57 +611,67 @@ struct QueueFamilyProps {
     bool videoEncode;
     bool protect;
     bool opticalFlow;
-};
+  };
 
-inline QueueType TrySelectPreferredQueueType(const QueueFamilyProps& props, std::array<uint32_t, (size_t)QueueType::MAX_NUM>& scores) {
-    { // Prefer as much features as possible
-        size_t index = (size_t)QueueType::GRAPHICS;
-        uint32_t score = ((props.graphics ? 100 : 0) + (props.compute ? 10 : 0) + (props.copy ? 10 : 0) + (props.sparse ? 5 : 0) + (props.videoDecode ? 2 : 0) + (props.videoEncode ? 2 : 0) + (props.protect ? 1 : 0) + (props.opticalFlow ? 1 : 0));
+  inline QueueType TrySelectPreferredQueueType(const QueueFamilyProps &props,
+                                               std::array<uint32_t, (size_t)QueueType::Count> &scores) {
+    {
+      // Prefer as much features as possible
+      size_t index = (size_t)QueueType::Graphics;
+      uint32_t score = ((props.graphics ? 100 : 0) + (props.compute ? 10 : 0) + (props.copy ? 10 : 0) + (
+        props.sparse ? 5 : 0) + (props.videoDecode ? 2 : 0) + (props.videoEncode ? 2 : 0) + (props.protect ? 1 : 0) + (
+        props.opticalFlow ? 1 : 0));
 
-        if (props.graphics && score > scores[index]) {
-            scores[index] = score;
-            return QueueType::GRAPHICS;
-        }
+      if (props.graphics && score > scores[index]) {
+        scores[index] = score;
+        return QueueType::Graphics;
+      }
     }
 
-    { // Prefer compute-only
-        size_t index = (size_t)QueueType::COMPUTE;
-        uint32_t score = ((!props.graphics ? 10 : 0) + (props.compute ? 100 : 0) + (!props.copy ? 10 : 0) + (props.sparse ? 5 : 0) + (!props.videoDecode ? 2 : 0) + (!props.videoEncode ? 2 : 0) + (props.protect ? 1 : 0) + (!props.opticalFlow ? 1 : 0));
+    {
+      // Prefer compute-only
+      size_t index = (size_t)QueueType::Compute;
+      uint32_t score = ((!props.graphics ? 10 : 0) + (props.compute ? 100 : 0) + (!props.copy ? 10 : 0) + (
+          props.sparse ? 5 : 0) + (!props.videoDecode ? 2 : 0) + (!props.videoEncode ? 2 : 0) + (props.protect ? 1 : 0)
+        +
+        (!props.opticalFlow ? 1 : 0));
 
-        if (props.compute && score > scores[index]) {
-            scores[index] = score;
-            return QueueType::COMPUTE;
-        }
+      if (props.compute && score > scores[index]) {
+        scores[index] = score;
+        return QueueType::Compute;
+      }
     }
 
-    { // Prefer copy-only
-        size_t index = (size_t)QueueType::COPY;
-        uint32_t score = ((!props.graphics ? 10 : 0) + (!props.compute ? 10 : 0) + (props.copy ? 100 * props.queueCount : 0) + (props.sparse ? 5 : 0) + (!props.videoDecode ? 2 : 0) + (!props.videoEncode ? 2 : 0) + (props.protect ? 1 : 0) + (!props.opticalFlow ? 1 : 0));
+    {
+      // Prefer copy-only
+      size_t index = (size_t)QueueType::Copy;
+      uint32_t score = ((!props.graphics ? 10 : 0) + (!props.compute ? 10 : 0) + (
+        props.copy ? 100 * props.queueCount : 0) + (props.sparse ? 5 : 0) + (!props.videoDecode ? 2 : 0) + (
+        !props.videoEncode ? 2 : 0) + (props.protect ? 1 : 0) + (!props.opticalFlow ? 1 : 0));
 
-        if (props.copy && score > scores[index]) {
-            scores[index] = score;
-            return QueueType::COPY;
-        }
+      if (props.copy && score > scores[index]) {
+        scores[index] = score;
+        return QueueType::Copy;
+      }
     }
 
-    return QueueType::MAX_NUM;
-}
+    return QueueType::Count;
+  }
 
-inline Uid_t ConstructUid(uint8_t luid[8], uint8_t uuid[16], bool isLuidValid) {
+  inline Uid_t ConstructUid(uint8_t luid[8], uint8_t uuid[16], bool isLuidValid) {
     Uid_t out = {};
 
     if (isLuidValid)
-        memcpy(&out.low, luid, sizeof(out.low));
+      memcpy(&out.low, luid, sizeof(out.low));
     else {
-        memcpy(&out.low, uuid, sizeof(out.low));
-        memcpy(&out.high, uuid + 8, sizeof(out.high));
+      memcpy(&out.low, uuid, sizeof(out.low));
+      memcpy(&out.high, uuid + 8, sizeof(out.high));
     }
 
     return out;
-}
+  }
 
 #endif
+} // namespace Core::RHI
 
-} // namespace nri
-
-#include "DeviceBase.h" // requires "StdAllocator"
+#include "DeviceBase.hpp" // requires "StdAllocator"

@@ -30,7 +30,7 @@ Result DescriptorWGPU::Create(const SamplerDesc& samplerDesc) {
     m_Sampler = wgpuDeviceCreateSampler(m_Device, &desc);
     m_DescriptorType = DescriptorType::SAMPLER;
 
-    return m_Sampler ? Result::SUCCESS : Result::FAILURE;
+    return m_Sampler ? Result::Success : Result::FAILURE;
 }
 
 Result DescriptorWGPU::Create(const BufferViewDesc& bufferViewDesc) {
@@ -59,7 +59,7 @@ Result DescriptorWGPU::Create(const BufferViewDesc& bufferViewDesc) {
             break;
     }
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 Result DescriptorWGPU::Create(const TextureViewDesc& textureViewDesc) {
@@ -80,7 +80,7 @@ Result DescriptorWGPU::Create(const TextureViewDesc& textureViewDesc) {
             break;
     }
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 WGPUTextureView DescriptorWGPU::GetTextureView() {

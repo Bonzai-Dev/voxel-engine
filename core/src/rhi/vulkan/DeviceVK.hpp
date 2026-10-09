@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct RenderPassAttachmentDesc {
     bool operator==(const RenderPassAttachmentDesc& other) const {
@@ -175,7 +175,7 @@ struct DeviceVK final : public DeviceBase {
         Implementation* impl = Allocate<Implementation>(GetAllocationCallbacks(), *this);
         Result result = impl->Create(args...);
 
-        if (result != Result::SUCCESS) {
+        if (result != Result::Success) {
             Destroy(GetAllocationCallbacks(), impl);
             entity = nullptr;
         } else
@@ -291,4 +291,4 @@ private:
     Lock m_Lock;
 };
 
-} // namespace nri
+} // namespace Core::RHI

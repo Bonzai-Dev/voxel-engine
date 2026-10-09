@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct TextureVal final : public ObjectVal {
     TextureVal(DeviceVal& device, Texture* texture, bool isBoundToMemory)
@@ -40,4 +40,4 @@ private:
     bool m_IsBoundToMemory = false;
 };
 
-} // namespace nri
+} // namespace Core::RHI

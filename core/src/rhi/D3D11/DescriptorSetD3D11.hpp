@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct DescriptorSetD3D11 final : public DebugNameBase {
     inline const DescriptorD3D11* GetDescriptor(uint32_t i) const {
@@ -24,4 +24,4 @@ private:
     const DescriptorD3D11** m_Descriptors = nullptr;
 };
 
-} // namespace nri
+} // namespace Core::RHI

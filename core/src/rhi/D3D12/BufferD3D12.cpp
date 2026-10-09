@@ -3,7 +3,7 @@
 Result BufferD3D12::Create(const BufferDesc& bufferDesc) {
     m_Desc = bufferDesc;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 Result BufferD3D12::Create(const BufferD3D12Desc& bufferD3D12Desc) {
@@ -14,7 +14,7 @@ Result BufferD3D12::Create(const BufferD3D12Desc& bufferD3D12Desc) {
 
     m_Buffer = (ID3D12ResourceBest*)bufferD3D12Desc.d3d12Resource;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 Result BufferD3D12::Allocate(MemoryLocation memoryLocation, float priority, bool committed) {
@@ -154,7 +154,7 @@ NRI_INLINE Result BufferD3D12::SetPriorityAndPersistentlyMap(float priority, boo
         NRI_RETURN_ON_BAD_HRESULT(&m_Device, hr, "ID3D12Resource::Map");
     }
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 NRI_INLINE void* BufferD3D12::Map(uint64_t offset) {

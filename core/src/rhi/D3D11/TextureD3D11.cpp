@@ -80,13 +80,13 @@ Result TextureD3D11::Allocate(MemoryLocation memoryLocation, float priority) {
     if (evictionPriority != 0)
         m_Texture->SetEvictionPriority(evictionPriority);
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 Result TextureD3D11::Create(const TextureDesc& textureDesc) {
     m_Desc = FixTextureDesc(textureDesc);
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 Result TextureD3D11::Create(const TextureD3D11Desc& textureD3D11Desc) {
@@ -95,7 +95,7 @@ Result TextureD3D11::Create(const TextureD3D11Desc& textureD3D11Desc) {
 
     m_Texture = textureD3D11Desc.d3d11Resource;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 uint32_t TextureD3D11::GetMipmappedSize(const TextureDesc& textureDesc) {

@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct DescriptorD3D11 final : public DebugNameBase {
     inline DescriptorD3D11(DeviceD3D11& device)
@@ -65,4 +65,4 @@ private:
     Format m_Format = Format::UNKNOWN;
 };
 
-} // namespace nri
+} // namespace Core::RHI

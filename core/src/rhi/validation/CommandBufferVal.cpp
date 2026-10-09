@@ -126,7 +126,7 @@ NRI_INLINE Result CommandBufferVal::Begin(const DescriptorPool* descriptorPool) 
     DescriptorPool* descriptorPoolImpl = NRI_GET_IMPL(DescriptorPool, descriptorPool);
 
     Result result = GetCoreInterfaceImpl().BeginCommandBuffer(*GetImpl(), descriptorPoolImpl);
-    if (result == Result::SUCCESS)
+    if (result == Result::Success)
         m_IsRecordingStarted = true;
 
     m_Pipeline = nullptr;
@@ -147,7 +147,7 @@ NRI_INLINE Result CommandBufferVal::End() {
         NRI_REPORT_ERROR(&m_Device, "'CmdEndAnnotation' is called more times than 'CmdBeginAnnotation'");
 
     Result result = GetCoreInterfaceImpl().EndCommandBuffer(*GetImpl());
-    if (result == Result::SUCCESS)
+    if (result == Result::Success)
         m_IsRecordingStarted = m_IsWrapped;
 
     return result;

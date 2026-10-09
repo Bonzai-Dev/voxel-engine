@@ -167,7 +167,7 @@ Result PipelineLayoutVK::Create(const PipelineLayoutDesc& pipelineLayoutDesc) {
     VkResult vkResult = vk.CreatePipelineLayout(m_Device, &pipelineLayoutCreateInfo, m_Device.GetVkAllocationCallbacks(), &m_Handle);
     NRI_RETURN_ON_BAD_VKRESULT(&m_Device, vkResult, "vkCreatePipelineLayout");
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 void PipelineLayoutVK::CreateSetLayout(VkDescriptorSetLayout* setLayout, const DescriptorSetDesc& descriptorSetDesc, const RootSamplerDesc* rootSamplers, uint32_t rootSamplerNum, bool ignoreGlobalSPIRVOffsets, bool isPush) {

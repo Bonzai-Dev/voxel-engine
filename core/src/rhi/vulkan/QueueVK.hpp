@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct QueueVK final : public DebugNameBase {
     inline QueueVK(DeviceVK& device)
@@ -56,4 +56,4 @@ private:
     Lock m_Lock;
 };
 
-} // namespace nri
+} // namespace Core::RHI

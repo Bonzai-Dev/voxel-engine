@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct PipelineWGPU final : public DebugNameBase {
     inline PipelineWGPU(DeviceWGPU& device)
@@ -54,4 +54,4 @@ private:
     PipelineLayoutWGPU* m_PipelineLayoutWGPU = nullptr;
 };
 
-} // namespace nri
+} // namespace Core::RHI

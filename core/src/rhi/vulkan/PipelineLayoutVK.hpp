@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct PushConstantBindingDesc {
     VkShaderStageFlags stages;
@@ -70,4 +70,4 @@ private:
     Vector<VkSampler> m_ImmutableSamplers;
 };
 
-} // namespace nri
+} // namespace Core::RHI

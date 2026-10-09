@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct FenceSubmissionWGPU {
     uint64_t value = 0;
@@ -33,4 +33,4 @@ private:
     bool m_IsSwapChainSemaphore = false;
 };
 
-} // namespace nri
+} // namespace Core::RHI

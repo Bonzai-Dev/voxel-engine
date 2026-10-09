@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct BindingSet {
     uint32_t descriptorNum;
@@ -69,4 +69,4 @@ private:
     uint32_t m_RootBindingOffset = 0;
 };
 
-} // namespace nri
+} // namespace Core::RHI

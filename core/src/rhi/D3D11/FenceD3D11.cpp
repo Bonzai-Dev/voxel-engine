@@ -2,7 +2,7 @@
 
 Result FenceD3D11::Create(uint64_t initialValue) {
     if (initialValue == SWAPCHAIN_SEMAPHORE)
-        return Result::SUCCESS;
+        return Result::Success;
 
     if (m_Device.GetVersion() >= 5) {
         // Try "monitored" fence (better) first
@@ -23,7 +23,7 @@ Result FenceD3D11::Create(uint64_t initialValue) {
     m_Event = CreateEventA(nullptr, FALSE, FALSE, nullptr);
     m_Value = initialValue;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 NRI_INLINE uint64_t FenceD3D11::GetFenceValue() const {

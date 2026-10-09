@@ -39,7 +39,7 @@ struct D3D12_RAYTRACING_OPACITY_MICROMAP_HISTOGRAM_ENTRY {
 
 #include "SharedExternal.h"
 
-namespace nri {
+namespace Core::RHI {
 
 struct AccelerationStructureD3D12;
 struct BufferD3D12;
@@ -161,7 +161,7 @@ D3D12_SHADING_RATE GetShadingRate(ShadingRate shadingRate);
 D3D12_SHADING_RATE_COMBINER GetShadingRateCombiner(ShadingRateCombiner shadingRateCombiner);
 D3D12_FILTER GetFilter(const SamplerDesc& samplerDesc);
 
-} // namespace nri
+} // namespace Core::RHI
 
 #if NRI_ENABLE_AMDAGS
 #    define AGS_GCC // Fixes Clang warning: 'dllexport' attribute only applies to functions, variables, classes, and Objective-C interfaces [-Werror,-Wignored-attributes]

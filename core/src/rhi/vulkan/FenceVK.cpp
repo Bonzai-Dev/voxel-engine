@@ -19,14 +19,14 @@ Result FenceVK::Create(uint64_t initialValue) {
     VkResult vkResult = vk.CreateSemaphore((VkDevice)m_Device, &semaphoreCreateInfo, m_Device.GetVkAllocationCallbacks(), &m_Handle);
     NRI_RETURN_ON_BAD_VKRESULT(&m_Device, vkResult, "vkCreateSemaphore");
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 Result FenceVK::Create(const FenceVKDesc& fenceVKDesc) {
     m_OwnsNativeObjects = false;
     m_Handle = (VkSemaphore)fenceVKDesc.vkTimelineSemaphore;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 NRI_INLINE void FenceVK::SetDebugName(const char* name) {

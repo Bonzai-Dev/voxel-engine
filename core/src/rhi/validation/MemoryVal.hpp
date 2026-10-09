@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct MemoryVal final : public ObjectVal {
     inline MemoryVal(DeviceVal& device, Memory* memory, uint64_t size, MemoryLocation memoryLocation)
@@ -52,4 +52,4 @@ private:
     Lock m_Lock;
 };
 
-} // namespace nri
+} // namespace Core::RHI

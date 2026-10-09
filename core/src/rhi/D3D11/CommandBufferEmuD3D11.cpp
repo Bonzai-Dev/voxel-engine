@@ -92,7 +92,7 @@ NRI_INLINE void Read(PushBuffer& pushBuffer, size_t& i, T*& data, uint32_t& num)
 Result CommandBufferEmuD3D11::Create(ID3D11DeviceContext*) {
     m_PushBuffer.reserve(256);
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 void CommandBufferEmuD3D11::Submit() {
@@ -485,13 +485,13 @@ NRI_INLINE Result CommandBufferEmuD3D11::Begin(const DescriptorPool* descriptorP
     Push(m_PushBuffer, BEGIN);
     Push(m_PushBuffer, descriptorPool);
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 NRI_INLINE Result CommandBufferEmuD3D11::End() {
     Push(m_PushBuffer, END);
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 NRI_INLINE void CommandBufferEmuD3D11::SetViewports(const Viewport* viewports, uint32_t viewportNum) {

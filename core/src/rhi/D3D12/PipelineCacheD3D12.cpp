@@ -2,7 +2,7 @@
 
 Result PipelineCacheD3D12::Create(const PipelineCacheDesc& pipelineCacheDesc) {
     if (!m_Device.GetDesc().features.pipelineCache)
-        return Result::SUCCESS;
+        return Result::Success;
 
     // Copy initial data to mimic "vkCreatePipelineCache" behavior
     if (pipelineCacheDesc.data && pipelineCacheDesc.size) {
@@ -13,13 +13,13 @@ Result PipelineCacheD3D12::Create(const PipelineCacheDesc& pipelineCacheDesc) {
     HRESULT hr = m_Device->CreatePipelineLibrary(m_Blob.data(), m_Blob.size(), IID_PPV_ARGS(&m_Library));
 
     // If pipeline cache is supported it may fail only on stale/incompatible data, map to "OUT_OF_DATE"
-    return FAILED(hr) ? Result::OUT_OF_DATE : Result::SUCCESS;
+    return FAILED(hr) ? Result::OUT_OF_DATE : Result::Success;
 }
 
 Result PipelineCacheD3D12::GetData(void* dst, uint64_t& size) const {
     if (!m_Library) {
         size = 0;
-        return Result::SUCCESS;
+        return Result::Success;
     }
 
     if (dst) {
@@ -29,5 +29,5 @@ Result PipelineCacheD3D12::GetData(void* dst, uint64_t& size) const {
 
     size = (uint64_t)m_Library->GetSerializedSize();
 
-    return Result::SUCCESS;
+    return Result::Success;
 }

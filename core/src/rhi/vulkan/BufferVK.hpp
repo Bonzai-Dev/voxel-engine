@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct BufferVK final : public DebugNameBase {
     inline BufferVK(DeviceVK& device)
@@ -70,4 +70,4 @@ inline VkDeviceAddress GetBufferDeviceAddress(const Buffer* buffer, uint64_t off
     return ((BufferVK*)buffer)->GetDeviceAddress() + offset;
 }
 
-} // namespace nri
+} // namespace Core::RHI

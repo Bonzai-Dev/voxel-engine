@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct DescriptorSetD3D12 final : public DebugNameBase {
     inline DescriptorSetD3D12() {
@@ -30,4 +30,4 @@ private:
     std::array<uint32_t, DescriptorHeapType::MAX_NUM> m_HeapOffsets = {};
 };
 
-} // namespace nri
+} // namespace Core::RHI

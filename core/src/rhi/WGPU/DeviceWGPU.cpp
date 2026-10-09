@@ -67,7 +67,7 @@ Result DeviceWGPU::Create(const DeviceCreationDesc& desc) {
     m_BindingOffsets = desc.vkBindingOffsets;
 
     Result result = CreateInstanceAndDevice(desc);
-    if (result != Result::SUCCESS)
+    if (result != Result::Success)
         return result;
 
     FillDesc(*desc.adapterDesc);
@@ -82,7 +82,7 @@ Result DeviceWGPU::Create(const DeviceCreationDesc& desc) {
                 return Result::OUT_OF_MEMORY;
 
             result = queue->Create(queueFamilyDesc.queueType, j);
-            if (result != Result::SUCCESS) {
+            if (result != Result::Success) {
                 Destroy(GetAllocationCallbacks(), queue);
                 return result;
             }
@@ -228,7 +228,7 @@ Result DeviceWGPU::CreateInstanceAndDevice(const DeviceCreationDesc& desc) {
         && wgpuDeviceHasFeature(m_Device, (WGPUFeatureName)WGPUNativeFeature_TimestampQueryInsideEncoders) == WGPU_TRUE
         && wgpuDeviceHasFeature(m_Device, (WGPUFeatureName)WGPUNativeFeature_TimestampQueryInsidePasses) == WGPU_TRUE;
 
-    return m_Queue ? Result::SUCCESS : Result::FAILURE;
+    return m_Queue ? Result::Success : Result::FAILURE;
 }
 
 void DeviceWGPU::FillDesc(const AdapterDesc& adapterDesc) {
@@ -489,7 +489,7 @@ Result DeviceWGPU::GetQueue(QueueType queueType, uint32_t queueIndex, Queue*& qu
 
     if (queueIndex < queueFamily.size()) {
         queue = (Queue*)queueFamily[queueIndex];
-        return Result::SUCCESS;
+        return Result::Success;
     }
 
     return Result::INVALID_ARGUMENT;
@@ -499,5 +499,5 @@ Result DeviceWGPU::WaitIdle() {
     if (m_Device)
         wgpuDevicePoll(m_Device, WGPU_TRUE, nullptr);
 
-    return Result::SUCCESS;
+    return Result::Success;
 }

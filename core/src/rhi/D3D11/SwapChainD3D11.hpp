@@ -5,7 +5,7 @@
 struct IDXGISwapChain4;
 typedef IDXGISwapChain4 IDXGISwapChainBest;
 
-namespace nri {
+namespace Core::RHI {
 
 struct SwapChainD3D11 final : public DisplayDescHelper, DebugNameBase {
     inline SwapChainD3D11(DeviceD3D11& device)
@@ -57,4 +57,4 @@ private:
     SwapChainBits m_Flags = SwapChainBits::NONE;
 };
 
-} // namespace nri
+} // namespace Core::RHI

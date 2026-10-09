@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct CommandBufferVal final : public ObjectVal {
     CommandBufferVal(DeviceVal& device, CommandBuffer* commandBuffer, bool isWrapped)
@@ -106,4 +106,4 @@ private:
     bool m_IsRenderPass = false;
 };
 
-} // namespace nri
+} // namespace Core::RHI

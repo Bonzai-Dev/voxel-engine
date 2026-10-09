@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct BufferWGPU final : public DebugNameBase {
     inline BufferWGPU(DeviceWGPU& device)
@@ -61,4 +61,4 @@ private:
     MemoryLocation m_MemoryLocation = MemoryLocation::DEVICE;
 };
 
-} // namespace nri
+} // namespace Core::RHI

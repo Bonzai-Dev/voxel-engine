@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct MemoryVK final : public DebugNameBase {
     inline MemoryVK(DeviceVK& device)
@@ -75,4 +75,4 @@ private:
     bool m_OwnsNativeObjects = true;
 };
 
-} // namespace nri
+} // namespace Core::RHI

@@ -2,22 +2,22 @@
 
 #if NRI_ENABLE_IMGUI_EXTENSION
 #    if NRI_ENABLE_SHADERMAKE
-#        if NRI_ENABLE_D3D11_SUPPORT
+#        if ENGINE_RHI_ENABLE_D3D11
 #            include "Imgui.fs.dxbc.h"
 #            include "Imgui.vs.dxbc.h"
 #        endif
-#        if NRI_ENABLE_D3D12_SUPPORT
+#        if ENGINE_RHI_ENABLE_D3D12
 #            include "Imgui.fs.dxil.h"
 #            include "Imgui.vs.dxil.h"
 #        endif
-#        if NRI_ENABLE_VK_SUPPORT
+#        if ENGINE_RHI_ENABLE_VULKAN
 #            include "Imgui.fs.spirv.h"
 #            include "Imgui.vs.spirv.h"
 #        endif
 #    else
 
 // clang-format off
-#if NRI_ENABLE_D3D11_SUPPORT
+#if ENGINE_RHI_ENABLE_D3D11
 
 const uint8_t g_Imgui_vs_dxbc[] = {
     68,88,66,67,55,4,158,116,50,65,211,168,227,182,74,113,45,28,109,75,1,0,0,0,172,2,0,0,3,0,0,0,44,0,0,0,156,0,0,0,16,1,0,0,73,83,71,
@@ -48,7 +48,7 @@ const uint8_t g_Imgui_fs_dxbc[] = {
 
 #endif
 
-#if NRI_ENABLE_D3D12_SUPPORT
+#if ENGINE_RHI_ENABLE_D3D12
 
 const uint8_t g_Imgui_vs_dxil[] = {
     68,88,66,67,78,132,213,141,78,57,54,166,19,63,7,81,10,51,151,1,1,0,0,0,92,10,0,0,6,0,0,0,56,0,0,0,72,0,0,0,208,0,0,0,92,1,0,0,140,
@@ -174,7 +174,7 @@ const uint8_t g_Imgui_fs_dxil[] = {
 
 #endif
 
-#if NRI_ENABLE_VK_SUPPORT
+#if ENGINE_RHI_ENABLE_VULKAN
 
 const uint8_t g_Imgui_vs_spirv[] = {
     3,2,35,7,0,6,1,0,0,0,14,0,64,0,0,0,0,0,0,0,17,0,2,0,1,0,0,0,11,0,6,0,1,0,0,0,71,76,83,76,46,115,116,100,46,52,53,48,0,0,0,0,14,0,
@@ -350,7 +350,7 @@ ImguiImpl::~ImguiImpl() {
 Result ImguiImpl::Create(const ImguiDesc& imguiDesc) {
     { // Get streamer interface
         Result result = nriGetInterface(m_Device, NRI_INTERFACE(StreamerInterface), &m_iStreamer);
-        if (result != Result::SUCCESS)
+        if (result != Result::Success)
             return result;
     }
 
@@ -362,7 +362,7 @@ Result ImguiImpl::Create(const ImguiDesc& imguiDesc) {
         viewDesc.addressModes.v = AddressMode::REPEAT;
 
         Result result = m_iCore.CreateSampler(m_Device, viewDesc, m_Sampler);
-        if (result != Result::SUCCESS)
+        if (result != Result::Success)
             return result;
     }
 
@@ -402,7 +402,7 @@ Result ImguiImpl::Create(const ImguiDesc& imguiDesc) {
         pipelineLayoutDesc.flags = PipelineLayoutBits::IGNORE_GLOBAL_SPIRV_OFFSETS;
 
         Result result = m_iCore.CreatePipelineLayout(m_Device, pipelineLayoutDesc, m_PipelineLayout);
-        if (result != Result::SUCCESS)
+        if (result != Result::Success)
             return result;
     }
 
@@ -422,17 +422,17 @@ Result ImguiImpl::Create(const ImguiDesc& imguiDesc) {
         descriptorPoolDesc.flags = DescriptorPoolBits::ALLOW_UPDATE_AFTER_SET;
 
         Result result = m_iCore.CreateDescriptorPool(m_Device, descriptorPoolDesc, m_DescriptorPool);
-        if (result != Result::SUCCESS)
+        if (result != Result::Success)
             return result;
     }
 
     { // Descriptor sets
         Result result = m_iCore.AllocateDescriptorSets(*m_DescriptorPool, *m_PipelineLayout, IMGUI_SAMPLER_SET, &m_DescriptorSet0_sampler, 1, 0);
-        if (result != Result::SUCCESS)
+        if (result != Result::Success)
             return result;
 
         result = m_iCore.AllocateDescriptorSets(*m_DescriptorPool, *m_PipelineLayout, IMGUI_TEXTURE_SET, m_DescriptorSets1.data(), (uint32_t)m_DescriptorSets1.size(), 0);
-        if (result != Result::SUCCESS)
+        if (result != Result::Success)
             return result;
     }
 
@@ -441,7 +441,7 @@ Result ImguiImpl::Create(const ImguiDesc& imguiDesc) {
         m_iCore.UpdateDescriptorRanges(&updateDescriptorRangeDesc, 1);
     }
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 void ImguiImpl::CmdCopyData(CommandBuffer& commandBuffer, Streamer& streamer, const CopyImguiDataDesc& copyImguiDataDesc) {
@@ -513,7 +513,7 @@ void ImguiImpl::CmdCopyData(CommandBuffer& commandBuffer, Streamer& streamer, co
                 textureDesc.height = (Dim_t)imTextureData->Height;
 
                 Result result = m_iCore.CreateCommittedTexture(m_Device, MemoryLocation::DEVICE, 0.0f, textureDesc, imguiTexture.texture);
-                NRI_CHECK(result == Result::SUCCESS, "Unexpected");
+                NRI_CHECK(result == Result::Success, "Unexpected");
 
                 // Create descriptor
                 TextureViewDesc viewDesc = {};
@@ -522,7 +522,7 @@ void ImguiImpl::CmdCopyData(CommandBuffer& commandBuffer, Streamer& streamer, co
                 viewDesc.format = format;
 
                 result = m_iCore.CreateTextureView(viewDesc, imguiTexture.descriptor);
-                NRI_CHECK(result == Result::SUCCESS, "Unexpected");
+                NRI_CHECK(result == Result::Success, "Unexpected");
             }
 
             // Update if needed
@@ -667,7 +667,7 @@ void ImguiImpl::CmdDraw(CommandBuffer& commandBuffer, const DrawImguiDesc& drawI
             {StageBits::FRAGMENT_SHADER, nullptr, 0},
         };
 
-#    if NRI_ENABLE_D3D11_SUPPORT
+#    if ENGINE_RHI_ENABLE_D3D11
         if (DeviceInfo.graphicsAPI == GraphicsBackend::D3D11) {
             shaders[0].bytecode = g_Imgui_vs_dxbc;
             shaders[0].size = sizeof(g_Imgui_vs_dxbc);
@@ -676,7 +676,7 @@ void ImguiImpl::CmdDraw(CommandBuffer& commandBuffer, const DrawImguiDesc& drawI
             shaders[1].size = sizeof(g_Imgui_fs_dxbc);
         }
 #    endif
-#    if NRI_ENABLE_D3D12_SUPPORT
+#    if ENGINE_RHI_ENABLE_D3D12
         if (DeviceInfo.graphicsAPI == GraphicsBackend::D3D12) {
             shaders[0].bytecode = g_Imgui_vs_dxil;
             shaders[0].size = sizeof(g_Imgui_vs_dxil);
@@ -685,7 +685,7 @@ void ImguiImpl::CmdDraw(CommandBuffer& commandBuffer, const DrawImguiDesc& drawI
             shaders[1].size = sizeof(g_Imgui_fs_dxil);
         }
 #    endif
-#    if NRI_ENABLE_VK_SUPPORT
+#    if ENGINE_RHI_ENABLE_VULKAN
         if (DeviceInfo.graphicsAPI == GraphicsBackend::Vulkan) {
             shaders[0].bytecode = g_Imgui_vs_spirv;
             shaders[0].size = sizeof(g_Imgui_vs_spirv);
@@ -694,7 +694,7 @@ void ImguiImpl::CmdDraw(CommandBuffer& commandBuffer, const DrawImguiDesc& drawI
             shaders[1].size = sizeof(g_Imgui_fs_spirv);
         }
 #    endif
-#    if NRI_ENABLE_WGPU_SUPPORT && NRI_ENABLE_VK_SUPPORT
+#    if NRI_ENABLE_WGPU_SUPPORT && ENGINE_RHI_ENABLE_VULKAN
         if (DeviceInfo.graphicsAPI == GraphicsBackend::WGPU) {
             shaders[0].bytecode = g_Imgui_vs_spirv;
             shaders[0].size = sizeof(g_Imgui_vs_spirv);
@@ -743,7 +743,7 @@ void ImguiImpl::CmdDraw(CommandBuffer& commandBuffer, const DrawImguiDesc& drawI
         graphicsPipelineDesc.shaderNum = GetCountOf(shaders);
 
         Result result = m_iCore.CreateGraphicsPipeline(m_Device, graphicsPipelineDesc, pipeline);
-        NRI_CHECK(result == Result::SUCCESS, "Unexpected");
+        NRI_CHECK(result == Result::Success, "Unexpected");
         MaybeUnused(result);
 
         m_Pipelines.push_back({pipeline, drawImguiDesc.attachmentFormat});

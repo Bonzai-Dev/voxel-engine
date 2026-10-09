@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct DescriptorRangeMappingWGPU {
     WGPUShaderStage visibility = WGPUShaderStage_None;
@@ -70,4 +70,4 @@ private:
     uint64_t m_UpdateVersion = 1;
 };
 
-} // namespace nri
+} // namespace Core::RHI

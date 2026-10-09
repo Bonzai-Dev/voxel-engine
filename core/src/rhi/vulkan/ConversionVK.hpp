@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 uint32_t ConvertBotomLevelGeometries(
     VkAccelerationStructureBuildRangeInfoKHR* vkRanges,
@@ -518,7 +518,7 @@ constexpr VkImageAspectFlags GetImageAspectFlags(PlaneBits planes, Format format
 
 constexpr Result GetResultFromVkResult(VkResult vkResult) {
     if (vkResult >= 0)
-        return Result::SUCCESS;
+        return Result::Success;
 
     switch (vkResult) {
         case VK_ERROR_DEVICE_LOST:
@@ -668,4 +668,4 @@ inline VkExtent2D GetShadingRate(ShadingRate shadingRate) {
     }
 }
 
-} // namespace nri
+} // namespace Core::RHI

@@ -8,7 +8,7 @@ typedef ID3D12GraphicsCommandList10 ID3D12GraphicsCommandListBest;
 typedef ID3D12GraphicsCommandList6 ID3D12GraphicsCommandListBest;
 #endif
 
-namespace nri {
+namespace Core::RHI {
 
 struct AttachmentDescD3D12 {
     DescriptorD3D12* attachment;
@@ -128,4 +128,4 @@ private:
     bool m_RenderPass = false;
 };
 
-} // namespace nri
+} // namespace Core::RHI

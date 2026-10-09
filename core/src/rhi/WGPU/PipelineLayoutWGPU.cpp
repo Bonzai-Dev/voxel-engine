@@ -271,7 +271,7 @@ Result PipelineLayoutWGPU::Create(const PipelineLayoutDesc& pipelineLayoutDesc) 
         }
     }
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 static WGPUTextureFormat GetStorageTextureFormatFromSpirv(uint32_t imageFormat) {
@@ -899,7 +899,7 @@ Result PipelineLayoutWGPU::UpdateTextureBindings(Vector<DescriptorSetMappingWGPU
         }
     }
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 bool PipelineLayoutWGPU::HasBindGroup(uint32_t bindGroupIndex, WGPUShaderStage visibility) const {
@@ -969,7 +969,7 @@ Result PipelineLayoutWGPU::CreatePipelineLayout(const ShaderDesc* shaderDescs, u
     CopyPipelineSetMappings(m_SetMappings, setMappings, m_Device.GetStdAllocator());
 
     Result result = UpdateTextureBindings(setMappings, shaderDescs, shaderDescNum);
-    if (result != Result::SUCCESS)
+    if (result != Result::Success)
         return result;
 
     for (DescriptorSetMappingWGPU& mapping : setMappings) {
@@ -1034,5 +1034,5 @@ Result PipelineLayoutWGPU::CreatePipelineLayout(const ShaderDesc* shaderDescs, u
 
     pipelineLayout = wgpuDeviceCreatePipelineLayout(m_Device, &desc);
 
-    return pipelineLayout ? Result::SUCCESS : Result::FAILURE;
+    return pipelineLayout ? Result::Success : Result::FAILURE;
 }

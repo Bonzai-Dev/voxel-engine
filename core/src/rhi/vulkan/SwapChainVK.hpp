@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct SwapChainVK final : public DisplayDescHelper, DebugNameBase {
     SwapChainVK(DeviceVK& device)
@@ -59,4 +59,4 @@ private:
     SwapChainBits m_Flags = SwapChainBits::NONE;
 };
 
-} // namespace nri
+} // namespace Core::RHI

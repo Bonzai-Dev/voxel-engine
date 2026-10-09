@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct FenceVK final : public DebugNameBase {
     inline FenceVK(DeviceVK& device)
@@ -41,4 +41,4 @@ private:
     bool m_OwnsNativeObjects = true;
 };
 
-} // namespace nri
+} // namespace Core::RHI

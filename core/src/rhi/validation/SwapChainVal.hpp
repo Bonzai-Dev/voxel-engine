@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct SwapChainVal final : public ObjectVal {
     SwapChainVal(DeviceVal& device, SwapChain* swapChain, const SwapChainDesc& swapChainDesc)
@@ -37,4 +37,4 @@ private:
     Vector<TextureVal*> m_Textures;
 };
 
-} // namespace nri
+} // namespace Core::RHI

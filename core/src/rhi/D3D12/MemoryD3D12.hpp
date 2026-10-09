@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct MemoryD3D12 final : public DebugNameBase {
     inline MemoryD3D12(DeviceD3D12& device)
@@ -58,4 +58,4 @@ private:
     float m_Priority = 0.0f;
 };
 
-} // namespace nri
+} // namespace Core::RHI

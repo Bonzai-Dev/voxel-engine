@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct QueryPoolWGPU final : public DebugNameBase {
     inline QueryPoolWGPU(DeviceWGPU& device)
@@ -50,4 +50,4 @@ private:
     uint32_t m_QuerySize = 0;
 };
 
-} // namespace nri
+} // namespace Core::RHI

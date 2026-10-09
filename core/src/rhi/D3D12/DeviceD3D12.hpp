@@ -8,7 +8,7 @@ typedef ID3D12Device15 ID3D12DeviceBest;
 typedef ID3D12Device8 ID3D12DeviceBest;
 #endif
 
-namespace nri {
+namespace Core::RHI {
 
 struct DeviceD3D12 final : public DeviceBase {
     DeviceD3D12(const CallbackInterface& callbacks, const AllocationCallbacks& allocationCallbacks);
@@ -79,7 +79,7 @@ struct DeviceD3D12 final : public DeviceBase {
         Implementation* impl = Allocate<Implementation>(GetAllocationCallbacks(), *this);
         Result result = impl->Create(args...);
 
-        if (result != Result::SUCCESS) {
+        if (result != Result::Success) {
             Destroy(GetAllocationCallbacks(), impl);
             entity = nullptr;
         } else
@@ -194,4 +194,4 @@ private:
     Lock m_CommandSignatureLock;
 };
 
-} // namespace nri
+} // namespace Core::RHI

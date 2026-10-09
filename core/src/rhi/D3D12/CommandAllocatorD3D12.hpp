@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct CommandAllocatorD3D12 final : public DebugNameBase {
     inline CommandAllocatorD3D12(DeviceD3D12& device)
@@ -44,4 +44,4 @@ private:
     Lock m_Lock;
 };
 
-} // namespace nri
+} // namespace Core::RHI

@@ -674,7 +674,7 @@ NRI_INLINE Result DeviceD3D11::GetQueue(QueueType queueType, uint32_t queueIndex
 
     if (queueIndex < queueFamily.size()) {
         queue = (Queue*)m_QueueFamilies[(uint32_t)queueType].at(queueIndex);
-        return Result::SUCCESS;
+        return Result::Success;
     }
 
     return Result::INVALID_ARGUMENT;
@@ -693,7 +693,7 @@ NRI_INLINE Result DeviceD3D11::WaitIdle() {
     if (anyQueue)
         return anyQueue->WaitIdle();
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 NRI_INLINE Result DeviceD3D11::BindBufferMemory(const BindBufferMemoryDesc* bindBufferMemoryDescs, uint32_t bindBufferMemoryDescNum) {
@@ -701,11 +701,11 @@ NRI_INLINE Result DeviceD3D11::BindBufferMemory(const BindBufferMemoryDesc* bind
         const BindBufferMemoryDesc& desc = bindBufferMemoryDescs[i];
         const MemoryD3D11& memory = *(MemoryD3D11*)desc.memory;
         Result res = ((BufferD3D11*)desc.buffer)->Allocate(memory.GetLocation(), memory.GetPriority());
-        if (res != Result::SUCCESS)
+        if (res != Result::Success)
             return res;
     }
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 NRI_INLINE Result DeviceD3D11::BindTextureMemory(const BindTextureMemoryDesc* bindTextureMemoryDescs, uint32_t bindTextureMemoryDescNum) {
@@ -713,11 +713,11 @@ NRI_INLINE Result DeviceD3D11::BindTextureMemory(const BindTextureMemoryDesc* bi
         const BindTextureMemoryDesc& desc = bindTextureMemoryDescs[i];
         const MemoryD3D11& memory = *(MemoryD3D11*)desc.memory;
         Result res = ((TextureD3D11*)desc.texture)->Allocate(memory.GetLocation(), memory.GetPriority());
-        if (res != Result::SUCCESS)
+        if (res != Result::Success)
             return res;
     }
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 #define UPDATE_SUPPORT_BITS(required, optional, bit) \

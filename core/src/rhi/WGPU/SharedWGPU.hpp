@@ -10,7 +10,7 @@
 
 #include "SharedExternal.h"
 
-namespace nri {
+namespace Core::RHI {
 
 struct BufferWGPU;
 struct CommandAllocatorWGPU;
@@ -71,6 +71,6 @@ FormatSupportBits GetFormatSupportWGPU(Format format);
 Vendor GetVendorFromPCIID(uint32_t vendorId);
 Architecture GetArchitecture(WGPUAdapterType adapterType);
 
-} // namespace nri
+} // namespace Core::RHI
 
 #include "DeviceWGPU.h"

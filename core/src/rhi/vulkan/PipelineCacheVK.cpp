@@ -9,7 +9,7 @@ PipelineCacheVK::~PipelineCacheVK() {
 
 Result PipelineCacheVK::Create(const PipelineCacheDesc& pipelineCacheDesc) {
     if (!m_Device.GetDesc().features.pipelineCache)
-        return Result::SUCCESS;
+        return Result::Success;
 
     VkPipelineCacheCreateInfo info = {VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO};
     info.initialDataSize = (size_t)pipelineCacheDesc.size;
@@ -24,13 +24,13 @@ Result PipelineCacheVK::Create(const PipelineCacheDesc& pipelineCacheDesc) {
     NRI_RETURN_ON_BAD_VKRESULT(&m_Device, vkResult, "vkGetPipelineCacheData");
 
     // VK returns "SUCCESS" for any variant of stale/incompatible data, try to guess...
-    return size < info.initialDataSize ? Result::OUT_OF_DATE : Result::SUCCESS;
+    return size < info.initialDataSize ? Result::OUT_OF_DATE : Result::Success;
 }
 
 Result PipelineCacheVK::GetData(void* dst, uint64_t& size) const {
     if (!m_Handle) {
         size = 0;
-        return Result::SUCCESS;
+        return Result::Success;
     }
 
     // Theoretically may be smaller than needed to fit the entire cache...
@@ -44,7 +44,7 @@ Result PipelineCacheVK::GetData(void* dst, uint64_t& size) const {
 
     size = vkSize;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 NRI_INLINE void PipelineCacheVK::SetDebugName(const char* name) {

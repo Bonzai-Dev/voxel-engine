@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct CommandAllocatorWGPU final : public DebugNameBase {
     inline CommandAllocatorWGPU(DeviceWGPU& device)
@@ -22,4 +22,4 @@ private:
     DeviceWGPU& m_Device;
 };
 
-} // namespace nri
+} // namespace Core::RHI

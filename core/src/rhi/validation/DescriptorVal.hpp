@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 enum class DescriptorTypeExt : uint8_t {
     // Must match "DescriptorType"
@@ -100,4 +100,4 @@ private:
     bool m_IsStencilReadonly = false;
 };
 
-} // namespace nri
+} // namespace Core::RHI

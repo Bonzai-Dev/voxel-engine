@@ -8,7 +8,7 @@ typedef ID3D12Resource2 ID3D12ResourceBest;
 typedef ID3D12Resource ID3D12ResourceBest;
 #endif
 
-namespace nri {
+namespace Core::RHI {
 
 struct TextureD3D12 final : public DebugNameBase {
     inline TextureD3D12(DeviceD3D12& device)
@@ -54,4 +54,4 @@ private:
     TextureDesc m_Desc = {};
 };
 
-} // namespace nri
+} // namespace Core::RHI

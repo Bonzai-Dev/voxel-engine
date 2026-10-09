@@ -20,7 +20,7 @@ Result MemoryD3D12::Create(const AllocateMemoryDesc& allocateMemoryDesc) {
 
     // An allocation is not needed, it's implicit for committed resources
     if (memoryTypeInfo.mustBeDedicated)
-        return Result::SUCCESS;
+        return Result::Success;
 
     if (allocateMemoryDesc.vma.enable) { // TODO: no residency priority, because a custom pool is needed
         uint32_t flags = D3D12MA::ALLOCATION_FLAG_STRATEGY_MIN_MEMORY | D3D12MA::ALLOCATION_FLAG_CAN_ALIAS;
@@ -48,7 +48,7 @@ Result MemoryD3D12::Create(const AllocateMemoryDesc& allocateMemoryDesc) {
         }
     }
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 Result MemoryD3D12::Create(const MemoryD3D12Desc& memoryD3D12Desc) {
@@ -56,5 +56,5 @@ Result MemoryD3D12::Create(const MemoryD3D12Desc& memoryD3D12Desc) {
     m_Offset = memoryD3D12Desc.offset;
     m_HeapDesc = m_Heap->GetDesc();
 
-    return Result::SUCCESS;
+    return Result::Success;
 }

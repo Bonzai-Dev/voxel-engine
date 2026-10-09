@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 typedef Vector<uint32_t> PushBuffer;
 
@@ -82,4 +82,4 @@ private:
     PushBuffer m_PushBuffer;
 };
 
-} // namespace nri
+} // namespace Core::RHI

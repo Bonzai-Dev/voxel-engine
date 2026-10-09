@@ -302,10 +302,10 @@ Result PipelineLayoutD3D12::Create(const PipelineLayoutDesc& pipelineLayoutDesc)
     // Draw signature (uses emulation state)
     if (pipelineLayoutDesc.shaderStages & StageBits::VERTEX_SHADER) {
         Result result = m_Device.CreateDefaultDrawSignatures(*this);
-        NRI_RETURN_ON_FAILURE(&m_Device, result == Result::SUCCESS, result, "Failed to create draw signature for pipeline layout");
+        NRI_RETURN_ON_FAILURE(&m_Device, result == Result::Success, result, "Failed to create draw signature for pipeline layout");
     }
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 void PipelineLayoutD3D12::SetDescriptorSet(ID3D12GraphicsCommandList* graphicsCommandList, BindPoint bindPoint, const SetDescriptorSetDesc& setDescriptorSetDesc) const {

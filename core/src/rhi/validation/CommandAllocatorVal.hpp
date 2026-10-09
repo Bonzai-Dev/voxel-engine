@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct CommandAllocatorVal final : public ObjectVal {
     CommandAllocatorVal(DeviceVal& device, CommandAllocator* commandAllocator)
@@ -21,4 +21,4 @@ struct CommandAllocatorVal final : public ObjectVal {
     void Reset();
 };
 
-} // namespace nri
+} // namespace Core::RHI

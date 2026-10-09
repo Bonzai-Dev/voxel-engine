@@ -39,7 +39,7 @@ typedef uint16_t MemoryTypeIndex;
     if (IsExtensionSupported(ext, supportedExts) && (condition)) \
     desiredDeviceExts.push_back(ext)
 
-namespace nri {
+namespace Core::RHI {
 
 struct AccelerationStructureVK;
 struct BufferVK;
@@ -99,6 +99,6 @@ inline bool HasRenderPassInputAttachmentIndex(const Vector<uint32_t>& inputAttac
     return index < inputAttachmentIndices.size() && inputAttachmentIndices[index] != RENDER_PASS_UNUSED_ATTACHMENT;
 }
 
-} // namespace nri
+} // namespace Core::RHI
 
 #include "DeviceVK.h"

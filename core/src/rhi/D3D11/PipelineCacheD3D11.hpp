@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 // Offer a fake cache to honor support and minimize supported/unsupported branching
 struct PipelineCacheD3D11 final : public DebugNameBase {
@@ -29,16 +29,16 @@ struct PipelineCacheD3D11 final : public DebugNameBase {
     //================================================================================================================
 
     inline Result Create(const PipelineCacheDesc&) {
-        return Result::SUCCESS;
+        return Result::Success;
     }
 
     inline Result GetData(void*, uint64_t& size) const {
         size = 0;
-        return Result::SUCCESS;
+        return Result::Success;
     }
 
 private:
     DeviceD3D11& m_Device;
 };
 
-} // namespace nri
+} // namespace Core::RHI

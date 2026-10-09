@@ -27,7 +27,7 @@
 #include "StreamerInterface.h"
 #include "UpscalerInterface.h"
 
-using namespace nri;
+using namespace Core::RHI;
 
 #include "AccelerationStructureD3D12.hpp"
 #include "BufferD3D12.hpp"
@@ -53,7 +53,7 @@ Result CreateDeviceD3D12(const DeviceCreationDesc& desc, const DeviceCreationD3D
     DeviceD3D12* impl = Allocate<DeviceD3D12>(desc.allocationCallbacks, desc.callbackInterface, desc.allocationCallbacks);
     Result result = impl->Create(desc, descD3D12);
 
-    if (result != Result::SUCCESS) {
+    if (result != Result::Success) {
         Destroy(desc.allocationCallbacks, impl);
         device = nullptr;
     } else
@@ -65,142 +65,142 @@ Result CreateDeviceD3D12(const DeviceCreationDesc& desc, const DeviceCreationD3D
 //============================================================================================================================================================================================
 #pragma region[  Core  ]
 
-static const DeviceInfo& NRI_CALL GetDeviceInfo(const Device& device) {
+static const DeviceInfo& GetDeviceInfo(const Device& device) {
     return ((DeviceD3D12&)device).GetDesc();
 }
 
-static const BufferDesc& NRI_CALL GetBufferDesc(const Buffer& buffer) {
+static const BufferDesc& GetBufferDesc(const Buffer& buffer) {
     return ((BufferD3D12&)buffer).GetDesc();
 }
 
-static const TextureDesc& NRI_CALL GetTextureDesc(const Texture& texture) {
+static const TextureDesc& GetTextureDesc(const Texture& texture) {
     return ((TextureD3D12&)texture).GetDesc();
 }
 
-static FormatSupportBits NRI_CALL GetFormatSupport(const Device& device, Format format) {
+static FormatSupportBits GetFormatSupport(const Device& device, Format format) {
     return ((DeviceD3D12&)device).GetFormatSupport(format);
 }
 
-static Result NRI_CALL GetQueue(Device& device, QueueType queueType, uint32_t queueIndex, Queue*& queue) {
+static Result GetQueue(Device& device, QueueType queueType, uint32_t queueIndex, Queue*& queue) {
     return ((DeviceD3D12&)device).GetQueue(queueType, queueIndex, queue);
 }
 
-static Result NRI_CALL CreateCommandAllocator(Queue& queue, CommandAllocator*& commandAllocator) {
+static Result CreateCommandAllocator(Queue& queue, CommandAllocator*& commandAllocator) {
     DeviceD3D12& device = ((QueueD3D12&)queue).GetDevice();
     return device.CreateImplementation<CommandAllocatorD3D12>(commandAllocator, queue);
 }
 
-static Result NRI_CALL CreateCommandBuffer(CommandAllocator& commandAllocator, CommandBuffer*& commandBuffer) {
+static Result CreateCommandBuffer(CommandAllocator& commandAllocator, CommandBuffer*& commandBuffer) {
     return ((CommandAllocatorD3D12&)commandAllocator).CreateCommandBuffer(commandBuffer);
 }
 
-static Result NRI_CALL CreateFence(Device& device, uint64_t initialValue, Fence*& fence) {
+static Result CreateFence(Device& device, uint64_t initialValue, Fence*& fence) {
     return ((DeviceD3D12&)device).CreateImplementation<FenceD3D12>(fence, initialValue);
 }
 
-static Result NRI_CALL CreateDescriptorPool(Device& device, const DescriptorPoolDesc& descriptorPoolDesc, DescriptorPool*& descriptorPool) {
+static Result CreateDescriptorPool(Device& device, const DescriptorPoolDesc& descriptorPoolDesc, DescriptorPool*& descriptorPool) {
     return ((DeviceD3D12&)device).CreateImplementation<DescriptorPoolD3D12>(descriptorPool, descriptorPoolDesc);
 }
 
-static Result NRI_CALL CreatePipelineLayout(Device& device, const PipelineLayoutDesc& pipelineLayoutDesc, PipelineLayout*& pipelineLayout) {
+static Result CreatePipelineLayout(Device& device, const PipelineLayoutDesc& pipelineLayoutDesc, PipelineLayout*& pipelineLayout) {
     return ((DeviceD3D12&)device).CreateImplementation<PipelineLayoutD3D12>(pipelineLayout, pipelineLayoutDesc);
 }
 
-static Result NRI_CALL CreateGraphicsPipeline(Device& device, const GraphicsPipelineDesc& graphicsPipelineDesc, Pipeline*& pipeline) {
+static Result CreateGraphicsPipeline(Device& device, const GraphicsPipelineDesc& graphicsPipelineDesc, Pipeline*& pipeline) {
     return ((DeviceD3D12&)device).CreateImplementation<PipelineD3D12>(pipeline, graphicsPipelineDesc);
 }
 
-static Result NRI_CALL CreateComputePipeline(Device& device, const ComputePipelineDesc& computePipelineDesc, Pipeline*& pipeline) {
+static Result CreateComputePipeline(Device& device, const ComputePipelineDesc& computePipelineDesc, Pipeline*& pipeline) {
     return ((DeviceD3D12&)device).CreateImplementation<PipelineD3D12>(pipeline, computePipelineDesc);
 }
 
-static Result NRI_CALL CreatePipelineCache(Device& device, const PipelineCacheDesc& pipelineCacheDesc, PipelineCache*& pipelineCache) {
+static Result CreatePipelineCache(Device& device, const PipelineCacheDesc& pipelineCacheDesc, PipelineCache*& pipelineCache) {
     return ((DeviceD3D12&)device).CreateImplementation<PipelineCacheD3D12>(pipelineCache, pipelineCacheDesc);
 }
 
-static Result NRI_CALL CreateQueryPool(Device& device, const QueryPoolDesc& queryPoolDesc, QueryPool*& queryPool) {
+static Result CreateQueryPool(Device& device, const QueryPoolDesc& queryPoolDesc, QueryPool*& queryPool) {
     return ((DeviceD3D12&)device).CreateImplementation<QueryPoolD3D12>(queryPool, queryPoolDesc);
 }
 
-static Result NRI_CALL CreateSampler(Device& device, const SamplerDesc& samplerDesc, Descriptor*& sampler) {
+static Result CreateSampler(Device& device, const SamplerDesc& samplerDesc, Descriptor*& sampler) {
     return ((DeviceD3D12&)device).CreateImplementation<DescriptorD3D12>(sampler, samplerDesc);
 }
 
-static Result NRI_CALL CreateBufferView(const BufferViewDesc& bufferViewDesc, Descriptor*& bufferView) {
+static Result CreateBufferView(const BufferViewDesc& bufferViewDesc, Descriptor*& bufferView) {
     DeviceD3D12& device = ((BufferD3D12*)bufferViewDesc.buffer)->GetDevice();
     return device.CreateImplementation<DescriptorD3D12>(bufferView, bufferViewDesc);
 }
 
-static Result NRI_CALL CreateTextureView(const TextureViewDesc& textureViewDesc, Descriptor*& textureView) {
+static Result CreateTextureView(const TextureViewDesc& textureViewDesc, Descriptor*& textureView) {
     DeviceD3D12& device = ((TextureD3D12*)textureViewDesc.texture)->GetDevice();
     return device.CreateImplementation<DescriptorD3D12>(textureView, textureViewDesc);
 }
 
-static void NRI_CALL DestroyCommandAllocator(CommandAllocator* commandAllocator) {
+static void DestroyCommandAllocator(CommandAllocator* commandAllocator) {
     Destroy((CommandAllocatorD3D12*)commandAllocator);
 }
 
-static void NRI_CALL DestroyCommandBuffer(CommandBuffer* commandBuffer) {
+static void DestroyCommandBuffer(CommandBuffer* commandBuffer) {
     Destroy((CommandBufferD3D12*)commandBuffer);
 }
 
-static void NRI_CALL DestroyDescriptorPool(DescriptorPool* descriptorPool) {
+static void DestroyDescriptorPool(DescriptorPool* descriptorPool) {
     Destroy((DescriptorPoolD3D12*)descriptorPool);
 }
 
-static void NRI_CALL DestroyBuffer(Buffer* buffer) {
+static void DestroyBuffer(Buffer* buffer) {
     Destroy((BufferD3D12*)buffer);
 }
 
-static void NRI_CALL DestroyTexture(Texture* texture) {
+static void DestroyTexture(Texture* texture) {
     Destroy((TextureD3D12*)texture);
 }
 
-static void NRI_CALL DestroyDescriptor(Descriptor* descriptor) {
+static void DestroyDescriptor(Descriptor* descriptor) {
     Destroy((DescriptorD3D12*)descriptor);
 }
 
-static void NRI_CALL DestroyPipelineLayout(PipelineLayout* pipelineLayout) {
+static void DestroyPipelineLayout(PipelineLayout* pipelineLayout) {
     Destroy((PipelineLayoutD3D12*)pipelineLayout);
 }
 
-static void NRI_CALL DestroyPipeline(Pipeline* pipeline) {
+static void DestroyPipeline(Pipeline* pipeline) {
     Destroy((PipelineD3D12*)pipeline);
 }
 
-static void NRI_CALL DestroyPipelineCache(PipelineCache* pipelineCache) {
+static void DestroyPipelineCache(PipelineCache* pipelineCache) {
     Destroy((PipelineCacheD3D12*)pipelineCache);
 }
 
-static Result NRI_CALL GetPipelineCacheData(PipelineCache& pipelineCache, void* dst, uint64_t& size) {
+static Result GetPipelineCacheData(PipelineCache& pipelineCache, void* dst, uint64_t& size) {
     return ((PipelineCacheD3D12&)pipelineCache).GetData(dst, size);
 }
 
-static void NRI_CALL DestroyQueryPool(QueryPool* queryPool) {
+static void DestroyQueryPool(QueryPool* queryPool) {
     Destroy((QueryPoolD3D12*)queryPool);
 }
 
-static void NRI_CALL DestroyFence(Fence* fence) {
+static void DestroyFence(Fence* fence) {
     Destroy((FenceD3D12*)fence);
 }
 
-static Result NRI_CALL AllocateMemory(Device& device, const AllocateMemoryDesc& allocateMemoryDesc, Memory*& memory) {
+static Result AllocateMemory(Device& device, const AllocateMemoryDesc& allocateMemoryDesc, Memory*& memory) {
     return ((DeviceD3D12&)device).CreateImplementation<MemoryD3D12>(memory, allocateMemoryDesc);
 }
 
-static void NRI_CALL FreeMemory(Memory* memory) {
+static void FreeMemory(Memory* memory) {
     Destroy((MemoryD3D12*)memory);
 }
 
-static Result NRI_CALL CreateBuffer(Device& device, const BufferDesc& bufferDesc, Buffer*& buffer) {
+static Result CreateBuffer(Device& device, const BufferDesc& bufferDesc, Buffer*& buffer) {
     return ((DeviceD3D12&)device).CreateImplementation<BufferD3D12>(buffer, bufferDesc);
 }
 
-static Result NRI_CALL CreateTexture(Device& device, const TextureDesc& textureDesc, Texture*& texture) {
+static Result CreateTexture(Device& device, const TextureDesc& textureDesc, Texture*& texture) {
     return ((DeviceD3D12&)device).CreateImplementation<TextureD3D12>(texture, textureDesc);
 }
 
-static void NRI_CALL GetBufferMemoryDesc(const Buffer& buffer, MemoryLocation memoryLocation, MemoryDesc& memoryDesc) {
+static void GetBufferMemoryDesc(const Buffer& buffer, MemoryLocation memoryLocation, MemoryDesc& memoryDesc) {
     const BufferD3D12& bufferD3D12 = (BufferD3D12&)buffer;
     const DeviceD3D12& deviceD3D12 = bufferD3D12.GetDevice();
 
@@ -210,7 +210,7 @@ static void NRI_CALL GetBufferMemoryDesc(const Buffer& buffer, MemoryLocation me
     deviceD3D12.GetMemoryDesc(memoryLocation, desc, memoryDesc);
 }
 
-static void NRI_CALL GetTextureMemoryDesc(const Texture& texture, MemoryLocation memoryLocation, MemoryDesc& memoryDesc) {
+static void GetTextureMemoryDesc(const Texture& texture, MemoryLocation memoryLocation, MemoryDesc& memoryDesc) {
     const TextureD3D12& textureD3D12 = (TextureD3D12&)texture;
     const DeviceD3D12& deviceD3D12 = textureD3D12.GetDevice();
 
@@ -220,23 +220,23 @@ static void NRI_CALL GetTextureMemoryDesc(const Texture& texture, MemoryLocation
     deviceD3D12.GetMemoryDesc(memoryLocation, desc, memoryDesc);
 }
 
-static Result NRI_CALL BindBufferMemory(const BindBufferMemoryDesc* bindBufferMemoryDescs, uint32_t bindBufferMemoryDescNum) {
+static Result BindBufferMemory(const BindBufferMemoryDesc* bindBufferMemoryDescs, uint32_t bindBufferMemoryDescNum) {
     if (!bindBufferMemoryDescNum)
-        return Result::SUCCESS;
+        return Result::Success;
 
     DeviceD3D12& deviceD3D12 = ((BufferD3D12*)bindBufferMemoryDescs->buffer)->GetDevice();
     return deviceD3D12.BindBufferMemory(bindBufferMemoryDescs, bindBufferMemoryDescNum);
 }
 
-static Result NRI_CALL BindTextureMemory(const BindTextureMemoryDesc* bindTextureMemoryDescs, uint32_t bindTextureMemoryDescNum) {
+static Result BindTextureMemory(const BindTextureMemoryDesc* bindTextureMemoryDescs, uint32_t bindTextureMemoryDescNum) {
     if (!bindTextureMemoryDescNum)
-        return Result::SUCCESS;
+        return Result::Success;
 
     DeviceD3D12& deviceD3D12 = ((TextureD3D12*)bindTextureMemoryDescs->texture)->GetDevice();
     return deviceD3D12.BindTextureMemory(bindTextureMemoryDescs, bindTextureMemoryDescNum);
 }
 
-static void NRI_CALL GetBufferMemoryDesc2(const Device& device, const BufferDesc& bufferDesc, MemoryLocation memoryLocation, MemoryDesc& memoryDesc) {
+static void GetBufferMemoryDesc2(const Device& device, const BufferDesc& bufferDesc, MemoryLocation memoryLocation, MemoryDesc& memoryDesc) {
     const DeviceD3D12& deviceD3D12 = (DeviceD3D12&)device;
 
     D3D12_RESOURCE_DESC1 desc = {};
@@ -245,7 +245,7 @@ static void NRI_CALL GetBufferMemoryDesc2(const Device& device, const BufferDesc
     deviceD3D12.GetMemoryDesc(memoryLocation, desc, memoryDesc);
 }
 
-static void NRI_CALL GetTextureMemoryDesc2(const Device& device, const TextureDesc& textureDesc, MemoryLocation memoryLocation, MemoryDesc& memoryDesc) {
+static void GetTextureMemoryDesc2(const Device& device, const TextureDesc& textureDesc, MemoryLocation memoryLocation, MemoryDesc& memoryDesc) {
     const DeviceD3D12& deviceD3D12 = (DeviceD3D12&)device;
 
     D3D12_RESOURCE_DESC1 desc = {};
@@ -254,31 +254,31 @@ static void NRI_CALL GetTextureMemoryDesc2(const Device& device, const TextureDe
     deviceD3D12.GetMemoryDesc(memoryLocation, desc, memoryDesc);
 }
 
-static Result NRI_CALL CreateCommittedBuffer(Device& device, MemoryLocation memoryLocation, float priority, const BufferDesc& bufferDesc, Buffer*& buffer) {
+static Result CreateCommittedBuffer(Device& device, MemoryLocation memoryLocation, float priority, const BufferDesc& bufferDesc, Buffer*& buffer) {
     DeviceD3D12& deviceD3D12 = (DeviceD3D12&)device;
 
     Result result = deviceD3D12.CreateImplementation<BufferD3D12>(buffer, bufferDesc);
-    if (result != Result::SUCCESS)
+    if (result != Result::Success)
         return result;
 
     return ((BufferD3D12*)buffer)->Allocate(memoryLocation, priority, true);
 }
 
-static Result NRI_CALL CreateCommittedTexture(Device& device, MemoryLocation memoryLocation, float priority, const TextureDesc& textureDesc, Texture*& texture) {
+static Result CreateCommittedTexture(Device& device, MemoryLocation memoryLocation, float priority, const TextureDesc& textureDesc, Texture*& texture) {
     DeviceD3D12& deviceD3D12 = (DeviceD3D12&)device;
 
     Result result = deviceD3D12.CreateImplementation<TextureD3D12>(texture, textureDesc);
-    if (result != Result::SUCCESS)
+    if (result != Result::Success)
         return result;
 
     return ((TextureD3D12*)texture)->Allocate(memoryLocation, priority, true);
 }
 
-static Result NRI_CALL CreatePlacedBuffer(Device& device, Memory* memory, uint64_t offset, const BufferDesc& bufferDesc, Buffer*& buffer) {
+static Result CreatePlacedBuffer(Device& device, Memory* memory, uint64_t offset, const BufferDesc& bufferDesc, Buffer*& buffer) {
     DeviceD3D12& deviceD3D12 = (DeviceD3D12&)device;
 
     Result result = deviceD3D12.CreateImplementation<BufferD3D12>(buffer, bufferDesc);
-    if (result != Result::SUCCESS)
+    if (result != Result::Success)
         return result;
 
     if (memory)
@@ -289,11 +289,11 @@ static Result NRI_CALL CreatePlacedBuffer(Device& device, Memory* memory, uint64
     return result;
 }
 
-static Result NRI_CALL CreatePlacedTexture(Device& device, Memory* memory, uint64_t offset, const TextureDesc& textureDesc, Texture*& texture) {
+static Result CreatePlacedTexture(Device& device, Memory* memory, uint64_t offset, const TextureDesc& textureDesc, Texture*& texture) {
     DeviceD3D12& deviceD3D12 = (DeviceD3D12&)device;
 
     Result result = deviceD3D12.CreateImplementation<TextureD3D12>(texture, textureDesc);
-    if (result != Result::SUCCESS)
+    if (result != Result::Success)
         return result;
 
     if (memory)
@@ -304,277 +304,277 @@ static Result NRI_CALL CreatePlacedTexture(Device& device, Memory* memory, uint6
     return result;
 }
 
-static Result NRI_CALL AllocateDescriptorSets(DescriptorPool& descriptorPool, const PipelineLayout& pipelineLayout, uint32_t setIndex, DescriptorSet** descriptorSets, uint32_t instanceNum, uint32_t variableDescriptorNum) {
+static Result AllocateDescriptorSets(DescriptorPool& descriptorPool, const PipelineLayout& pipelineLayout, uint32_t setIndex, DescriptorSet** descriptorSets, uint32_t instanceNum, uint32_t variableDescriptorNum) {
     return ((DescriptorPoolD3D12&)descriptorPool).AllocateDescriptorSets(pipelineLayout, setIndex, descriptorSets, instanceNum, variableDescriptorNum);
 }
 
-static void NRI_CALL UpdateDescriptorRanges(const UpdateDescriptorRangeDesc* updateDescriptorRangeDescs, uint32_t updateDescriptorRangeDescNum) {
+static void UpdateDescriptorRanges(const UpdateDescriptorRangeDesc* updateDescriptorRangeDescs, uint32_t updateDescriptorRangeDescNum) {
     DescriptorSetD3D12::UpdateDescriptorRanges(updateDescriptorRangeDescs, updateDescriptorRangeDescNum);
 }
 
-static void NRI_CALL CopyDescriptorRanges(const CopyDescriptorRangeDesc* copyDescriptorRangeDescs, uint32_t copyDescriptorRangeDescNum) {
+static void CopyDescriptorRanges(const CopyDescriptorRangeDesc* copyDescriptorRangeDescs, uint32_t copyDescriptorRangeDescNum) {
     DescriptorSetD3D12::Copy(copyDescriptorRangeDescs, copyDescriptorRangeDescNum);
 }
 
-static void NRI_CALL ResetDescriptorPool(DescriptorPool& descriptorPool) {
+static void ResetDescriptorPool(DescriptorPool& descriptorPool) {
     ((DescriptorPoolD3D12&)descriptorPool).Reset();
 }
 
-static void NRI_CALL GetDescriptorSetOffsets(const DescriptorSet& descriptorSet, uint32_t& resourceHeapOffset, uint32_t& samplerHeapOffset) {
+static void GetDescriptorSetOffsets(const DescriptorSet& descriptorSet, uint32_t& resourceHeapOffset, uint32_t& samplerHeapOffset) {
     ((DescriptorSetD3D12&)descriptorSet).GetOffsets(resourceHeapOffset, samplerHeapOffset);
 }
 
-static Result NRI_CALL BeginCommandBuffer(CommandBuffer& commandBuffer, const DescriptorPool* descriptorPool) {
+static Result BeginCommandBuffer(CommandBuffer& commandBuffer, const DescriptorPool* descriptorPool) {
     return ((CommandBufferD3D12&)commandBuffer).Begin(descriptorPool);
 }
 
-static void NRI_CALL CmdSetDescriptorPool(CommandBuffer& commandBuffer, const DescriptorPool& descriptorPool) {
+static void CmdSetDescriptorPool(CommandBuffer& commandBuffer, const DescriptorPool& descriptorPool) {
     ((CommandBufferD3D12&)commandBuffer).SetDescriptorPool(descriptorPool);
 }
 
-static void NRI_CALL CmdSetPipelineLayout(CommandBuffer& commandBuffer, BindPoint bindPoint, const PipelineLayout& pipelineLayout) {
+static void CmdSetPipelineLayout(CommandBuffer& commandBuffer, BindPoint bindPoint, const PipelineLayout& pipelineLayout) {
     ((CommandBufferD3D12&)commandBuffer).SetPipelineLayout(bindPoint, pipelineLayout);
 }
 
-static void NRI_CALL CmdSetDescriptorSet(CommandBuffer& commandBuffer, const SetDescriptorSetDesc& setDescriptorSetDesc) {
+static void CmdSetDescriptorSet(CommandBuffer& commandBuffer, const SetDescriptorSetDesc& setDescriptorSetDesc) {
     ((CommandBufferD3D12&)commandBuffer).SetDescriptorSet(setDescriptorSetDesc);
 }
 
-static void NRI_CALL CmdSetRootConstants(CommandBuffer& commandBuffer, const SetRootConstantsDesc& setRootConstantsDesc) {
+static void CmdSetRootConstants(CommandBuffer& commandBuffer, const SetRootConstantsDesc& setRootConstantsDesc) {
     ((CommandBufferD3D12&)commandBuffer).SetRootConstants(setRootConstantsDesc);
 }
 
-static void NRI_CALL CmdSetRootDescriptor(CommandBuffer& commandBuffer, const SetRootDescriptorDesc& setRootDescriptorDesc) {
+static void CmdSetRootDescriptor(CommandBuffer& commandBuffer, const SetRootDescriptorDesc& setRootDescriptorDesc) {
     ((CommandBufferD3D12&)commandBuffer).SetRootDescriptor(setRootDescriptorDesc);
 }
 
-static void NRI_CALL CmdSetPipeline(CommandBuffer& commandBuffer, const Pipeline& pipeline) {
+static void CmdSetPipeline(CommandBuffer& commandBuffer, const Pipeline& pipeline) {
     ((CommandBufferD3D12&)commandBuffer).SetPipeline(pipeline);
 }
 
-static void NRI_CALL CmdBarrier(CommandBuffer& commandBuffer, const BarrierDesc& barrierDesc) {
+static void CmdBarrier(CommandBuffer& commandBuffer, const BarrierDesc& barrierDesc) {
     ((CommandBufferD3D12&)commandBuffer).Barrier(barrierDesc);
 }
 
-static void NRI_CALL CmdSetIndexBuffer(CommandBuffer& commandBuffer, const Buffer& buffer, uint64_t offset, IndexType indexType) {
+static void CmdSetIndexBuffer(CommandBuffer& commandBuffer, const Buffer& buffer, uint64_t offset, IndexType indexType) {
     ((CommandBufferD3D12&)commandBuffer).SetIndexBuffer(buffer, offset, indexType);
 }
 
-static void NRI_CALL CmdSetVertexBuffers(CommandBuffer& commandBuffer, uint32_t baseSlot, const VertexBufferDesc* vertexBufferDescs, uint32_t vertexBufferNum) {
+static void CmdSetVertexBuffers(CommandBuffer& commandBuffer, uint32_t baseSlot, const VertexBufferDesc* vertexBufferDescs, uint32_t vertexBufferNum) {
     ((CommandBufferD3D12&)commandBuffer).SetVertexBuffers(baseSlot, vertexBufferDescs, vertexBufferNum);
 }
 
-static void NRI_CALL CmdSetViewports(CommandBuffer& commandBuffer, const Viewport* viewports, uint32_t viewportNum) {
+static void CmdSetViewports(CommandBuffer& commandBuffer, const Viewport* viewports, uint32_t viewportNum) {
     ((CommandBufferD3D12&)commandBuffer).SetViewports(viewports, viewportNum);
 }
 
-static void NRI_CALL CmdSetScissors(CommandBuffer& commandBuffer, const Rect* rects, uint32_t rectNum) {
+static void CmdSetScissors(CommandBuffer& commandBuffer, const Rect* rects, uint32_t rectNum) {
     ((CommandBufferD3D12&)commandBuffer).SetScissors(rects, rectNum);
 }
 
-static void NRI_CALL CmdSetStencilReference(CommandBuffer& commandBuffer, uint8_t frontRef, uint8_t backRef) {
+static void CmdSetStencilReference(CommandBuffer& commandBuffer, uint8_t frontRef, uint8_t backRef) {
     ((CommandBufferD3D12&)commandBuffer).SetStencilReference(frontRef, backRef);
 }
 
-static void NRI_CALL CmdSetDepthBounds(CommandBuffer& commandBuffer, float boundsMin, float boundsMax) {
+static void CmdSetDepthBounds(CommandBuffer& commandBuffer, float boundsMin, float boundsMax) {
     ((CommandBufferD3D12&)commandBuffer).SetDepthBounds(boundsMin, boundsMax);
 }
 
-static void NRI_CALL CmdSetBlendConstants(CommandBuffer& commandBuffer, const Color32f& color) {
+static void CmdSetBlendConstants(CommandBuffer& commandBuffer, const Color32f& color) {
     ((CommandBufferD3D12&)commandBuffer).SetBlendConstants(color);
 }
 
-static void NRI_CALL CmdSetSampleLocations(CommandBuffer& commandBuffer, const SampleLocation* locations, Sample_t locationNum, Sample_t sampleNum) {
+static void CmdSetSampleLocations(CommandBuffer& commandBuffer, const SampleLocation* locations, Sample_t locationNum, Sample_t sampleNum) {
     ((CommandBufferD3D12&)commandBuffer).SetSampleLocations(locations, locationNum, sampleNum);
 }
 
-static void NRI_CALL CmdSetShadingRate(CommandBuffer& commandBuffer, const ShadingRateDesc& shadingRateDesc) {
+static void CmdSetShadingRate(CommandBuffer& commandBuffer, const ShadingRateDesc& shadingRateDesc) {
     ((CommandBufferD3D12&)commandBuffer).SetShadingRate(shadingRateDesc);
 }
 
-static void NRI_CALL CmdSetDepthBias(CommandBuffer& commandBuffer, const DepthBiasDesc& depthBiasDesc) {
+static void CmdSetDepthBias(CommandBuffer& commandBuffer, const DepthBiasDesc& depthBiasDesc) {
     ((CommandBufferD3D12&)commandBuffer).SetDepthBias(depthBiasDesc);
 }
 
-static void NRI_CALL CmdBeginRendering(CommandBuffer& commandBuffer, const RenderingDesc& renderingDesc) {
+static void CmdBeginRendering(CommandBuffer& commandBuffer, const RenderingDesc& renderingDesc) {
     ((CommandBufferD3D12&)commandBuffer).BeginRendering(renderingDesc);
 }
 
-static void NRI_CALL CmdClearAttachments(CommandBuffer& commandBuffer, const ClearAttachmentDesc* clearAttachmentDescs, uint32_t clearAttachmentDescNum, const Rect* rects, uint32_t rectNum) {
+static void CmdClearAttachments(CommandBuffer& commandBuffer, const ClearAttachmentDesc* clearAttachmentDescs, uint32_t clearAttachmentDescNum, const Rect* rects, uint32_t rectNum) {
     ((CommandBufferD3D12&)commandBuffer).ClearAttachments(clearAttachmentDescs, clearAttachmentDescNum, rects, rectNum);
 }
 
-static void NRI_CALL CmdDraw(CommandBuffer& commandBuffer, const DrawDesc& drawDesc) {
+static void CmdDraw(CommandBuffer& commandBuffer, const DrawDesc& drawDesc) {
     ((CommandBufferD3D12&)commandBuffer).Draw(drawDesc);
 }
 
-static void NRI_CALL CmdDrawIndexed(CommandBuffer& commandBuffer, const DrawIndexedDesc& drawIndexedDesc) {
+static void CmdDrawIndexed(CommandBuffer& commandBuffer, const DrawIndexedDesc& drawIndexedDesc) {
     ((CommandBufferD3D12&)commandBuffer).DrawIndexed(drawIndexedDesc);
 }
 
-static void NRI_CALL CmdDrawIndirect(CommandBuffer& commandBuffer, const Buffer& buffer, uint64_t offset, uint32_t drawNum, uint32_t stride, const Buffer* countBuffer, uint64_t countBufferOffset) {
+static void CmdDrawIndirect(CommandBuffer& commandBuffer, const Buffer& buffer, uint64_t offset, uint32_t drawNum, uint32_t stride, const Buffer* countBuffer, uint64_t countBufferOffset) {
     ((CommandBufferD3D12&)commandBuffer).DrawIndirect(buffer, offset, drawNum, stride, countBuffer, countBufferOffset);
 }
 
-static void NRI_CALL CmdDrawIndexedIndirect(CommandBuffer& commandBuffer, const Buffer& buffer, uint64_t offset, uint32_t drawNum, uint32_t stride, const Buffer* countBuffer, uint64_t countBufferOffset) {
+static void CmdDrawIndexedIndirect(CommandBuffer& commandBuffer, const Buffer& buffer, uint64_t offset, uint32_t drawNum, uint32_t stride, const Buffer* countBuffer, uint64_t countBufferOffset) {
     ((CommandBufferD3D12&)commandBuffer).DrawIndexedIndirect(buffer, offset, drawNum, stride, countBuffer, countBufferOffset);
 }
 
-static void NRI_CALL CmdEndRendering(CommandBuffer& commandBuffer) {
+static void CmdEndRendering(CommandBuffer& commandBuffer) {
     ((CommandBufferD3D12&)commandBuffer).EndRendering();
 }
 
-static void NRI_CALL CmdDispatch(CommandBuffer& commandBuffer, const DispatchDesc& dispatchDesc) {
+static void CmdDispatch(CommandBuffer& commandBuffer, const DispatchDesc& dispatchDesc) {
     ((CommandBufferD3D12&)commandBuffer).Dispatch(dispatchDesc);
 }
 
-static void NRI_CALL CmdDispatchIndirect(CommandBuffer& commandBuffer, const Buffer& buffer, uint64_t offset) {
+static void CmdDispatchIndirect(CommandBuffer& commandBuffer, const Buffer& buffer, uint64_t offset) {
     ((CommandBufferD3D12&)commandBuffer).DispatchIndirect(buffer, offset);
 }
 
-static void NRI_CALL CmdCopyBuffer(CommandBuffer& commandBuffer, Buffer& dstBuffer, uint64_t dstOffset, const Buffer& srcBuffer, uint64_t srcOffset, uint64_t size) {
+static void CmdCopyBuffer(CommandBuffer& commandBuffer, Buffer& dstBuffer, uint64_t dstOffset, const Buffer& srcBuffer, uint64_t srcOffset, uint64_t size) {
     ((CommandBufferD3D12&)commandBuffer).CopyBuffer(dstBuffer, dstOffset, srcBuffer, srcOffset, size);
 }
 
-static void NRI_CALL CmdCopyTexture(CommandBuffer& commandBuffer, Texture& dstTexture, const TextureRegionDesc* dstRegion, const Texture& srcTexture, const TextureRegionDesc* srcRegion) {
+static void CmdCopyTexture(CommandBuffer& commandBuffer, Texture& dstTexture, const TextureRegionDesc* dstRegion, const Texture& srcTexture, const TextureRegionDesc* srcRegion) {
     ((CommandBufferD3D12&)commandBuffer).CopyTexture(dstTexture, dstRegion, srcTexture, srcRegion);
 }
 
-static void NRI_CALL CmdUploadBufferToTexture(CommandBuffer& commandBuffer, Texture& dstTexture, const TextureRegionDesc& dstRegion, const Buffer& srcBuffer, const TextureDataLayoutDesc& srcDataLayout) {
+static void CmdUploadBufferToTexture(CommandBuffer& commandBuffer, Texture& dstTexture, const TextureRegionDesc& dstRegion, const Buffer& srcBuffer, const TextureDataLayoutDesc& srcDataLayout) {
     ((CommandBufferD3D12&)commandBuffer).UploadBufferToTexture(dstTexture, dstRegion, srcBuffer, srcDataLayout);
 }
 
-static void NRI_CALL CmdReadbackTextureToBuffer(CommandBuffer& commandBuffer, Buffer& dstBuffer, const TextureDataLayoutDesc& dstDataLayout, const Texture& srcTexture, const TextureRegionDesc& srcRegion) {
+static void CmdReadbackTextureToBuffer(CommandBuffer& commandBuffer, Buffer& dstBuffer, const TextureDataLayoutDesc& dstDataLayout, const Texture& srcTexture, const TextureRegionDesc& srcRegion) {
     ((CommandBufferD3D12&)commandBuffer).ReadbackTextureToBuffer(dstBuffer, dstDataLayout, srcTexture, srcRegion);
 }
 
-static void NRI_CALL CmdZeroBuffer(CommandBuffer& commandBuffer, Buffer& buffer, uint64_t offset, uint64_t size) {
+static void CmdZeroBuffer(CommandBuffer& commandBuffer, Buffer& buffer, uint64_t offset, uint64_t size) {
     ((CommandBufferD3D12&)commandBuffer).ZeroBuffer(buffer, offset, size);
 }
 
-static void NRI_CALL CmdResolveTexture(CommandBuffer& commandBuffer, Texture& dstTexture, const TextureRegionDesc* dstRegion, const Texture& srcTexture, const TextureRegionDesc* srcRegion, ResolveOp resolveOp) {
+static void CmdResolveTexture(CommandBuffer& commandBuffer, Texture& dstTexture, const TextureRegionDesc* dstRegion, const Texture& srcTexture, const TextureRegionDesc* srcRegion, ResolveOp resolveOp) {
     ((CommandBufferD3D12&)commandBuffer).ResolveTexture(dstTexture, dstRegion, srcTexture, srcRegion, resolveOp);
 }
 
-static void NRI_CALL CmdClearStorage(CommandBuffer& commandBuffer, const ClearStorageDesc& clearStorageDesc) {
+static void CmdClearStorage(CommandBuffer& commandBuffer, const ClearStorageDesc& clearStorageDesc) {
     ((CommandBufferD3D12&)commandBuffer).ClearStorage(clearStorageDesc);
 }
 
-static void NRI_CALL CmdResetQueries(CommandBuffer& commandBuffer, QueryPool& queryPool, uint32_t offset, uint32_t num) {
+static void CmdResetQueries(CommandBuffer& commandBuffer, QueryPool& queryPool, uint32_t offset, uint32_t num) {
     ((CommandBufferD3D12&)commandBuffer).ResetQueries(queryPool, offset, num);
 }
 
-static void NRI_CALL CmdBeginQuery(CommandBuffer& commandBuffer, QueryPool& queryPool, uint32_t offset) {
+static void CmdBeginQuery(CommandBuffer& commandBuffer, QueryPool& queryPool, uint32_t offset) {
     ((CommandBufferD3D12&)commandBuffer).BeginQuery(queryPool, offset);
 }
 
-static void NRI_CALL CmdEndQuery(CommandBuffer& commandBuffer, QueryPool& queryPool, uint32_t offset) {
+static void CmdEndQuery(CommandBuffer& commandBuffer, QueryPool& queryPool, uint32_t offset) {
     ((CommandBufferD3D12&)commandBuffer).EndQuery(queryPool, offset);
 }
 
-static void NRI_CALL CmdCopyQueries(CommandBuffer& commandBuffer, const QueryPool& queryPool, uint32_t offset, uint32_t num, Buffer& dstBuffer, uint64_t dstOffset) {
+static void CmdCopyQueries(CommandBuffer& commandBuffer, const QueryPool& queryPool, uint32_t offset, uint32_t num, Buffer& dstBuffer, uint64_t dstOffset) {
     ((CommandBufferD3D12&)commandBuffer).CopyQueries(queryPool, offset, num, dstBuffer, dstOffset);
 }
 
-static void NRI_CALL CmdBeginAnnotation(CommandBuffer& commandBuffer, const char* name, uint32_t bgra) {
+static void CmdBeginAnnotation(CommandBuffer& commandBuffer, const char* name, uint32_t bgra) {
     MaybeUnused(commandBuffer, name, bgra);
 #if NRI_ENABLE_DEBUG_NAMES_AND_ANNOTATIONS
     ((CommandBufferD3D12&)commandBuffer).BeginAnnotation(name, bgra);
 #endif
 }
 
-static void NRI_CALL CmdEndAnnotation(CommandBuffer& commandBuffer) {
+static void CmdEndAnnotation(CommandBuffer& commandBuffer) {
     MaybeUnused(commandBuffer);
 #if NRI_ENABLE_DEBUG_NAMES_AND_ANNOTATIONS
     ((CommandBufferD3D12&)commandBuffer).EndAnnotation();
 #endif
 }
 
-static void NRI_CALL CmdAnnotation(CommandBuffer& commandBuffer, const char* name, uint32_t bgra) {
+static void CmdAnnotation(CommandBuffer& commandBuffer, const char* name, uint32_t bgra) {
     MaybeUnused(commandBuffer, name, bgra);
 #if NRI_ENABLE_DEBUG_NAMES_AND_ANNOTATIONS
     ((CommandBufferD3D12&)commandBuffer).Annotation(name, bgra);
 #endif
 }
 
-static Result NRI_CALL EndCommandBuffer(CommandBuffer& commandBuffer) {
+static Result EndCommandBuffer(CommandBuffer& commandBuffer) {
     return ((CommandBufferD3D12&)commandBuffer).End();
 }
 
-static void NRI_CALL QueueBeginAnnotation(Queue& queue, const char* name, uint32_t bgra) {
+static void QueueBeginAnnotation(Queue& queue, const char* name, uint32_t bgra) {
     MaybeUnused(queue, name, bgra);
 #if NRI_ENABLE_DEBUG_NAMES_AND_ANNOTATIONS
     ((QueueD3D12&)queue).BeginAnnotation(name, bgra);
 #endif
 }
 
-static void NRI_CALL QueueEndAnnotation(Queue& queue) {
+static void QueueEndAnnotation(Queue& queue) {
     MaybeUnused(queue);
 #if NRI_ENABLE_DEBUG_NAMES_AND_ANNOTATIONS
     ((QueueD3D12&)queue).EndAnnotation();
 #endif
 }
 
-static void NRI_CALL QueueAnnotation(Queue& queue, const char* name, uint32_t bgra) {
+static void QueueAnnotation(Queue& queue, const char* name, uint32_t bgra) {
     MaybeUnused(queue, name, bgra);
 #if NRI_ENABLE_DEBUG_NAMES_AND_ANNOTATIONS
     ((QueueD3D12&)queue).Annotation(name, bgra);
 #endif
 }
 
-static void NRI_CALL ResetQueries(QueryPool&, uint32_t, uint32_t) {
+static void ResetQueries(QueryPool&, uint32_t, uint32_t) {
 }
 
-static uint32_t NRI_CALL GetQuerySize(const QueryPool& queryPool) {
+static uint32_t GetQuerySize(const QueryPool& queryPool) {
     return ((QueryPoolD3D12&)queryPool).GetQuerySize();
 }
 
-static void NRI_CALL GetCalibratedTimestamps(Queue& queue, uint64_t& timestampGPU, uint64_t& timestampCPU) {
+static void GetCalibratedTimestamps(Queue& queue, uint64_t& timestampGPU, uint64_t& timestampCPU) {
     ((QueueD3D12&)queue).GetCalibratedTimestamps(timestampGPU, timestampCPU);
 }
 
-static Result NRI_CALL QueueSubmit(Queue& queue, const QueueSubmitDesc& queueSubmitDesc) {
+static Result QueueSubmit(Queue& queue, const QueueSubmitDesc& queueSubmitDesc) {
     return ((QueueD3D12&)queue).Submit(queueSubmitDesc);
 }
 
-static Result NRI_CALL QueueWaitIdle(Queue* queue) {
+static Result QueueWaitIdle(Queue* queue) {
     if (!queue)
-        return Result::SUCCESS;
+        return Result::Success;
 
     return ((QueueD3D12*)queue)->WaitIdle();
 }
 
-static Result NRI_CALL DeviceWaitIdle(Device* device) {
+static Result DeviceWaitIdle(Device* device) {
     if (!device)
-        return Result::SUCCESS;
+        return Result::Success;
 
     return ((DeviceD3D12*)device)->WaitIdle();
 }
 
-static void NRI_CALL Wait(Fence& fence, uint64_t value) {
+static void Wait(Fence& fence, uint64_t value) {
     ((FenceD3D12&)fence).Wait(value);
 }
 
-static uint64_t NRI_CALL GetFenceValue(Fence& fence) {
+static uint64_t GetFenceValue(Fence& fence) {
     return ((FenceD3D12&)fence).GetFenceValue();
 }
 
-static void NRI_CALL ResetCommandAllocator(CommandAllocator& commandAllocator) {
+static void ResetCommandAllocator(CommandAllocator& commandAllocator) {
     ((CommandAllocatorD3D12&)commandAllocator).Reset();
 }
 
-static void* NRI_CALL MapBuffer(Buffer& buffer, uint64_t offset, uint64_t) {
+static void* MapBuffer(Buffer& buffer, uint64_t offset, uint64_t) {
     return ((BufferD3D12&)buffer).Map(offset);
 }
 
-static void NRI_CALL UnmapBuffer(Buffer&) {
+static void UnmapBuffer(Buffer&) {
 }
 
-static uint64_t NRI_CALL GetBufferDeviceAddress(const Buffer& buffer) {
+static uint64_t GetBufferDeviceAddress(const Buffer& buffer) {
     return ((BufferD3D12&)buffer).GetDeviceAddress();
 }
 
-static void NRI_CALL SetDebugName(Object* object, const char* name) {
+static void SetDebugName(Object* object, const char* name) {
     MaybeUnused(object, name);
 #if NRI_ENABLE_DEBUG_NAMES_AND_ANNOTATIONS
     if (object)
@@ -582,42 +582,42 @@ static void NRI_CALL SetDebugName(Object* object, const char* name) {
 #endif
 }
 
-static void* NRI_CALL GetDeviceNativeObject(const Device* device) {
+static void* GetDeviceNativeObject(const Device* device) {
     if (!device)
         return nullptr;
 
     return ((DeviceD3D12*)device)->GetNativeObject();
 }
 
-static void* NRI_CALL GetQueueNativeObject(const Queue* queue) {
+static void* GetQueueNativeObject(const Queue* queue) {
     if (!queue)
         return nullptr;
 
     return (ID3D12CommandQueue*)(*(QueueD3D12*)queue);
 }
 
-static void* NRI_CALL GetCommandBufferNativeObject(const CommandBuffer* commandBuffer) {
+static void* GetCommandBufferNativeObject(const CommandBuffer* commandBuffer) {
     if (!commandBuffer)
         return nullptr;
 
     return (ID3D12GraphicsCommandList*)(*(CommandBufferD3D12*)commandBuffer);
 }
 
-static uint64_t NRI_CALL GetBufferNativeObject(const Buffer* buffer) {
+static uint64_t GetBufferNativeObject(const Buffer* buffer) {
     if (!buffer)
         return 0;
 
     return uint64_t((ID3D12Resource*)(*(BufferD3D12*)buffer));
 }
 
-static uint64_t NRI_CALL GetTextureNativeObject(const Texture* texture) {
+static uint64_t GetTextureNativeObject(const Texture* texture) {
     if (!texture)
         return 0;
 
     return uint64_t((ID3D12Resource*)(*(TextureD3D12*)texture));
 }
 
-static uint64_t NRI_CALL GetDescriptorNativeObject(const Descriptor* descriptor) {
+static uint64_t GetDescriptorNativeObject(const Descriptor* descriptor) {
     if (!descriptor)
         return 0;
 
@@ -738,7 +738,7 @@ Result DeviceD3D12::FillFunctionTable(CoreInterface& table) const {
     table.GetTextureNativeObject = ::GetTextureNativeObject;
     table.GetDescriptorNativeObject = ::GetDescriptorNativeObject;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 #pragma endregion
@@ -746,7 +746,7 @@ Result DeviceD3D12::FillFunctionTable(CoreInterface& table) const {
 //============================================================================================================================================================================================
 #pragma region[  Helper  ]
 
-static Result NRI_CALL UploadData(Queue& queue, const TextureUploadDesc* textureUploadDescs, uint32_t textureUploadDescNum, const BufferUploadDesc* bufferUploadDescs, uint32_t bufferUploadDescNum) {
+static Result UploadData(Queue& queue, const TextureUploadDesc* textureUploadDescs, uint32_t textureUploadDescNum, const BufferUploadDesc* bufferUploadDescs, uint32_t bufferUploadDescNum) {
     QueueD3D12& queueD3D12 = (QueueD3D12&)queue;
     DeviceD3D12& deviceD3D12 = queueD3D12.GetDevice();
     HelperDataUpload helperDataUpload(deviceD3D12.GetCoreInterface(), (Device&)deviceD3D12, queue);
@@ -754,21 +754,21 @@ static Result NRI_CALL UploadData(Queue& queue, const TextureUploadDesc* texture
     return helperDataUpload.UploadData(textureUploadDescs, textureUploadDescNum, bufferUploadDescs, bufferUploadDescNum);
 }
 
-static uint32_t NRI_CALL CalculateAllocationNumber(const Device& device, const ResourceGroupDesc& resourceGroupDesc) {
+static uint32_t CalculateAllocationNumber(const Device& device, const ResourceGroupDesc& resourceGroupDesc) {
     DeviceD3D12& deviceD3D12 = (DeviceD3D12&)device;
     HelperDeviceMemoryAllocator allocator(deviceD3D12.GetCoreInterface(), (Device&)device);
 
     return allocator.CalculateAllocationNumber(resourceGroupDesc);
 }
 
-static Result NRI_CALL AllocateAndBindMemory(Device& device, const ResourceGroupDesc& resourceGroupDesc, Memory** allocations) {
+static Result AllocateAndBindMemory(Device& device, const ResourceGroupDesc& resourceGroupDesc, Memory** allocations) {
     DeviceD3D12& deviceD3D12 = (DeviceD3D12&)device;
     HelperDeviceMemoryAllocator allocator(deviceD3D12.GetCoreInterface(), device);
 
     return allocator.AllocateAndBindMemory(resourceGroupDesc, allocations);
 }
 
-static Result NRI_CALL QueryVideoMemoryInfo(const Device& device, MemoryLocation memoryLocation, VideoMemoryInfo& videoMemoryInfo) {
+static Result QueryVideoMemoryInfo(const Device& device, MemoryLocation memoryLocation, VideoMemoryInfo& videoMemoryInfo) {
     uint64_t luid = ((DeviceD3D12&)device).GetDesc().adapterDesc.uid.low;
 
     return QueryVideoMemoryInfoDXGI(luid, memoryLocation, videoMemoryInfo);
@@ -780,7 +780,7 @@ Result DeviceD3D12::FillFunctionTable(HelperInterface& table) const {
     table.UploadData = ::UploadData;
     table.QueryVideoMemoryInfo = ::QueryVideoMemoryInfo;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 #pragma endregion
@@ -790,12 +790,12 @@ Result DeviceD3D12::FillFunctionTable(HelperInterface& table) const {
 
 #if NRI_ENABLE_IMGUI_EXTENSION
 
-static Result NRI_CALL CreateImgui(Device& device, const ImguiDesc& imguiDesc, Imgui*& imgui) {
+static Result CreateImgui(Device& device, const ImguiDesc& imguiDesc, Imgui*& imgui) {
     DeviceD3D12& deviceD3D12 = (DeviceD3D12&)device;
     ImguiImpl* impl = Allocate<ImguiImpl>(deviceD3D12.GetAllocationCallbacks(), device, deviceD3D12.GetCoreInterface());
     Result result = impl->Create(imguiDesc);
 
-    if (result != Result::SUCCESS) {
+    if (result != Result::Success) {
         Destroy(impl);
         imgui = nullptr;
     } else
@@ -804,17 +804,17 @@ static Result NRI_CALL CreateImgui(Device& device, const ImguiDesc& imguiDesc, I
     return result;
 }
 
-static void NRI_CALL DestroyImgui(Imgui* imgui) {
+static void DestroyImgui(Imgui* imgui) {
     Destroy((ImguiImpl*)imgui);
 }
 
-static void NRI_CALL CmdCopyImguiData(CommandBuffer& commandBuffer, Streamer& streamer, Imgui& imgui, const CopyImguiDataDesc& copyImguiDataDesc) {
+static void CmdCopyImguiData(CommandBuffer& commandBuffer, Streamer& streamer, Imgui& imgui, const CopyImguiDataDesc& copyImguiDataDesc) {
     ImguiImpl& imguiImpl = (ImguiImpl&)imgui;
 
     return imguiImpl.CmdCopyData(commandBuffer, streamer, copyImguiDataDesc);
 }
 
-static void NRI_CALL CmdDrawImgui(CommandBuffer& commandBuffer, Imgui& imgui, const DrawImguiDesc& drawImguiDesc) {
+static void CmdDrawImgui(CommandBuffer& commandBuffer, Imgui& imgui, const DrawImguiDesc& drawImguiDesc) {
     ImguiImpl& imguiImpl = (ImguiImpl&)imgui;
 
     return imguiImpl.CmdDraw(commandBuffer, drawImguiDesc);
@@ -826,7 +826,7 @@ Result DeviceD3D12::FillFunctionTable(ImguiInterface& table) const {
     table.CmdCopyImguiData = ::CmdCopyImguiData;
     table.CmdDrawImgui = ::CmdDrawImgui;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 #endif
@@ -836,19 +836,19 @@ Result DeviceD3D12::FillFunctionTable(ImguiInterface& table) const {
 //============================================================================================================================================================================================
 #pragma region[  Low latency  ]
 
-static Result NRI_CALL SetLatencySleepMode(SwapChain& swapChain, const LatencySleepMode& latencySleepMode) {
+static Result SetLatencySleepMode(SwapChain& swapChain, const LatencySleepMode& latencySleepMode) {
     return ((SwapChainD3D12&)swapChain).SetLatencySleepMode(latencySleepMode);
 }
 
-static Result NRI_CALL SetLatencyMarker(SwapChain& swapChain, LatencyMarker latencyMarker) {
+static Result SetLatencyMarker(SwapChain& swapChain, LatencyMarker latencyMarker) {
     return ((SwapChainD3D12&)swapChain).SetLatencyMarker(latencyMarker);
 }
 
-static Result NRI_CALL LatencySleep(SwapChain& swapChain) {
+static Result LatencySleep(SwapChain& swapChain) {
     return ((SwapChainD3D12&)swapChain).LatencySleep();
 }
 
-static Result NRI_CALL GetLatencyReport(const SwapChain& swapChain, LatencyReport& latencyReport) {
+static Result GetLatencyReport(const SwapChain& swapChain, LatencyReport& latencyReport) {
     return ((SwapChainD3D12&)swapChain).GetLatencyReport(latencyReport);
 }
 
@@ -861,7 +861,7 @@ Result DeviceD3D12::FillFunctionTable(LowLatencyInterface& table) const {
     table.LatencySleep = ::LatencySleep;
     table.GetLatencyReport = ::GetLatencyReport;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 #pragma endregion
@@ -869,11 +869,11 @@ Result DeviceD3D12::FillFunctionTable(LowLatencyInterface& table) const {
 //============================================================================================================================================================================================
 #pragma region[  MeshShader  ]
 
-static void NRI_CALL CmdDrawMeshTasks(CommandBuffer& commandBuffer, const DrawMeshTasksDesc& drawMeshTasksDesc) {
+static void CmdDrawMeshTasks(CommandBuffer& commandBuffer, const DrawMeshTasksDesc& drawMeshTasksDesc) {
     ((CommandBufferD3D12&)commandBuffer).DrawMeshTasks(drawMeshTasksDesc);
 }
 
-static void NRI_CALL CmdDrawMeshTasksIndirect(CommandBuffer& commandBuffer, const Buffer& buffer, uint64_t offset, uint32_t drawNum, uint32_t stride, const Buffer* countBuffer, uint64_t countBufferOffset) {
+static void CmdDrawMeshTasksIndirect(CommandBuffer& commandBuffer, const Buffer& buffer, uint64_t offset, uint32_t drawNum, uint32_t stride, const Buffer* countBuffer, uint64_t countBufferOffset) {
     ((CommandBufferD3D12&)commandBuffer).DrawMeshTasksIndirect(buffer, offset, drawNum, stride, countBuffer, countBufferOffset);
 }
 
@@ -884,7 +884,7 @@ Result DeviceD3D12::FillFunctionTable(MeshShaderInterface& table) const {
     table.CmdDrawMeshTasks = ::CmdDrawMeshTasks;
     table.CmdDrawMeshTasksIndirect = ::CmdDrawMeshTasksIndirect;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 #pragma endregion
@@ -892,79 +892,79 @@ Result DeviceD3D12::FillFunctionTable(MeshShaderInterface& table) const {
 //============================================================================================================================================================================================
 #pragma region[  RayTracing  ]
 
-static Result NRI_CALL CreateRayTracingPipeline(Device& device, const RayTracingPipelineDesc& rayTracingPipelineDesc, Pipeline*& pipeline) {
+static Result CreateRayTracingPipeline(Device& device, const RayTracingPipelineDesc& rayTracingPipelineDesc, Pipeline*& pipeline) {
     return ((DeviceD3D12&)device).CreateImplementation<PipelineD3D12>(pipeline, rayTracingPipelineDesc);
 }
 
-static Result NRI_CALL CreateAccelerationStructureDescriptor(const AccelerationStructure& accelerationStructure, Descriptor*& descriptor) {
+static Result CreateAccelerationStructureDescriptor(const AccelerationStructure& accelerationStructure, Descriptor*& descriptor) {
     return ((AccelerationStructureD3D12&)accelerationStructure).CreateDescriptor(descriptor);
 }
 
-static uint64_t NRI_CALL GetAccelerationStructureHandle(const AccelerationStructure& accelerationStructure) {
+static uint64_t GetAccelerationStructureHandle(const AccelerationStructure& accelerationStructure) {
     return ((AccelerationStructureD3D12&)accelerationStructure).GetHandle();
 }
 
-static uint64_t NRI_CALL GetAccelerationStructureUpdateScratchBufferSize(const AccelerationStructure& accelerationStructure) {
+static uint64_t GetAccelerationStructureUpdateScratchBufferSize(const AccelerationStructure& accelerationStructure) {
     return ((AccelerationStructureD3D12&)accelerationStructure).GetUpdateScratchBufferSize();
 }
 
-static uint64_t NRI_CALL GetAccelerationStructureBuildScratchBufferSize(const AccelerationStructure& accelerationStructure) {
+static uint64_t GetAccelerationStructureBuildScratchBufferSize(const AccelerationStructure& accelerationStructure) {
     return ((AccelerationStructureD3D12&)accelerationStructure).GetBuildScratchBufferSize();
 }
 
-static uint64_t NRI_CALL GetMicromapBuildScratchBufferSize(const Micromap& micromap) {
+static uint64_t GetMicromapBuildScratchBufferSize(const Micromap& micromap) {
     return ((MicromapD3D12&)micromap).GetBuildScratchBufferSize();
 }
 
-static Buffer* NRI_CALL GetAccelerationStructureBuffer(const AccelerationStructure& accelerationStructure) {
+static Buffer* GetAccelerationStructureBuffer(const AccelerationStructure& accelerationStructure) {
     return (Buffer*)((AccelerationStructureD3D12&)accelerationStructure).GetBuffer();
 }
 
-static Buffer* NRI_CALL GetMicromapBuffer(const Micromap& micromap) {
+static Buffer* GetMicromapBuffer(const Micromap& micromap) {
     return (Buffer*)((MicromapD3D12&)micromap).GetBuffer();
 }
 
-static void NRI_CALL DestroyAccelerationStructure(AccelerationStructure* accelerationStructure) {
+static void DestroyAccelerationStructure(AccelerationStructure* accelerationStructure) {
     Destroy((AccelerationStructureD3D12*)accelerationStructure);
 }
 
-static void NRI_CALL DestroyMicromap(Micromap* micromap) {
+static void DestroyMicromap(Micromap* micromap) {
     Destroy((MicromapD3D12*)micromap);
 }
 
-static Result NRI_CALL CreateAccelerationStructure(Device& device, const AccelerationStructureDesc& accelerationStructureDesc, AccelerationStructure*& accelerationStructure) {
+static Result CreateAccelerationStructure(Device& device, const AccelerationStructureDesc& accelerationStructureDesc, AccelerationStructure*& accelerationStructure) {
     return ((DeviceD3D12&)device).CreateImplementation<AccelerationStructureD3D12>(accelerationStructure, accelerationStructureDesc);
 }
 
-static Result NRI_CALL CreateMicromap(Device& device, const MicromapDesc& micromapDesc, Micromap*& micromap) {
+static Result CreateMicromap(Device& device, const MicromapDesc& micromapDesc, Micromap*& micromap) {
     return ((DeviceD3D12&)device).CreateImplementation<MicromapD3D12>(micromap, micromapDesc);
 }
 
-static void NRI_CALL GetAccelerationStructureMemoryDesc(const AccelerationStructure& accelerationStructure, MemoryLocation memoryLocation, MemoryDesc& memoryDesc) {
+static void GetAccelerationStructureMemoryDesc(const AccelerationStructure& accelerationStructure, MemoryLocation memoryLocation, MemoryDesc& memoryDesc) {
     ((AccelerationStructureD3D12&)accelerationStructure).GetMemoryDesc(memoryLocation, memoryDesc);
 }
 
-static void NRI_CALL GetMicromapMemoryDesc(const Micromap& micromap, MemoryLocation memoryLocation, MemoryDesc& memoryDesc) {
+static void GetMicromapMemoryDesc(const Micromap& micromap, MemoryLocation memoryLocation, MemoryDesc& memoryDesc) {
     ((MicromapD3D12&)micromap).GetMemoryDesc(memoryLocation, memoryDesc);
 }
 
-static Result NRI_CALL BindAccelerationStructureMemory(const BindAccelerationStructureMemoryDesc* bindAccelerationStructureMemoryDescs, uint32_t bindAccelerationStructureMemoryDescNum) {
+static Result BindAccelerationStructureMemory(const BindAccelerationStructureMemoryDesc* bindAccelerationStructureMemoryDescs, uint32_t bindAccelerationStructureMemoryDescNum) {
     if (!bindAccelerationStructureMemoryDescNum)
-        return Result::SUCCESS;
+        return Result::Success;
 
     DeviceD3D12& deviceD3D12 = ((AccelerationStructureD3D12*)bindAccelerationStructureMemoryDescs->accelerationStructure)->GetDevice();
     return deviceD3D12.BindAccelerationStructureMemory(bindAccelerationStructureMemoryDescs, bindAccelerationStructureMemoryDescNum);
 }
 
-static Result NRI_CALL BindMicromapMemory(const BindMicromapMemoryDesc* bindMicromapMemoryDescs, uint32_t bindMicromapMemoryDescNum) {
+static Result BindMicromapMemory(const BindMicromapMemoryDesc* bindMicromapMemoryDescs, uint32_t bindMicromapMemoryDescNum) {
     if (!bindMicromapMemoryDescNum)
-        return Result::SUCCESS;
+        return Result::Success;
 
     DeviceD3D12& deviceD3D12 = ((MicromapD3D12*)bindMicromapMemoryDescs->micromap)->GetDevice();
     return deviceD3D12.BindMicromapMemory(bindMicromapMemoryDescs, bindMicromapMemoryDescNum);
 }
 
-static void NRI_CALL GetAccelerationStructureMemoryDesc2(const Device& device, const AccelerationStructureDesc& accelerationStructureDesc, MemoryLocation memoryLocation, MemoryDesc& memoryDesc) {
+static void GetAccelerationStructureMemoryDesc2(const Device& device, const AccelerationStructureDesc& accelerationStructureDesc, MemoryLocation memoryLocation, MemoryDesc& memoryDesc) {
     const DeviceD3D12& deviceD3D12 = (DeviceD3D12&)device;
 
     D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO prebuildInfo = {};
@@ -979,7 +979,7 @@ static void NRI_CALL GetAccelerationStructureMemoryDesc2(const Device& device, c
     deviceD3D12.GetMemoryDesc(memoryLocation, resourceDesc, memoryDesc);
 }
 
-static void NRI_CALL GetMicromapMemoryDesc2(const Device& device, const MicromapDesc& micromapDesc, MemoryLocation memoryLocation, MemoryDesc& memoryDesc) {
+static void GetMicromapMemoryDesc2(const Device& device, const MicromapDesc& micromapDesc, MemoryLocation memoryLocation, MemoryDesc& memoryDesc) {
     const DeviceD3D12& deviceD3D12 = (DeviceD3D12&)device;
 
     D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO prebuildInfo = {};
@@ -994,31 +994,31 @@ static void NRI_CALL GetMicromapMemoryDesc2(const Device& device, const Micromap
     deviceD3D12.GetMemoryDesc(memoryLocation, resourceDesc, memoryDesc);
 }
 
-static Result NRI_CALL CreateCommittedAccelerationStructure(Device& device, MemoryLocation memoryLocation, float priority, const AccelerationStructureDesc& accelerationStructureDesc, AccelerationStructure*& accelerationStructure) {
+static Result CreateCommittedAccelerationStructure(Device& device, MemoryLocation memoryLocation, float priority, const AccelerationStructureDesc& accelerationStructureDesc, AccelerationStructure*& accelerationStructure) {
     DeviceD3D12& deviceD3D12 = (DeviceD3D12&)device;
 
     Result result = deviceD3D12.CreateImplementation<AccelerationStructureD3D12>(accelerationStructure, accelerationStructureDesc);
-    if (result != Result::SUCCESS)
+    if (result != Result::Success)
         return result;
 
     return ((AccelerationStructureD3D12*)accelerationStructure)->Allocate(memoryLocation, priority, true);
 }
 
-static Result NRI_CALL CreateCommittedMicromap(Device& device, MemoryLocation memoryLocation, float priority, const MicromapDesc& micromapDesc, Micromap*& micromap) {
+static Result CreateCommittedMicromap(Device& device, MemoryLocation memoryLocation, float priority, const MicromapDesc& micromapDesc, Micromap*& micromap) {
     DeviceD3D12& deviceD3D12 = (DeviceD3D12&)device;
 
     Result result = deviceD3D12.CreateImplementation<MicromapD3D12>(micromap, micromapDesc);
-    if (result != Result::SUCCESS)
+    if (result != Result::Success)
         return result;
 
     return ((MicromapD3D12*)micromap)->Allocate(memoryLocation, priority, true);
 }
 
-static Result NRI_CALL CreatePlacedAccelerationStructure(Device& device, Memory* memory, uint64_t offset, const AccelerationStructureDesc& accelerationStructureDesc, AccelerationStructure*& accelerationStructure) {
+static Result CreatePlacedAccelerationStructure(Device& device, Memory* memory, uint64_t offset, const AccelerationStructureDesc& accelerationStructureDesc, AccelerationStructure*& accelerationStructure) {
     DeviceD3D12& deviceD3D12 = (DeviceD3D12&)device;
 
     Result result = deviceD3D12.CreateImplementation<AccelerationStructureD3D12>(accelerationStructure, accelerationStructureDesc);
-    if (result != Result::SUCCESS)
+    if (result != Result::Success)
         return result;
 
     if (memory)
@@ -1029,11 +1029,11 @@ static Result NRI_CALL CreatePlacedAccelerationStructure(Device& device, Memory*
     return result;
 }
 
-static Result NRI_CALL CreatePlacedMicromap(Device& device, Memory* memory, uint64_t offset, const MicromapDesc& micromapDesc, Micromap*& micromap) {
+static Result CreatePlacedMicromap(Device& device, Memory* memory, uint64_t offset, const MicromapDesc& micromapDesc, Micromap*& micromap) {
     DeviceD3D12& deviceD3D12 = (DeviceD3D12&)device;
 
     Result result = deviceD3D12.CreateImplementation<MicromapD3D12>(micromap, micromapDesc);
-    if (result != Result::SUCCESS)
+    if (result != Result::Success)
         return result;
 
     if (memory)
@@ -1044,54 +1044,54 @@ static Result NRI_CALL CreatePlacedMicromap(Device& device, Memory* memory, uint
     return result;
 }
 
-static Result NRI_CALL WriteShaderGroupIdentifiers(const Pipeline& pipeline, uint32_t baseShaderGroupIndex, uint32_t shaderGroupNum, void* dst) {
+static Result WriteShaderGroupIdentifiers(const Pipeline& pipeline, uint32_t baseShaderGroupIndex, uint32_t shaderGroupNum, void* dst) {
     return ((PipelineD3D12&)pipeline).WriteShaderGroupIdentifiers(baseShaderGroupIndex, shaderGroupNum, dst);
 }
 
-static void NRI_CALL CmdBuildTopLevelAccelerationStructures(CommandBuffer& commandBuffer, const BuildTopLevelAccelerationStructureDesc* buildTopLevelAccelerationStructureDescs, uint32_t buildTopLevelAccelerationStructureDescNum) {
+static void CmdBuildTopLevelAccelerationStructures(CommandBuffer& commandBuffer, const BuildTopLevelAccelerationStructureDesc* buildTopLevelAccelerationStructureDescs, uint32_t buildTopLevelAccelerationStructureDescNum) {
     ((CommandBufferD3D12&)commandBuffer).BuildTopLevelAccelerationStructures(buildTopLevelAccelerationStructureDescs, buildTopLevelAccelerationStructureDescNum);
 }
 
-static void NRI_CALL CmdBuildBottomLevelAccelerationStructures(CommandBuffer& commandBuffer, const BuildBottomLevelAccelerationStructureDesc* buildBottomLevelAccelerationStructureDescs, uint32_t buildBottomLevelAccelerationStructureDescNum) {
+static void CmdBuildBottomLevelAccelerationStructures(CommandBuffer& commandBuffer, const BuildBottomLevelAccelerationStructureDesc* buildBottomLevelAccelerationStructureDescs, uint32_t buildBottomLevelAccelerationStructureDescNum) {
     ((CommandBufferD3D12&)commandBuffer).BuildBottomLevelAccelerationStructures(buildBottomLevelAccelerationStructureDescs, buildBottomLevelAccelerationStructureDescNum);
 }
 
-static void NRI_CALL CmdBuildMicromaps(CommandBuffer& commandBuffer, const BuildMicromapDesc* buildMicromapDescs, uint32_t buildMicromapDescNum) {
+static void CmdBuildMicromaps(CommandBuffer& commandBuffer, const BuildMicromapDesc* buildMicromapDescs, uint32_t buildMicromapDescNum) {
     ((CommandBufferD3D12&)commandBuffer).BuildMicromaps(buildMicromapDescs, buildMicromapDescNum);
 }
 
-static void NRI_CALL CmdDispatchRays(CommandBuffer& commandBuffer, const DispatchRaysDesc& dispatchRaysDesc) {
+static void CmdDispatchRays(CommandBuffer& commandBuffer, const DispatchRaysDesc& dispatchRaysDesc) {
     ((CommandBufferD3D12&)commandBuffer).DispatchRays(dispatchRaysDesc);
 }
 
-static void NRI_CALL CmdDispatchRaysIndirect(CommandBuffer& commandBuffer, const Buffer& buffer, uint64_t offset) {
+static void CmdDispatchRaysIndirect(CommandBuffer& commandBuffer, const Buffer& buffer, uint64_t offset) {
     ((CommandBufferD3D12&)commandBuffer).DispatchRaysIndirect(buffer, offset);
 }
 
-static void NRI_CALL CmdWriteAccelerationStructuresSizes(CommandBuffer& commandBuffer, const AccelerationStructure* const* accelerationStructures, uint32_t accelerationStructureNum, QueryPool& queryPool, uint32_t queryPoolOffset) {
+static void CmdWriteAccelerationStructuresSizes(CommandBuffer& commandBuffer, const AccelerationStructure* const* accelerationStructures, uint32_t accelerationStructureNum, QueryPool& queryPool, uint32_t queryPoolOffset) {
     ((CommandBufferD3D12&)commandBuffer).WriteAccelerationStructuresSizes(accelerationStructures, accelerationStructureNum, queryPool, queryPoolOffset);
 }
 
-static void NRI_CALL CmdWriteMicromapsSizes(CommandBuffer& commandBuffer, const Micromap* const* micromaps, uint32_t micromapNum, QueryPool& queryPool, uint32_t queryPoolOffset) {
+static void CmdWriteMicromapsSizes(CommandBuffer& commandBuffer, const Micromap* const* micromaps, uint32_t micromapNum, QueryPool& queryPool, uint32_t queryPoolOffset) {
     ((CommandBufferD3D12&)commandBuffer).WriteMicromapsSizes(micromaps, micromapNum, queryPool, queryPoolOffset);
 }
 
-static void NRI_CALL CmdCopyAccelerationStructure(CommandBuffer& commandBuffer, AccelerationStructure& dst, const AccelerationStructure& src, CopyMode copyMode) {
+static void CmdCopyAccelerationStructure(CommandBuffer& commandBuffer, AccelerationStructure& dst, const AccelerationStructure& src, CopyMode copyMode) {
     ((CommandBufferD3D12&)commandBuffer).CopyAccelerationStructure(dst, src, copyMode);
 }
 
-static void NRI_CALL CmdCopyMicromap(CommandBuffer& commandBuffer, Micromap& dst, const Micromap& src, CopyMode copyMode) {
+static void CmdCopyMicromap(CommandBuffer& commandBuffer, Micromap& dst, const Micromap& src, CopyMode copyMode) {
     ((CommandBufferD3D12&)commandBuffer).CopyMicromap(dst, src, copyMode);
 }
 
-static uint64_t NRI_CALL GetAccelerationStructureNativeObject(const AccelerationStructure* accelerationStructure) {
+static uint64_t GetAccelerationStructureNativeObject(const AccelerationStructure* accelerationStructure) {
     if (!accelerationStructure)
         return 0;
 
     return uint64_t((ID3D12Resource*)(*(AccelerationStructureD3D12*)accelerationStructure));
 }
 
-static uint64_t NRI_CALL GetMicromapNativeObject(const Micromap* micromap) {
+static uint64_t GetMicromapNativeObject(const Micromap* micromap) {
     if (!micromap)
         return 0;
 
@@ -1137,7 +1137,7 @@ Result DeviceD3D12::FillFunctionTable(RayTracingInterface& table) const {
     table.GetAccelerationStructureNativeObject = ::GetAccelerationStructureNativeObject;
     table.GetMicromapNativeObject = ::GetMicromapNativeObject;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 #pragma endregion
@@ -1145,12 +1145,12 @@ Result DeviceD3D12::FillFunctionTable(RayTracingInterface& table) const {
 //============================================================================================================================================================================================
 #pragma region[  Streamer  ]
 
-static Result NRI_CALL CreateStreamer(Device& device, const StreamerDesc& streamerDesc, Streamer*& streamer) {
+static Result CreateStreamer(Device& device, const StreamerDesc& streamerDesc, Streamer*& streamer) {
     DeviceD3D12& deviceD3D12 = (DeviceD3D12&)device;
     StreamerImpl* impl = Allocate<StreamerImpl>(deviceD3D12.GetAllocationCallbacks(), device, deviceD3D12.GetCoreInterface());
     Result result = impl->Create(streamerDesc);
 
-    if (result != Result::SUCCESS) {
+    if (result != Result::Success) {
         Destroy(impl);
         streamer = nullptr;
     } else
@@ -1159,31 +1159,31 @@ static Result NRI_CALL CreateStreamer(Device& device, const StreamerDesc& stream
     return result;
 }
 
-static void NRI_CALL DestroyStreamer(Streamer* streamer) {
+static void DestroyStreamer(Streamer* streamer) {
     Destroy((StreamerImpl*)streamer);
 }
 
-static Buffer* NRI_CALL GetStreamerConstantBuffer(Streamer& streamer) {
+static Buffer* GetStreamerConstantBuffer(Streamer& streamer) {
     return ((StreamerImpl&)streamer).GetConstantBuffer();
 }
 
-static uint32_t NRI_CALL StreamConstantData(Streamer& streamer, const void* data, uint32_t dataSize) {
+static uint32_t StreamConstantData(Streamer& streamer, const void* data, uint32_t dataSize) {
     return ((StreamerImpl&)streamer).StreamConstantData(data, dataSize);
 }
 
-static BufferOffset NRI_CALL StreamBufferData(Streamer& streamer, const StreamBufferDataDesc& streamBufferDataDesc) {
+static BufferOffset StreamBufferData(Streamer& streamer, const StreamBufferDataDesc& streamBufferDataDesc) {
     return ((StreamerImpl&)streamer).StreamBufferData(streamBufferDataDesc);
 }
 
-static BufferOffset NRI_CALL StreamTextureData(Streamer& streamer, const StreamTextureDataDesc& streamTextureDataDesc) {
+static BufferOffset StreamTextureData(Streamer& streamer, const StreamTextureDataDesc& streamTextureDataDesc) {
     return ((StreamerImpl&)streamer).StreamTextureData(streamTextureDataDesc);
 }
 
-static void NRI_CALL EndStreamerFrame(Streamer& streamer) {
+static void EndStreamerFrame(Streamer& streamer) {
     ((StreamerImpl&)streamer).EndFrame();
 }
 
-static void NRI_CALL CmdCopyStreamedData(CommandBuffer& commandBuffer, Streamer& streamer) {
+static void CmdCopyStreamedData(CommandBuffer& commandBuffer, Streamer& streamer) {
     ((StreamerImpl&)streamer).CmdCopyStreamedData(commandBuffer);
 }
 
@@ -1197,7 +1197,7 @@ Result DeviceD3D12::FillFunctionTable(StreamerInterface& table) const {
     table.EndStreamerFrame = ::EndStreamerFrame;
     table.CmdCopyStreamedData = ::CmdCopyStreamedData;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 #pragma endregion
@@ -1205,31 +1205,31 @@ Result DeviceD3D12::FillFunctionTable(StreamerInterface& table) const {
 //============================================================================================================================================================================================
 #pragma region[  SwapChain  ]
 
-static Result NRI_CALL CreateSwapChain(Device& device, const SwapChainDesc& swapChainDesc, SwapChain*& swapChain) {
+static Result CreateSwapChain(Device& device, const SwapChainDesc& swapChainDesc, SwapChain*& swapChain) {
     return ((DeviceD3D12&)device).CreateImplementation<SwapChainD3D12>(swapChain, swapChainDesc);
 }
 
-static void NRI_CALL DestroySwapChain(SwapChain* swapChain) {
+static void DestroySwapChain(SwapChain* swapChain) {
     Destroy((SwapChainD3D12*)swapChain);
 }
 
-static Texture* const* NRI_CALL GetSwapChainTextures(const SwapChain& swapChain, uint32_t& textureNum) {
+static Texture* const* GetSwapChainTextures(const SwapChain& swapChain, uint32_t& textureNum) {
     return ((SwapChainD3D12&)swapChain).GetTextures(textureNum);
 }
 
-static Result NRI_CALL GetDisplayDesc(SwapChain& swapChain, DisplayDesc& displayDesc) {
+static Result GetDisplayDesc(SwapChain& swapChain, DisplayDesc& displayDesc) {
     return ((SwapChainD3D12&)swapChain).GetDisplayDesc(displayDesc);
 }
 
-static Result NRI_CALL AcquireNextTexture(SwapChain& swapChain, Fence&, uint32_t& textureIndex) {
+static Result AcquireNextTexture(SwapChain& swapChain, Fence&, uint32_t& textureIndex) {
     return ((SwapChainD3D12&)swapChain).AcquireNextTexture(textureIndex);
 }
 
-static Result NRI_CALL WaitForPresent(SwapChain& swapChain) {
+static Result WaitForPresent(SwapChain& swapChain) {
     return ((SwapChainD3D12&)swapChain).WaitForPresent();
 }
 
-static Result NRI_CALL QueuePresent(SwapChain& swapChain, Fence&) {
+static Result QueuePresent(SwapChain& swapChain, Fence&) {
     return ((SwapChainD3D12&)swapChain).Present();
 }
 
@@ -1245,7 +1245,7 @@ Result DeviceD3D12::FillFunctionTable(SwapChainInterface& table) const {
     table.WaitForPresent = ::WaitForPresent;
     table.QueuePresent = ::QueuePresent;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 #pragma endregion
@@ -1253,12 +1253,12 @@ Result DeviceD3D12::FillFunctionTable(SwapChainInterface& table) const {
 //============================================================================================================================================================================================
 #pragma region[  Upscaler  ]
 
-static Result NRI_CALL CreateUpscaler(Device& device, const UpscalerDesc& upscalerDesc, Upscaler*& upscaler) {
+static Result CreateUpscaler(Device& device, const UpscalerDesc& upscalerDesc, Upscaler*& upscaler) {
     DeviceD3D12& deviceD3D12 = (DeviceD3D12&)device;
     UpscalerImpl* impl = Allocate<UpscalerImpl>(deviceD3D12.GetAllocationCallbacks(), device, deviceD3D12.GetCoreInterface());
     Result result = impl->Create(upscalerDesc);
 
-    if (result != Result::SUCCESS) {
+    if (result != Result::Success) {
         Destroy(deviceD3D12.GetAllocationCallbacks(), impl);
         upscaler = nullptr;
     } else
@@ -1267,23 +1267,23 @@ static Result NRI_CALL CreateUpscaler(Device& device, const UpscalerDesc& upscal
     return result;
 }
 
-static void NRI_CALL DestroyUpscaler(Upscaler* upscaler) {
+static void DestroyUpscaler(Upscaler* upscaler) {
     Destroy((UpscalerImpl*)upscaler);
 }
 
-static bool NRI_CALL IsUpscalerSupported(const Device& device, UpscalerType upscalerType) {
+static bool IsUpscalerSupported(const Device& device, UpscalerType upscalerType) {
     DeviceD3D12& deviceD3D12 = (DeviceD3D12&)device;
 
     return IsUpscalerSupported(deviceD3D12.GetDesc(), upscalerType);
 }
 
-static void NRI_CALL GetUpscalerProps(const Upscaler& upscaler, UpscalerProps& upscalerProps) {
+static void GetUpscalerProps(const Upscaler& upscaler, UpscalerProps& upscalerProps) {
     UpscalerImpl& upscalerImpl = (UpscalerImpl&)upscaler;
 
     return upscalerImpl.GetUpscalerProps(upscalerProps);
 }
 
-static void NRI_CALL CmdDispatchUpscale(CommandBuffer& commandBuffer, Upscaler& upscaler, const DispatchUpscaleDesc& dispatchUpscalerDesc) {
+static void CmdDispatchUpscale(CommandBuffer& commandBuffer, Upscaler& upscaler, const DispatchUpscaleDesc& dispatchUpscalerDesc) {
     UpscalerImpl& upscalerImpl = (UpscalerImpl&)upscaler;
 
     upscalerImpl.CmdDispatchUpscale(commandBuffer, dispatchUpscalerDesc);
@@ -1296,7 +1296,7 @@ Result DeviceD3D12::FillFunctionTable(UpscalerInterface& table) const {
     table.GetUpscalerProps = ::GetUpscalerProps;
     table.CmdDispatchUpscale = ::CmdDispatchUpscale;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 #pragma endregion
@@ -1304,31 +1304,31 @@ Result DeviceD3D12::FillFunctionTable(UpscalerInterface& table) const {
 //============================================================================================================================================================================================
 #pragma region[  WrapperD3D12  ]
 
-static Result NRI_CALL CreateCommandBufferD3D12(Device& device, const CommandBufferD3D12Desc& commandBufferD3D12Desc, CommandBuffer*& commandBuffer) {
+static Result CreateCommandBufferD3D12(Device& device, const CommandBufferD3D12Desc& commandBufferD3D12Desc, CommandBuffer*& commandBuffer) {
     return ((DeviceD3D12&)device).CreateImplementation<CommandBufferD3D12>(commandBuffer, commandBufferD3D12Desc);
 }
 
-static Result NRI_CALL CreateDescriptorPoolD3D12(Device& device, const DescriptorPoolD3D12Desc& descriptorPoolD3D12Desc, DescriptorPool*& descriptorPool) {
+static Result CreateDescriptorPoolD3D12(Device& device, const DescriptorPoolD3D12Desc& descriptorPoolD3D12Desc, DescriptorPool*& descriptorPool) {
     return ((DeviceD3D12&)device).CreateImplementation<DescriptorPoolD3D12>(descriptorPool, descriptorPoolD3D12Desc);
 }
 
-static Result NRI_CALL CreateBufferD3D12(Device& device, const BufferD3D12Desc& bufferD3D12Desc, Buffer*& buffer) {
+static Result CreateBufferD3D12(Device& device, const BufferD3D12Desc& bufferD3D12Desc, Buffer*& buffer) {
     return ((DeviceD3D12&)device).CreateImplementation<BufferD3D12>(buffer, bufferD3D12Desc);
 }
 
-static Result NRI_CALL CreateTextureD3D12(Device& device, const TextureD3D12Desc& textureD3D12Desc, Texture*& texture) {
+static Result CreateTextureD3D12(Device& device, const TextureD3D12Desc& textureD3D12Desc, Texture*& texture) {
     return ((DeviceD3D12&)device).CreateImplementation<TextureD3D12>(texture, textureD3D12Desc);
 }
 
-static Result NRI_CALL CreateMemoryD3D12(Device& device, const MemoryD3D12Desc& memoryD3D12Desc, Memory*& memory) {
+static Result CreateMemoryD3D12(Device& device, const MemoryD3D12Desc& memoryD3D12Desc, Memory*& memory) {
     return ((DeviceD3D12&)device).CreateImplementation<MemoryD3D12>(memory, memoryD3D12Desc);
 }
 
-static Result NRI_CALL CreateFenceD3D12(Device& device, const FenceD3D12Desc& fenceD3D12Desc, Fence*& fence) {
+static Result CreateFenceD3D12(Device& device, const FenceD3D12Desc& fenceD3D12Desc, Fence*& fence) {
     return ((DeviceD3D12&)device).CreateImplementation<FenceD3D12>(fence, fenceD3D12Desc);
 }
 
-static Result NRI_CALL CreateAccelerationStructureD3D12(Device& device, const AccelerationStructureD3D12Desc& accelerationStructureD3D12Desc, AccelerationStructure*& accelerationStructure) {
+static Result CreateAccelerationStructureD3D12(Device& device, const AccelerationStructureD3D12Desc& accelerationStructureD3D12Desc, AccelerationStructure*& accelerationStructure) {
     return ((DeviceD3D12&)device).CreateImplementation<AccelerationStructureD3D12>(accelerationStructure, accelerationStructureD3D12Desc);
 }
 
@@ -1341,7 +1341,7 @@ Result DeviceD3D12::FillFunctionTable(WrapperD3D12Interface& table) const {
     table.CreateFenceD3D12 = ::CreateFenceD3D12;
     table.CreateAccelerationStructureD3D12 = ::CreateAccelerationStructureD3D12;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 #pragma endregion

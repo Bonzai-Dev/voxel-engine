@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct HelperDataUpload {
     inline HelperDataUpload(const CoreInterface& NRI, Device& device, Queue& queue)
@@ -69,4 +69,4 @@ private:
     Vector<BindTextureMemoryDesc> m_TextureBindingDescs;
 };
 
-} // namespace nri
+} // namespace Core::RHI

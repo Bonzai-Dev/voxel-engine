@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct QueueD3D12 final : public DebugNameBase {
     inline QueueD3D12(DeviceD3D12& device)
@@ -52,4 +52,4 @@ private:
     D3D12_COMMAND_LIST_TYPE m_CommandListType = D3D12_COMMAND_LIST_TYPE(-1);
 };
 
-} // namespace nri
+} // namespace Core::RHI

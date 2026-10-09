@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct DescriptorWGPU final : public DebugNameBase {
     inline DescriptorWGPU(DeviceWGPU& device)
@@ -80,4 +80,4 @@ private:
     DescriptorType m_DescriptorType = DescriptorType::TEXTURE;
 };
 
-} // namespace nri
+} // namespace Core::RHI

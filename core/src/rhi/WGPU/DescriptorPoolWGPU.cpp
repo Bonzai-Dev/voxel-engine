@@ -7,7 +7,7 @@ DescriptorPoolWGPU::~DescriptorPoolWGPU() {
 Result DescriptorPoolWGPU::Create(const DescriptorPoolDesc& descriptorPoolDesc) {
     m_Desc = descriptorPoolDesc;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 Result DescriptorPoolWGPU::AllocateDescriptorSets(const PipelineLayout& pipelineLayout, uint32_t setIndex, DescriptorSet** descriptorSets, uint32_t instanceNum, uint32_t variableDescriptorNum) {
@@ -25,7 +25,7 @@ Result DescriptorPoolWGPU::AllocateDescriptorSets(const PipelineLayout& pipeline
         descriptorSets[i] = (DescriptorSet*)descriptorSet;
     }
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 void DescriptorPoolWGPU::Reset() {

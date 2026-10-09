@@ -46,7 +46,7 @@ Result QueryPoolVK::Create(const QueryPoolDesc& queryPoolDesc) {
 
     m_QuerySize = (m_Type == VK_QUERY_TYPE_PIPELINE_STATISTICS ? (m_Device.GetDesc().features.meshShader ? 13 : 11) : 1) * sizeof(uint64_t);
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 Result QueryPoolVK::Create(const QueryPoolVKDesc& queryPoolVKDesc) {
@@ -55,7 +55,7 @@ Result QueryPoolVK::Create(const QueryPoolVKDesc& queryPoolVKDesc) {
     m_Handle = (VkQueryPool)queryPoolVKDesc.vkQueryPool;
     m_QuerySize = (m_Type == VK_QUERY_TYPE_PIPELINE_STATISTICS ? (m_Device.GetDesc().features.meshShader ? 13 : 11) : 1) * sizeof(uint64_t);
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 NRI_INLINE void QueryPoolVK::SetDebugName(const char* name) {

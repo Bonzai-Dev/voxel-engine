@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct MemoryWGPU final : public DebugNameBase {
     inline MemoryWGPU(DeviceWGPU& device)
@@ -24,4 +24,4 @@ private:
     AllocateMemoryDesc m_Desc = {};
 };
 
-} // namespace nri
+} // namespace Core::RHI

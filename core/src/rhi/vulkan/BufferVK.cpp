@@ -21,7 +21,7 @@ Result BufferVK::Create(const BufferDesc& bufferDesc) {
     VkResult vkResult = vk.CreateBuffer(m_Device, &info, m_Device.GetVkAllocationCallbacks(), &m_Handle);
     NRI_RETURN_ON_BAD_VKRESULT(&m_Device, vkResult, "vkCreateBuffer");
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 Result BufferVK::Create(const BufferVKDesc& bufferVKDesc) {
@@ -34,7 +34,7 @@ Result BufferVK::Create(const BufferVKDesc& bufferVKDesc) {
     m_Desc.size = bufferVKDesc.size;
     m_Desc.structureStride = bufferVKDesc.structureStride;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 Result BufferVK::AllocateAndBindMemory(MemoryLocation memoryLocation, float priority, bool committed) {
@@ -86,7 +86,7 @@ Result BufferVK::AllocateAndBindMemory(MemoryLocation memoryLocation, float prio
         m_DeviceAddress = vk.GetBufferDeviceAddress(m_Device, &bufferDeviceAddressInfo);
     }
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 Result BufferVK::BindMemory(MemoryVK& memory, uint64_t offset, bool bindMemory) {
@@ -129,7 +129,7 @@ Result BufferVK::BindMemory(MemoryVK& memory, uint64_t offset, bool bindMemory) 
         m_DeviceAddress = vk.GetBufferDeviceAddress(m_Device, &bufferDeviceAddressInfo);
     }
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 void BufferVK::GetMemoryDesc(MemoryLocation memoryLocation, MemoryDesc& memoryDesc) const {

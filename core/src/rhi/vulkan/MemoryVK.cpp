@@ -30,7 +30,7 @@ Result MemoryVK::Create(const MemoryVKDesc& memoryVKDesc) {
         NRI_RETURN_ON_BAD_VKRESULT(&m_Device, vkResult, "vkMapMemory");
     }
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 Result MemoryVK::Create(const AllocateMemoryDesc& allocateMemoryDesc) {
@@ -41,7 +41,7 @@ Result MemoryVK::Create(const AllocateMemoryDesc& allocateMemoryDesc) {
 
     // Dedicated allocation occurs on memory binding
     if (memoryTypeInfo.mustBeDedicated)
-        return Result::SUCCESS;
+        return Result::Success;
 
     if (allocateMemoryDesc.vma.enable) {
         const DeviceInfo& DeviceInfo = m_Device.GetDesc();
@@ -96,7 +96,7 @@ Result MemoryVK::Create(const AllocateMemoryDesc& allocateMemoryDesc) {
         }
     }
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 Result MemoryVK::CreateDedicated(const BufferVK* buffer, const TextureVK* texture) {
@@ -140,7 +140,7 @@ Result MemoryVK::CreateDedicated(const BufferVK* buffer, const TextureVK* textur
         NRI_RETURN_ON_BAD_VKRESULT(&m_Device, vkResult, "vkMapMemory");
     }
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 NRI_INLINE void MemoryVK::SetDebugName(const char* name) {

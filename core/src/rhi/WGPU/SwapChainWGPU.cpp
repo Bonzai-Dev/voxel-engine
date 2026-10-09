@@ -133,7 +133,7 @@ Result SwapChainWGPU::Create(const SwapChainDesc& swapChainDesc) {
         m_Textures.push_back(texture);
     }
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 Texture* const* SwapChainWGPU::GetTextures(uint32_t& textureNum) const {
@@ -162,7 +162,7 @@ Result SwapChainWGPU::AcquireNextTexture(uint32_t& textureIndex) {
     m_Textures[textureIndex]->SetSurfaceTexture(surfaceTexture.texture, m_Format, m_Width, m_Height);
     m_CurrentTextureIndex = textureIndex;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 Result SwapChainWGPU::WaitForPresent() {
@@ -177,5 +177,5 @@ Result SwapChainWGPU::Present() {
         m_CurrentTextureIndex = uint32_t(-1);
     }
 
-    return status == WGPUStatus_Success ? Result::SUCCESS : Result::FAILURE;
+    return status == WGPUStatus_Success ? Result::Success : Result::FAILURE;
 }

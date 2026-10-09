@@ -4,7 +4,7 @@
 
 #include "DescriptorSetD3D12.h"
 
-namespace nri {
+namespace Core::RHI {
 
 typedef uint16_t RootParameterIndexType;
 constexpr RootParameterIndexType ROOT_PARAMETER_UNUSED = RootParameterIndexType(-1);
@@ -84,4 +84,4 @@ private:
     bool m_DrawIndexEmulation = false;
 };
 
-} // namespace nri
+} // namespace Core::RHI

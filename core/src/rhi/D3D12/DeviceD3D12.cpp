@@ -48,7 +48,7 @@ static void __stdcall MessageCallback(D3D12_MESSAGE_CATEGORY category, D3D12_MES
     MaybeUnused(id, category);
 
     Message messageType = Message::INFO;
-    Result result = Result::SUCCESS;
+    Result result = Result::Success;
     if (severity < D3D12_MESSAGE_SEVERITY_WARNING) {
         messageType = Message::ERROR;
         result = Result::FAILURE;
@@ -67,7 +67,7 @@ typedef ID3D12InfoQueue ID3D12InfoQueueBest;
 
 static void __stdcall NvapiMessageCallback(void* context, NVAPI_D3D12_RAYTRACING_VALIDATION_MESSAGE_SEVERITY severity, const char* messageCode, const char* message, const char* messageDetails) {
     Message messageType = Message::INFO;
-    Result result = Result::SUCCESS;
+    Result result = Result::Success;
     if (severity == NVAPI_D3D12_RAYTRACING_VALIDATION_MESSAGE_SEVERITY_ERROR) {
         messageType = Message::ERROR;
         result = Result::FAILURE;
@@ -75,7 +75,7 @@ static void __stdcall NvapiMessageCallback(void* context, NVAPI_D3D12_RAYTRACING
         messageType = Message::WARNING;
 
     DeviceD3D12& device = *(DeviceD3D12*)context;
-    device.ReportMessage(Message::WARNING, Result::SUCCESS, __FILE__, __LINE__, "Details: %s", messageDetails);
+    device.ReportMessage(Message::WARNING, Result::Success, __FILE__, __LINE__, "Details: %s", messageDetails);
     device.ReportMessage(messageType, result, __FILE__, __LINE__, "%s: %s (see above)", messageCode, message);
 }
 
@@ -308,7 +308,7 @@ Result DeviceD3D12::Create(const DeviceCreationDesc& desc, const DeviceCreationD
                 } else
                     result = CreateImplementation<QueueD3D12>(queue, queueFamilyD3D12Desc.queueType, 0.0f);
 
-                if (result == Result::SUCCESS)
+                if (result == Result::Success)
                     queueFamily.push_back(queue);
             }
 
@@ -324,7 +324,7 @@ Result DeviceD3D12::Create(const DeviceCreationDesc& desc, const DeviceCreationD
 
                 QueueD3D12* queue = nullptr;
                 Result result = CreateImplementation<QueueD3D12>(queue, queueFamilyDesc.queueType, priority);
-                if (result == Result::SUCCESS)
+                if (result == Result::Success)
                     queueFamily.push_back(queue);
             }
 
@@ -606,7 +606,7 @@ void DeviceD3D12::FillDesc(bool disableD3D12EnhancedBarrier) {
     {
         Queue* queue = nullptr;
         Result result = GetQueue(QueueType::GRAPHICS, 0, queue);
-        if (result == Result::SUCCESS) {
+        if (result == Result::Success) {
             ID3D12CommandQueue* queueD3D12 = *(QueueD3D12*)queue;
             queueD3D12->GetTimestampFrequency(&timestampFrequency);
         }
@@ -1057,7 +1057,7 @@ Result DeviceD3D12::GetDescriptorHandle(D3D12_DESCRIPTOR_HEAP_TYPE type, Descrip
     descriptorHandle = freeDescriptors.back();
     freeDescriptors.pop_back();
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 void DeviceD3D12::FreeDescriptorHandle(const DescriptorHandle& descriptorHandle) {
@@ -1441,7 +1441,7 @@ Result DeviceD3D12::CreateDefaultDrawSignatures(const PipelineLayoutD3D12& pipel
     key = HashRootSignatureAndStride(rootSignature, drawIndexedStride);
     m_DrawIndexedCommandSignatures.emplace(key, drawIndexedCommandSignature);
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 ID3D12CommandSignature* DeviceD3D12::GetDrawCommandSignature(const PipelineLayoutD3D12* pipelineLayout, uint32_t stride) {
@@ -1514,7 +1514,7 @@ NRI_INLINE Result DeviceD3D12::GetQueue(QueueType queueType, uint32_t queueIndex
 
     if (queueIndex < queueFamily.size()) {
         queue = (Queue*)m_QueueFamilies[(uint32_t)queueType].at(queueIndex);
-        return Result::SUCCESS;
+        return Result::Success;
     }
 
     return Result::FAILURE;
@@ -1524,56 +1524,56 @@ NRI_INLINE Result DeviceD3D12::WaitIdle() {
     for (auto& queueFamily : m_QueueFamilies) {
         for (auto queue : queueFamily) {
             Result result = queue->WaitIdle();
-            if (result != Result::SUCCESS)
+            if (result != Result::Success)
                 return result;
         }
     }
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 NRI_INLINE Result DeviceD3D12::BindBufferMemory(const BindBufferMemoryDesc* bindBufferMemoryDescs, uint32_t bindBufferMemoryDescNum) {
     for (uint32_t i = 0; i < bindBufferMemoryDescNum; i++) {
         const auto& desc = bindBufferMemoryDescs[i];
         Result result = ((BufferD3D12*)desc.buffer)->BindMemory(*(MemoryD3D12*)desc.memory, desc.offset);
-        if (result != Result::SUCCESS)
+        if (result != Result::Success)
             return result;
     }
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 NRI_INLINE Result DeviceD3D12::BindTextureMemory(const BindTextureMemoryDesc* bindTextureMemoryDescs, uint32_t bindTextureMemoryDescNum) {
     for (uint32_t i = 0; i < bindTextureMemoryDescNum; i++) {
         const auto& desc = bindTextureMemoryDescs[i];
         Result result = ((TextureD3D12*)desc.texture)->BindMemory(*(MemoryD3D12*)desc.memory, desc.offset);
-        if (result != Result::SUCCESS)
+        if (result != Result::Success)
             return result;
     }
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 NRI_INLINE Result DeviceD3D12::BindAccelerationStructureMemory(const BindAccelerationStructureMemoryDesc* bindAccelerationStructureMemoryDescs, uint32_t bindAccelerationStructureMemoryDescNum) {
     for (uint32_t i = 0; i < bindAccelerationStructureMemoryDescNum; i++) {
         const auto& desc = bindAccelerationStructureMemoryDescs[i];
         Result result = ((AccelerationStructureD3D12*)desc.accelerationStructure)->BindMemory(*(MemoryD3D12*)desc.memory, desc.offset);
-        if (result != Result::SUCCESS)
+        if (result != Result::Success)
             return result;
     }
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 NRI_INLINE Result DeviceD3D12::BindMicromapMemory(const BindMicromapMemoryDesc* bindMicromapMemoryDescs, uint32_t bindMicromapMemoryDescNum) {
     for (uint32_t i = 0; i < bindMicromapMemoryDescNum; i++) {
         const auto& desc = bindMicromapMemoryDescs[i];
         Result result = ((MicromapD3D12*)desc.micromap)->BindMemory(*(MemoryD3D12*)desc.memory, desc.offset);
-        if (result != Result::SUCCESS)
+        if (result != Result::Success)
             return result;
     }
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 #define UPDATE_SUPPORT_BITS(required, optional, bit) \

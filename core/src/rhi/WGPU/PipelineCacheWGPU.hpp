@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct PipelineCacheWGPU final : public DebugNameBase {
     inline PipelineCacheWGPU(DeviceWGPU& device)
@@ -22,4 +22,4 @@ private:
     Vector<uint8_t> m_Data;
 };
 
-} // namespace nri
+} // namespace Core::RHI

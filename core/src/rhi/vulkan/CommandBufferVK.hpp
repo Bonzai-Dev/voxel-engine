@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct InputAttachmentRange {
     VkImage image;
@@ -111,4 +111,4 @@ private:
     bool m_RenderPass = false;
 };
 
-} // namespace nri
+} // namespace Core::RHI

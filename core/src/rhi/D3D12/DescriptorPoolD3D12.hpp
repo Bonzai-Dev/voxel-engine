@@ -4,7 +4,7 @@
 
 #include "DescriptorSetD3D12.h"
 
-namespace nri {
+namespace Core::RHI {
 
 struct DescriptorPoolD3D12 final : public DebugNameBase {
     inline DescriptorPoolD3D12(DeviceD3D12& device)
@@ -49,4 +49,4 @@ private:
     Lock m_Lock;
 };
 
-} // namespace nri
+} // namespace Core::RHI

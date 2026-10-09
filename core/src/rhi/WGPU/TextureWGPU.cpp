@@ -39,7 +39,7 @@ Result TextureWGPU::Create(const TextureDesc& textureDesc) {
 
     m_Version++;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 void TextureWGPU::SetSurfaceTexture(WGPUTexture texture, Format format, Dim_t width, Dim_t height) {

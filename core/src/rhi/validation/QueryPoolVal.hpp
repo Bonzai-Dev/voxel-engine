@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct QueryPoolVal final : public ObjectVal {
     QueryPoolVal(DeviceVal& device, QueryPool* queryPool, QueryType queryType, uint32_t queryNum);
@@ -36,4 +36,4 @@ private:
     QueryType m_QueryType;
 };
 
-} // namespace nri
+} // namespace Core::RHI

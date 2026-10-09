@@ -15,9 +15,9 @@ Result nri::CreateCommandBuffer(DeviceD3D11& device, ID3D11DeviceContext* precre
 
     const Result result = ((CommandBufferBase*)impl)->Create(precreatedContext);
 
-    if (result == Result::SUCCESS) {
+    if (result == Result::Success) {
         commandBuffer = (CommandBuffer*)impl;
-        return Result::SUCCESS;
+        return Result::Success;
     }
 
     if (isImmediate)

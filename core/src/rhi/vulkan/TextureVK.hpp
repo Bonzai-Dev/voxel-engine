@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct TextureVK final : public DebugNameBase {
     inline TextureVK(DeviceVK& device)
@@ -51,4 +51,4 @@ private:
     bool m_OwnsNativeObjects = true;
 };
 
-} // namespace nri
+} // namespace Core::RHI

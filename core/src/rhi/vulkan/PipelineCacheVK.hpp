@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct PipelineCacheVK final : public DebugNameBase {
     inline PipelineCacheVK(DeviceVK& device)
@@ -37,4 +37,4 @@ private:
     VkPipelineCache m_Handle = VK_NULL_HANDLE;
 };
 
-} // namespace nri
+} // namespace Core::RHI

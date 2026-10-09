@@ -268,7 +268,7 @@ Result DescriptorD3D11::Create(const TextureViewDesc& textureViewDesc) {
     m_Format = textureViewDesc.format;
     m_SubresourceInfo.Initialize(&textureD3D11, textureViewDesc.mipOffset, mipNum, textureViewDesc.layerOffset, layerNum);
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 Result DescriptorD3D11::Create(const BufferViewDesc& bufferViewDesc) {
@@ -343,7 +343,7 @@ Result DescriptorD3D11::Create(const BufferViewDesc& bufferViewDesc) {
     m_Format = patchedFormat;
     m_SubresourceInfo.Initialize(&bufferD3D11, elementOffset, elementNum);
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 Result DescriptorD3D11::Create(const SamplerDesc& samplerDesc) {
@@ -353,5 +353,5 @@ Result DescriptorD3D11::Create(const SamplerDesc& samplerDesc) {
     HRESULT hr = m_Device->CreateSamplerState(&desc, (ID3D11SamplerState**)&m_Descriptor);
     NRI_RETURN_ON_BAD_HRESULT(&m_Device, hr, "ID3D11Device::CreateSamplerState");
 
-    return Result::SUCCESS;
+    return Result::Success;
 }

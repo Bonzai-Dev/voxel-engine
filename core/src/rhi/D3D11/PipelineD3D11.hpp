@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct RasterizerState {
     ComPtr<ID3D11RasterizerState2> ptr;
@@ -64,4 +64,4 @@ private:
     uint32_t m_SampleMask = uint32_t(-1);
 };
 
-} // namespace nri
+} // namespace Core::RHI

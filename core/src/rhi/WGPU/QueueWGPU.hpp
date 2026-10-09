@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct QueueWGPU final : public DebugNameBase {
     inline QueueWGPU(DeviceWGPU& device)
@@ -29,4 +29,4 @@ private:
     QueueType m_Type = QueueType::MAX_NUM;
 };
 
-} // namespace nri
+} // namespace Core::RHI

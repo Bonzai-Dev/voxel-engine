@@ -18,7 +18,7 @@ Result CommandAllocatorVK::Create(const Queue& queue) {
     VkResult vkResult = vk.CreateCommandPool(m_Device, &info, m_Device.GetVkAllocationCallbacks(), &m_Handle);
     NRI_RETURN_ON_BAD_VKRESULT(&m_Device, vkResult, "vkCreateCommandPool");
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 Result CommandAllocatorVK::Create(const CommandAllocatorVKDesc& commandAllocatorVKDesc) {
@@ -26,7 +26,7 @@ Result CommandAllocatorVK::Create(const CommandAllocatorVKDesc& commandAllocator
     m_Handle = (VkCommandPool)commandAllocatorVKDesc.vkCommandPool;
     m_Type = commandAllocatorVKDesc.queueType;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 NRI_INLINE void CommandAllocatorVK::SetDebugName(const char* name) {
@@ -49,7 +49,7 @@ NRI_INLINE Result CommandAllocatorVK::CreateCommandBuffer(CommandBuffer*& comman
 
     commandBuffer = (CommandBuffer*)commandBufferVK;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 NRI_INLINE void CommandAllocatorVK::Reset() {

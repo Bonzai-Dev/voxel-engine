@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct CommandAllocatorD3D11 final : public DebugNameBase {
     inline CommandAllocatorD3D11(DeviceD3D11& device)
@@ -31,4 +31,4 @@ private:
 
 Result CreateCommandBuffer(DeviceD3D11& deviceImpl, ID3D11DeviceContext* precreatedContext, CommandBuffer*& commandBuffer);
 
-} // namespace nri
+} // namespace Core::RHI

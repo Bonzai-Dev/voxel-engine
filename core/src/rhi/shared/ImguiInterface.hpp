@@ -4,7 +4,7 @@
 
 #if NRI_ENABLE_IMGUI_EXTENSION
 
-namespace nri {
+namespace Core::RHI {
 
 struct ImguiPipeline {
     Pipeline* pipeline = nullptr;
@@ -64,6 +64,6 @@ private:
     Lock m_Lock;
 };
 
-} // namespace nri
+} // namespace Core::RHI
 
 #endif

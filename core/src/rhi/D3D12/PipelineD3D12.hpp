@@ -4,7 +4,7 @@
 
 #include "DescriptorSetD3D12.h"
 
-namespace nri {
+namespace Core::RHI {
 
 struct PipelineD3D12 final : public DebugNameBase {
     inline PipelineD3D12(DeviceD3D12& device)
@@ -60,4 +60,4 @@ private:
     D3D_PRIMITIVE_TOPOLOGY m_PrimitiveTopology = D3D_PRIMITIVE_TOPOLOGY_UNDEFINED;
 };
 
-} // namespace nri
+} // namespace Core::RHI

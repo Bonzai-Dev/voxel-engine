@@ -8,7 +8,7 @@
 
 #define NRI_GET_IMPL(className, object) (object ? ((className##Val*)object)->GetImpl() : nullptr)
 
-namespace nri {
+namespace Core::RHI {
 
 struct AccelerationStructureVal;
 struct BufferVal;
@@ -34,11 +34,11 @@ QueryType GetQueryTypeVK(uint32_t queryTypeVK);
 const char* GetDescriptorTypeName(DescriptorType descriptorType);
 void ConvertBotomLevelGeometries(const BottomLevelGeometryDesc* geometries, uint32_t geometryNum, BottomLevelGeometryDesc*& outGeometries, BottomLevelMicromapDesc*& outMicromaps);
 
-} // namespace nri
+} // namespace Core::RHI
 
 #include "DeviceVal.h"
 
-namespace nri {
+namespace Core::RHI {
 
 struct ObjectVal : public DebugNameBaseVal {
     inline ObjectVal(DeviceVal& device, Object* object = nullptr)
@@ -127,4 +127,4 @@ inline DeviceVal& GetDeviceVal(T& object) {
     return ((ObjectVal&)object).GetDevice();
 }
 
-} // namespace nri
+} // namespace Core::RHI

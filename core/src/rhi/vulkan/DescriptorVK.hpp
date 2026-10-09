@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct TexViewDesc {
     const TextureVK* texture;
@@ -95,4 +95,4 @@ private:
     Format m_Format = Format::UNKNOWN;
 };
 
-} // namespace nri
+} // namespace Core::RHI

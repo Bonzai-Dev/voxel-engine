@@ -316,7 +316,7 @@ Result CommandBufferD3D12::Create(D3D12_COMMAND_LIST_TYPE commandListType, ID3D1
     m_GraphicsCommandList = commandListBest;
     m_CommandAllocator = commandAllocator;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 Result CommandBufferD3D12::Create(const CommandBufferD3D12Desc& commandBufferD3D12Desc) {
@@ -331,7 +331,7 @@ Result CommandBufferD3D12::Create(const CommandBufferD3D12Desc& commandBufferD3D
 
     m_CommandAllocator = commandBufferD3D12Desc.d3d12CommandAllocator;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 NRI_INLINE Result CommandBufferD3D12::Begin(const DescriptorPool* descriptorPool) {
@@ -346,14 +346,14 @@ NRI_INLINE Result CommandBufferD3D12::Begin(const DescriptorPool* descriptorPool
 
     ResetAttachments();
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 NRI_INLINE Result CommandBufferD3D12::End() {
     if (FAILED(m_GraphicsCommandList->Close()))
         return Result::FAILURE;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 NRI_INLINE void CommandBufferD3D12::SetViewports(const Viewport* viewports, uint32_t viewportNum) {

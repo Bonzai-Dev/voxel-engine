@@ -104,7 +104,7 @@ Result PipelineVK::Create(const GraphicsPipelineDesc& graphicsPipelineDesc) {
     for (uint32_t i = 0; i < graphicsPipelineDesc.shaderNum; i++) {
         const ShaderDesc& shaderDesc = graphicsPipelineDesc.shaders[i];
         Result res = SetupShaderStage(stages[i], shaderDesc, modules[i]);
-        if (res != Result::SUCCESS)
+        if (res != Result::Success)
             return res;
 
         stages[i].pName = shaderDesc.entryPointName ? shaderDesc.entryPointName : "main";
@@ -414,7 +414,7 @@ Result PipelineVK::Create(const GraphicsPipelineDesc& graphicsPipelineDesc) {
         return Result::FAILURE;
     NRI_RETURN_ON_BAD_VKRESULT(&m_Device, vkResult, "vkCreateGraphicsPipelines");
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 Result PipelineVK::Create(const ComputePipelineDesc& computePipelineDesc) {
@@ -474,7 +474,7 @@ Result PipelineVK::Create(const ComputePipelineDesc& computePipelineDesc) {
         return Result::FAILURE;
     NRI_RETURN_ON_BAD_VKRESULT(&m_Device, vkResult, "vkCreateComputePipelines");
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 Result PipelineVK::Create(const RayTracingPipelineDesc& rayTracingPipelineDesc) {
@@ -489,7 +489,7 @@ Result PipelineVK::Create(const RayTracingPipelineDesc& rayTracingPipelineDesc) 
     for (uint32_t i = 0; i < stageNum; i++) {
         const ShaderDesc& shaderDesc = rayTracingPipelineDesc.shaderLibrary->shaders[i];
         Result result = SetupShaderStage(stages[i], shaderDesc, modules[i]);
-        if (result != Result::SUCCESS)
+        if (result != Result::Success)
             return result;
 
         stages[i].pName = shaderDesc.entryPointName ? shaderDesc.entryPointName : "main";
@@ -587,7 +587,7 @@ Result PipelineVK::Create(const RayTracingPipelineDesc& rayTracingPipelineDesc) 
         return Result::FAILURE;
     NRI_RETURN_ON_BAD_VKRESULT(&m_Device, vkResult, "vkCreateRayTracingPipelinesKHR");
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 Result PipelineVK::Create(const PipelineVKDesc& pipelineVKDesc) {
@@ -595,7 +595,7 @@ Result PipelineVK::Create(const PipelineVKDesc& pipelineVKDesc) {
     m_Handle = (VkPipeline)pipelineVKDesc.vkPipeline;
     m_BindPoint = (VkPipelineBindPoint)pipelineVKDesc.vkPipelineBindPoint;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 Result PipelineVK::SetupShaderStage(VkPipelineShaderStageCreateInfo& stage, const ShaderDesc& shaderDesc, VkShaderModule& module) {
@@ -621,7 +621,7 @@ Result PipelineVK::SetupShaderStage(VkPipelineShaderStageCreateInfo& stage, cons
         nullptr,
     };
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 NRI_INLINE void PipelineVK::SetDebugName(const char* name) {
@@ -635,5 +635,5 @@ NRI_INLINE Result PipelineVK::WriteShaderGroupIdentifiers(uint32_t baseShaderGro
     VkResult vkResult = vk.GetRayTracingShaderGroupHandlesKHR(m_Device, m_Handle, baseShaderGroupIndex, shaderGroupNum, dataSize, dst);
     NRI_RETURN_ON_BAD_VKRESULT(&m_Device, vkResult, "vkGetRayTracingShaderGroupHandlesKHR");
 
-    return Result::SUCCESS;
+    return Result::Success;
 }

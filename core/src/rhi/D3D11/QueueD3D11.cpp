@@ -18,13 +18,13 @@ NRI_INLINE Result QueueD3D11::Submit(const QueueSubmitDesc& queueSubmitDesc) {
         fence->QueueSignal(fenceSubmitDesc.value);
     }
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 NRI_INLINE Result QueueD3D11::WaitIdle() {
     FenceD3D11* fence = nullptr;
     Result result = m_Device.CreateImplementation<FenceD3D11>(fence, 0);
-    if (result == Result::SUCCESS) {
+    if (result == Result::Success) {
         fence->QueueSignal(1);
         fence->Wait(1);
 

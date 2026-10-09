@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct AccelerationStructureVal final : public ObjectVal {
     AccelerationStructureVal(DeviceVal& device, AccelerationStructure* accelerationStructure, bool isBoundToMemory)
@@ -42,4 +42,4 @@ private:
     bool m_IsBoundToMemory = false;
 };
 
-} // namespace nri
+} // namespace Core::RHI

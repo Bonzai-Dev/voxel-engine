@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct PipelineCacheVal final : public ObjectVal {
     PipelineCacheVal(DeviceVal& device, PipelineCache* pipelineCache);
@@ -14,4 +14,4 @@ struct PipelineCacheVal final : public ObjectVal {
     Result GetData(void* dst, uint64_t& size);
 };
 
-} // namespace nri
+} // namespace Core::RHI

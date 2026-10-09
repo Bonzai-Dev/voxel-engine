@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct DescriptorSetVal final : public ObjectVal {
     DescriptorSetVal(DeviceVal& device)
@@ -29,4 +29,4 @@ private:
     const DescriptorSetDesc* m_Desc = nullptr; // .natvis
 };
 
-} // namespace nri
+} // namespace Core::RHI

@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct DescriptorPoolWGPU final : public DebugNameBase {
     inline DescriptorPoolWGPU(DeviceWGPU& device)
@@ -26,4 +26,4 @@ private:
     DescriptorPoolDesc m_Desc = {};
 };
 
-} // namespace nri
+} // namespace Core::RHI

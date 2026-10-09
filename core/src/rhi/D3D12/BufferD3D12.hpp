@@ -8,7 +8,7 @@ typedef ID3D12Resource2 ID3D12ResourceBest;
 typedef ID3D12Resource ID3D12ResourceBest;
 #endif
 
-namespace nri {
+namespace Core::RHI {
 
 struct BufferD3D12 final : public DebugNameBase {
     inline BufferD3D12(DeviceD3D12& device)
@@ -74,4 +74,4 @@ inline D3D12_GPU_VIRTUAL_ADDRESS GetBufferAddress(const Buffer* buffer, uint64_t
     return ((BufferD3D12*)buffer)->GetDeviceAddress() + offset;
 }
 
-} // namespace nri
+} // namespace Core::RHI

@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct FenceVal final : public ObjectVal {
     inline FenceVal(DeviceVal& device, Fence* fence)
@@ -24,4 +24,4 @@ struct FenceVal final : public ObjectVal {
     void Wait(uint64_t value);
 };
 
-} // namespace nri
+} // namespace Core::RHI

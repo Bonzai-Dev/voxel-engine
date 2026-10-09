@@ -47,7 +47,7 @@ Result MicromapVK::AllocateAndBindMemory(MemoryLocation memoryLocation, float pr
     NRI_CHECK(m_Buffer, "Unexpected");
 
     Result result = m_Buffer->AllocateAndBindMemory(memoryLocation, priority, committed);
-    if (result == Result::SUCCESS)
+    if (result == Result::Success)
         result = BindMemory(nullptr, 0);
 
     return result;
@@ -64,7 +64,7 @@ Result MicromapVK::BindMemory(const MemoryVK* memory, uint64_t offset) {
         desc.offset = offset;
 
         Result result = m_Device.BindBufferMemory(&desc, 1);
-        if(result != Result::SUCCESS)
+        if(result != Result::Success)
             return result;
     }
 
@@ -79,7 +79,7 @@ Result MicromapVK::BindMemory(const MemoryVK* memory, uint64_t offset) {
         NRI_RETURN_ON_BAD_VKRESULT(&m_Device, vkResult, "vkCreateMicromapEXT");
     }
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 NRI_INLINE void MicromapVK::SetDebugName(const char* name) {

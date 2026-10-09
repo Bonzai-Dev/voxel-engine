@@ -2,7 +2,7 @@
 
 #include <cstdarg> // va_start, va_end
 
-#if (NRI_ENABLE_D3D11_SUPPORT || NRI_ENABLE_D3D12_SUPPORT)
+#if (ENGINE_RHI_ENABLE_D3D11 || ENGINE_RHI_ENABLE_D3D12)
 
 constexpr std::array<DxgiFormat, (size_t)Format::MAX_NUM> g_dxgiFormats = {{
     {DXGI_FORMAT_UNKNOWN, DXGI_FORMAT_UNKNOWN},                            // UNKNOWN
@@ -120,7 +120,7 @@ const DxgiFormat& nri::GetDxgiFormat(Format format) {
 
 Result nri::GetResultFromHRESULT(long result) {
     if (SUCCEEDED(result))
-        return Result::SUCCESS;
+        return Result::Success;
 
     switch (result) {
         case E_INVALIDARG:
@@ -309,7 +309,7 @@ Result DisplayDescHelper::GetDisplayDesc(void* hwnd, DisplayDesc& displayDesc) {
         m_DxgiFactory2 = newDxgiFactory2;
     } else if (m_HasDisplayDesc) {
         displayDesc = m_DisplayDesc;
-        return Result::SUCCESS;
+        return Result::Success;
     }
 
     // Get the retangle bounds of the app window
@@ -398,7 +398,7 @@ Result DisplayDescHelper::GetDisplayDesc(void* hwnd, DisplayDesc& displayDesc) {
     m_DisplayDesc = displayDesc;
     m_HasDisplayDesc = true;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 bool nri::HasOutput() {
@@ -445,7 +445,7 @@ Result nri::QueryVideoMemoryInfoDXGI(uint64_t luid, MemoryLocation memoryLocatio
     videoMemoryInfo.budgetSize = info.Budget;
     videoMemoryInfo.usageSize = info.CurrentUsage;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 #else
@@ -738,7 +738,7 @@ constexpr std::array<Format, 116> NRI_FORMAT_TABLE = {
 Format nri::DXGIFormatToNRIFormat(uint32_t dxgiFormat) {
     MaybeUnused(dxgiFormat);
 
-#if (NRI_ENABLE_D3D11_SUPPORT || NRI_ENABLE_D3D12_SUPPORT)
+#if (ENGINE_RHI_ENABLE_D3D11 || ENGINE_RHI_ENABLE_D3D12)
     if (dxgiFormat < NRI_FORMAT_TABLE.size())
         return NRI_FORMAT_TABLE[dxgiFormat];
 #endif
@@ -883,7 +883,7 @@ constexpr std::array<Format, 131> VK_FORMAT_TABLE = {
 Format nri::VKFormatToNRIFormat(uint32_t format) {
     MaybeUnused(format);
 
-#if NRI_ENABLE_VK_SUPPORT
+#if ENGINE_RHI_ENABLE_VULKAN
     if (format < VK_FORMAT_TABLE.size())
         return VK_FORMAT_TABLE[format];
     else if (format == VK_FORMAT_A4R4G4B4_UNORM_PACK16)

@@ -15,7 +15,7 @@ Result DescriptorPoolD3D11::Create(const DescriptorPoolDesc& descriptorPoolDesc)
     m_DescriptorPool.resize(descriptorNum, nullptr);
     m_DescriptorSets.resize(descriptorPoolDesc.descriptorSetMaxNum);
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 NRI_INLINE Result DescriptorPoolD3D11::AllocateDescriptorSets(const PipelineLayout& pipelineLayout, uint32_t setIndex, DescriptorSet** descriptorSets, uint32_t instanceNum, uint32_t variableDescriptorNum) {
@@ -40,7 +40,7 @@ NRI_INLINE Result DescriptorPoolD3D11::AllocateDescriptorSets(const PipelineLayo
         descriptorSets[i] = (DescriptorSet*)descriptorSet;
     }
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 NRI_INLINE void DescriptorPoolD3D11::Reset() {

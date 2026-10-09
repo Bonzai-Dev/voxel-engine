@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct SwapChainWGPU final : public DisplayDescHelper, public DebugNameBase {
     inline SwapChainWGPU(DeviceWGPU& device)
@@ -48,4 +48,4 @@ private:
     Format m_Format = Format::UNKNOWN;
 };
 
-} // namespace nri
+} // namespace Core::RHI

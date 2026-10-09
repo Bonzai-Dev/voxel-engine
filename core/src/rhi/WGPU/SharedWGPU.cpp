@@ -744,11 +744,11 @@ Vendor nri::GetVendorFromPCIID(uint32_t vendorId) {
 Architecture nri::GetArchitecture(WGPUAdapterType adapterType) {
     switch (adapterType) {
         case WGPUAdapterType_DiscreteGPU:
-            return Architecture::DISCRETE;
+            return Architecture::Discrete;
         case WGPUAdapterType_IntegratedGPU:
-            return Architecture::INTEGRATED;
+            return Architecture::Integrated;
         case WGPUAdapterType_CPU:
-            return Architecture::SOFTWARE;
+            return Architecture::Software;
         default:
             return Architecture::UNKNOWN;
     }

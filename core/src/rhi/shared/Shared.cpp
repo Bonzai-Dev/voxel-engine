@@ -7,7 +7,7 @@
 #include "StreamerInterface.h"
 #include "UpscalerInterface.h"
 
-using namespace nri;
+using namespace Core::RHI;
 
 #include "HelperInterface.hpp"
 #include "ImguiInterface.hpp"

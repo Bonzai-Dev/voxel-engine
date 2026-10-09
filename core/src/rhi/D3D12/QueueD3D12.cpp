@@ -12,7 +12,7 @@ Result QueueD3D12::Create(QueueType queueType, float priority) {
 
     m_CommandListType = queueDesc.Type;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 Result QueueD3D12::Create(ID3D12CommandQueue* queue) {
@@ -24,7 +24,7 @@ Result QueueD3D12::Create(ID3D12CommandQueue* queue) {
     m_Queue = queue;
     m_CommandListType = queueDesc.Type;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 NRI_INLINE void QueueD3D12::BeginAnnotation(const char* name, uint32_t bgra) {
@@ -78,13 +78,13 @@ NRI_INLINE Result QueueD3D12::Submit(const QueueSubmitDesc& queueSubmitDesc) {
     HRESULT hr = m_Device->GetDeviceRemovedReason() == S_OK ? S_OK : DXGI_ERROR_DEVICE_REMOVED;
     NRI_RETURN_ON_BAD_HRESULT(&m_Device, hr, "Submit");
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 NRI_INLINE Result QueueD3D12::WaitIdle() {
     FenceD3D12* fence = nullptr;
     Result result = m_Device.CreateImplementation<FenceD3D12>(fence, 0);
-    if (result == Result::SUCCESS) {
+    if (result == Result::Success) {
         fence->QueueSignal(*this, 1);
         fence->Wait(1);
 

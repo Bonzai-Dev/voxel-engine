@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct QueueVal final : public ObjectVal {
     inline QueueVal(DeviceVal& device, Queue* queue)
@@ -29,4 +29,4 @@ struct QueueVal final : public ObjectVal {
     Result WaitIdle();
 };
 
-} // namespace nri
+} // namespace Core::RHI

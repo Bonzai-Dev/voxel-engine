@@ -335,7 +335,7 @@ Result CommandBufferVK::Create(const CommandBufferVKDesc& commandBufferVKDesc) {
     m_Handle = (VkCommandBuffer)commandBufferVKDesc.vkCommandBuffer;
     m_Type = commandBufferVKDesc.queueType;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 NRI_INLINE void CommandBufferVK::SetDebugName(const char* name) {
@@ -354,7 +354,7 @@ NRI_INLINE Result CommandBufferVK::Begin(const DescriptorPool*) {
     m_PipelineBindPoint = BindPoint::INHERIT;
     m_InputAttachmentRanges.clear();
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 NRI_INLINE Result CommandBufferVK::End() {
@@ -362,7 +362,7 @@ NRI_INLINE Result CommandBufferVK::End() {
     VkResult vkResult = vk.EndCommandBuffer(m_Handle);
     NRI_RETURN_ON_BAD_VKRESULT(&m_Device, vkResult, "vkEndCommandBuffer");
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 NRI_INLINE void CommandBufferVK::SetViewports(const Viewport* viewports, uint32_t viewportNum) {

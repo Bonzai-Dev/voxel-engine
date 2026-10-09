@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct QueryPoolD3D11 final : public DebugNameBase {
     inline QueryPoolD3D11(DeviceD3D11& device)
@@ -42,4 +42,4 @@ private:
     QueryType m_Type = QueryType::MAX_NUM;
 };
 
-} // namespace nri
+} // namespace Core::RHI

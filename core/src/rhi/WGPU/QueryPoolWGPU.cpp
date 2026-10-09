@@ -30,7 +30,7 @@ Result QueryPoolWGPU::Create(const QueryPoolDesc& queryPoolDesc) {
     }
 
     m_QuerySet = wgpuDeviceCreateQuerySet(m_Device, &desc);
-    return m_QuerySet ? Result::SUCCESS : Result::FAILURE;
+    return m_QuerySet ? Result::Success : Result::FAILURE;
 }
 
 void QueryPoolWGPU::Reset(uint32_t offset, uint32_t num) {

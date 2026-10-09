@@ -148,7 +148,7 @@ Result PipelineLayoutD3D11::Create(const PipelineLayoutDesc& pipelineLayoutDesc)
         m_RootSamplers.push_back(ss);
     }
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 void PipelineLayoutD3D11::Bind(ID3D11DeviceContextBest* deferredContext) {

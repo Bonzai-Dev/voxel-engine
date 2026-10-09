@@ -4,7 +4,7 @@ Result CommandAllocatorWGPU::Create(const Queue& queue) {
     // TODO: WebGPU command encoders own allocation internally, so the NRI allocator is only a bookkeeping object.
     MaybeUnused(queue);
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 Result CommandAllocatorWGPU::CreateCommandBuffer(CommandBuffer*& commandBuffer) {

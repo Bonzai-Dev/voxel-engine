@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 constexpr uint32_t COLOR_ATTACHMENT_MAX_NUM_WGPU = 8;
 
@@ -199,4 +199,4 @@ private:
     bool m_HasScissor = false;
 };
 
-} // namespace nri
+} // namespace Core::RHI

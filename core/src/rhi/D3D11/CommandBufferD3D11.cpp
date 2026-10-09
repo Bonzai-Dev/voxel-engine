@@ -82,7 +82,7 @@ Result CommandBufferD3D11::Create(ID3D11DeviceContext* precreatedContext) {
 #endif
     }
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 void CommandBufferD3D11::Submit() {
@@ -106,7 +106,7 @@ NRI_INLINE Result CommandBufferD3D11::Begin(const DescriptorPool* descriptorPool
     if (descriptorPool)
         SetDescriptorPool(*descriptorPool);
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 NRI_INLINE Result CommandBufferD3D11::End() {
@@ -115,7 +115,7 @@ NRI_INLINE Result CommandBufferD3D11::End() {
 
     m_BindingState.UnbindAndReset(m_DeferredContext);
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 NRI_INLINE void CommandBufferD3D11::SetViewports(const Viewport* viewports, uint32_t viewportNum) {

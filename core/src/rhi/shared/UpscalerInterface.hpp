@@ -7,7 +7,7 @@ struct Ffx;
 struct Xess;
 struct Ngx;
 
-namespace nri {
+namespace Core::RHI {
 
 bool IsUpscalerSupported(const DeviceInfo& DeviceInfo, UpscalerType type);
 
@@ -42,4 +42,4 @@ private:
 #endif
 };
 
-} // namespace nri
+} // namespace Core::RHI

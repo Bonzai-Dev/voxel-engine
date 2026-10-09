@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct AccelerationStructureVK final : public DebugNameBase {
     inline AccelerationStructureVK(DeviceVK& device)
@@ -68,4 +68,4 @@ private:
     bool m_OwnsNativeObjects = true;
 };
 
-} // namespace nri
+} // namespace Core::RHI

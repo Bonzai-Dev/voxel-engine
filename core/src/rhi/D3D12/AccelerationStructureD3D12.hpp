@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct AccelerationStructureD3D12 final : public DebugNameBase {
     inline AccelerationStructureD3D12(DeviceD3D12& device)
@@ -58,4 +58,4 @@ private:
     AccelerationStructureBits m_Flags = AccelerationStructureBits::NONE;
 };
 
-} // namespace nri
+} // namespace Core::RHI

@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 // Redefine unused values to types, we need
 const D3D12_QUERY_TYPE QUERY_TYPE_ACCELERATION_STRUCTURE_SIZE = (D3D12_QUERY_TYPE)100;
@@ -61,4 +61,4 @@ private:
     ComPtr<ID3D12Resource> m_BufferForAccelerationStructuresSizes;
 };
 
-} // namespace nri
+} // namespace Core::RHI

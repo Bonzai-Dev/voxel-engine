@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct DeviceWGPU final : public DeviceBase {
     DeviceWGPU(const CallbackInterface& callbacks, const AllocationCallbacks& allocationCallbacks);
@@ -53,7 +53,7 @@ struct DeviceWGPU final : public DeviceBase {
         }
 
         Result result = impl->Create(args...);
-        if (result != Result::SUCCESS) {
+        if (result != Result::Success) {
             Destroy(GetAllocationCallbacks(), impl);
             entity = nullptr;
         } else
@@ -95,4 +95,4 @@ private:
     bool m_IsSubgroupsSupported = false;
 };
 
-} // namespace nri
+} // namespace Core::RHI

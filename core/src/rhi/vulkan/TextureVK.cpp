@@ -21,7 +21,7 @@ Result TextureVK::Create(const TextureDesc& textureDesc) {
     VkResult vkResult = vk.CreateImage(m_Device, &info, m_Device.GetVkAllocationCallbacks(), &m_Handle);
     NRI_RETURN_ON_BAD_VKRESULT(&m_Device, vkResult, "vkCreateImage");
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 Result TextureVK::Create(const TextureVKDesc& textureVKDesc) {
@@ -56,7 +56,7 @@ Result TextureVK::Create(const TextureVKDesc& textureVKDesc) {
     m_OwnsNativeObjects = false;
     m_Handle = (VkImage)textureVKDesc.vkImage;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 Result TextureVK::AllocateAndBindMemory(MemoryLocation memoryLocation, float priority, bool committed) {
@@ -89,7 +89,7 @@ Result TextureVK::AllocateAndBindMemory(MemoryLocation memoryLocation, float pri
     vkResult = vmaBindImageMemory(m_Device.GetVma(), m_VmaAllocation, m_Handle);
     NRI_RETURN_ON_BAD_VKRESULT(&m_Device, vkResult, "vmaBindImageMemory");
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 Result TextureVK::BindMemory(const MemoryVK& memory, uint64_t offset) {
@@ -105,7 +105,7 @@ Result TextureVK::BindMemory(const MemoryVK& memory, uint64_t offset) {
     VkResult vkResult = vk.BindImageMemory2(m_Device, 1, &bindImageMemoryInfo);
     NRI_RETURN_ON_BAD_VKRESULT(&m_Device, vkResult, "vkBindImageMemory2");
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 void TextureVK::GetMemoryDesc(MemoryLocation memoryLocation, MemoryDesc& memoryDesc) const {

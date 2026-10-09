@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct PipelineVal final : public ObjectVal {
     PipelineVal(DeviceVal& device, Pipeline* pipeline);
@@ -38,4 +38,4 @@ private:
     bool m_WritesToStencil = false;
 };
 
-} // namespace nri
+} // namespace Core::RHI

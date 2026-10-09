@@ -2,7 +2,7 @@
 
 #include "SharedExternal.h"
 
-using namespace nri;
+using namespace Core::RHI;
 
 template <typename T>
 constexpr T* DummyObject() {
@@ -221,441 +221,441 @@ Result CreateDeviceNONE(const DeviceCreationDesc& desc, DeviceBase*& device) {
 
     device = (DeviceBase*)impl;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 //============================================================================================================================================================================================
 #pragma region[  Core  ]
 
-static const DeviceInfo& NRI_CALL GetDeviceInfo(const Device& device) {
+static const DeviceInfo& GetDeviceInfo(const Device& device) {
     return ((DeviceNONE&)device).GetDesc();
 }
 
-static const BufferDesc& NRI_CALL GetBufferDesc(const Buffer&) {
+static const BufferDesc& GetBufferDesc(const Buffer&) {
     static const BufferDesc bufferDesc = {1};
 
     return bufferDesc;
 }
 
-static const TextureDesc& NRI_CALL GetTextureDesc(const Texture&) {
+static const TextureDesc& GetTextureDesc(const Texture&) {
     static const TextureDesc textureDesc = {TextureType::TEXTURE_1D, TextureUsageBits::NONE, Format::R8_UNORM, 1, 1, 1, 1, 1, 1};
 
     return textureDesc;
 }
 
-static FormatSupportBits NRI_CALL GetFormatSupport(const Device&, Format) {
+static FormatSupportBits GetFormatSupport(const Device&, Format) {
     return (FormatSupportBits)(-1);
 }
 
-static Result NRI_CALL GetQueue(Device&, QueueType, uint32_t, Queue*& queue) {
+static Result GetQueue(Device&, QueueType, uint32_t, Queue*& queue) {
     queue = DummyObject<Queue>();
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
-static Result NRI_CALL CreateCommandAllocator(Queue&, CommandAllocator*& commandAllocator) {
+static Result CreateCommandAllocator(Queue&, CommandAllocator*& commandAllocator) {
     commandAllocator = DummyObject<CommandAllocator>();
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
-static Result NRI_CALL CreateCommandBuffer(CommandAllocator&, CommandBuffer*& commandBuffer) {
+static Result CreateCommandBuffer(CommandAllocator&, CommandBuffer*& commandBuffer) {
     commandBuffer = DummyObject<CommandBuffer>();
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
-static Result NRI_CALL CreateFence(Device&, uint64_t, Fence*& fence) {
+static Result CreateFence(Device&, uint64_t, Fence*& fence) {
     fence = DummyObject<Fence>();
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
-static Result NRI_CALL CreateDescriptorPool(Device&, const DescriptorPoolDesc&, DescriptorPool*& descriptorPool) {
+static Result CreateDescriptorPool(Device&, const DescriptorPoolDesc&, DescriptorPool*& descriptorPool) {
     descriptorPool = DummyObject<DescriptorPool>();
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
-static Result NRI_CALL CreatePipelineLayout(Device&, const PipelineLayoutDesc&, PipelineLayout*& pipelineLayout) {
+static Result CreatePipelineLayout(Device&, const PipelineLayoutDesc&, PipelineLayout*& pipelineLayout) {
     pipelineLayout = DummyObject<PipelineLayout>();
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
-static Result NRI_CALL CreateGraphicsPipeline(Device&, const GraphicsPipelineDesc&, Pipeline*& pipeline) {
+static Result CreateGraphicsPipeline(Device&, const GraphicsPipelineDesc&, Pipeline*& pipeline) {
     pipeline = DummyObject<Pipeline>();
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
-static Result NRI_CALL CreateComputePipeline(Device&, const ComputePipelineDesc&, Pipeline*& pipeline) {
+static Result CreateComputePipeline(Device&, const ComputePipelineDesc&, Pipeline*& pipeline) {
     pipeline = DummyObject<Pipeline>();
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
-static Result NRI_CALL CreatePipelineCache(Device&, const PipelineCacheDesc&, PipelineCache*& pipelineCache) {
+static Result CreatePipelineCache(Device&, const PipelineCacheDesc&, PipelineCache*& pipelineCache) {
     pipelineCache = DummyObject<PipelineCache>();
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
-static Result NRI_CALL CreateQueryPool(Device&, const QueryPoolDesc&, QueryPool*& queryPool) {
+static Result CreateQueryPool(Device&, const QueryPoolDesc&, QueryPool*& queryPool) {
     queryPool = DummyObject<QueryPool>();
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
-static Result NRI_CALL CreateSampler(Device&, const SamplerDesc&, Descriptor*& sampler) {
+static Result CreateSampler(Device&, const SamplerDesc&, Descriptor*& sampler) {
     sampler = DummyObject<Descriptor>();
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
-static Result NRI_CALL CreateBufferView(const BufferViewDesc&, Descriptor*& bufferView) {
+static Result CreateBufferView(const BufferViewDesc&, Descriptor*& bufferView) {
     bufferView = DummyObject<Descriptor>();
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
-static Result NRI_CALL CreateTextureView(const TextureViewDesc&, Descriptor*& textureView) {
+static Result CreateTextureView(const TextureViewDesc&, Descriptor*& textureView) {
     textureView = DummyObject<Descriptor>();
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
-static void NRI_CALL DestroyCommandAllocator(CommandAllocator*) {
+static void DestroyCommandAllocator(CommandAllocator*) {
 }
 
-static void NRI_CALL DestroyCommandBuffer(CommandBuffer*) {
+static void DestroyCommandBuffer(CommandBuffer*) {
 }
 
-static void NRI_CALL DestroyDescriptorPool(DescriptorPool*) {
+static void DestroyDescriptorPool(DescriptorPool*) {
 }
 
-static void NRI_CALL DestroyBuffer(Buffer*) {
+static void DestroyBuffer(Buffer*) {
 }
 
-static void NRI_CALL DestroyTexture(Texture*) {
+static void DestroyTexture(Texture*) {
 }
 
-static void NRI_CALL DestroyDescriptor(Descriptor*) {
+static void DestroyDescriptor(Descriptor*) {
 }
 
-static void NRI_CALL DestroyPipelineLayout(PipelineLayout*) {
+static void DestroyPipelineLayout(PipelineLayout*) {
 }
 
-static void NRI_CALL DestroyPipeline(Pipeline*) {
+static void DestroyPipeline(Pipeline*) {
 }
 
-static void NRI_CALL DestroyPipelineCache(PipelineCache*) {
+static void DestroyPipelineCache(PipelineCache*) {
 }
 
-static Result NRI_CALL GetPipelineCacheData(PipelineCache&, void*, uint64_t& size) {
+static Result GetPipelineCacheData(PipelineCache&, void*, uint64_t& size) {
     size = 0;
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
-static void NRI_CALL DestroyQueryPool(QueryPool*) {
+static void DestroyQueryPool(QueryPool*) {
 }
 
-static void NRI_CALL DestroyFence(Fence*) {
+static void DestroyFence(Fence*) {
 }
 
-static Result NRI_CALL AllocateMemory(Device&, const AllocateMemoryDesc&, Memory*& memory) {
+static Result AllocateMemory(Device&, const AllocateMemoryDesc&, Memory*& memory) {
     memory = DummyObject<Memory>();
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
-static void NRI_CALL FreeMemory(Memory*) {
+static void FreeMemory(Memory*) {
 }
 
-static Result NRI_CALL CreateBuffer(Device&, const BufferDesc&, Buffer*& buffer) {
+static Result CreateBuffer(Device&, const BufferDesc&, Buffer*& buffer) {
     buffer = DummyObject<Buffer>();
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
-static Result NRI_CALL CreateTexture(Device&, const TextureDesc&, Texture*& texture) {
+static Result CreateTexture(Device&, const TextureDesc&, Texture*& texture) {
     texture = DummyObject<Texture>();
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
-static void NRI_CALL GetBufferMemoryDesc(const Buffer&, MemoryLocation, MemoryDesc& memoryDesc) {
+static void GetBufferMemoryDesc(const Buffer&, MemoryLocation, MemoryDesc& memoryDesc) {
     memoryDesc = {1};
 }
 
-static void NRI_CALL GetTextureMemoryDesc(const Texture&, MemoryLocation, MemoryDesc& memoryDesc) {
+static void GetTextureMemoryDesc(const Texture&, MemoryLocation, MemoryDesc& memoryDesc) {
     memoryDesc = {1};
 }
 
-static Result NRI_CALL BindBufferMemory(const BindBufferMemoryDesc*, uint32_t) {
-    return Result::SUCCESS;
+static Result BindBufferMemory(const BindBufferMemoryDesc*, uint32_t) {
+    return Result::Success;
 }
 
-static Result NRI_CALL BindTextureMemory(const BindTextureMemoryDesc*, uint32_t) {
-    return Result::SUCCESS;
+static Result BindTextureMemory(const BindTextureMemoryDesc*, uint32_t) {
+    return Result::Success;
 }
 
-static void NRI_CALL GetBufferMemoryDesc2(const Device&, const BufferDesc&, MemoryLocation, MemoryDesc& memoryDesc) {
+static void GetBufferMemoryDesc2(const Device&, const BufferDesc&, MemoryLocation, MemoryDesc& memoryDesc) {
     memoryDesc = {1};
 }
 
-static void NRI_CALL GetTextureMemoryDesc2(const Device&, const TextureDesc&, MemoryLocation, MemoryDesc& memoryDesc) {
+static void GetTextureMemoryDesc2(const Device&, const TextureDesc&, MemoryLocation, MemoryDesc& memoryDesc) {
     memoryDesc = {1};
 }
 
-static Result NRI_CALL CreateCommittedBuffer(Device&, MemoryLocation, float, const BufferDesc&, Buffer*& buffer) {
+static Result CreateCommittedBuffer(Device&, MemoryLocation, float, const BufferDesc&, Buffer*& buffer) {
     buffer = DummyObject<Buffer>();
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
-static Result NRI_CALL CreateCommittedTexture(Device&, MemoryLocation, float, const TextureDesc&, Texture*& texture) {
+static Result CreateCommittedTexture(Device&, MemoryLocation, float, const TextureDesc&, Texture*& texture) {
     texture = DummyObject<Texture>();
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
-static Result NRI_CALL CreatePlacedBuffer(Device&, Memory*, uint64_t, const BufferDesc&, Buffer*& buffer) {
+static Result CreatePlacedBuffer(Device&, Memory*, uint64_t, const BufferDesc&, Buffer*& buffer) {
     buffer = DummyObject<Buffer>();
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
-static Result NRI_CALL CreatePlacedTexture(Device&, Memory*, uint64_t, const TextureDesc&, Texture*& texture) {
+static Result CreatePlacedTexture(Device&, Memory*, uint64_t, const TextureDesc&, Texture*& texture) {
     texture = DummyObject<Texture>();
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
-static Result NRI_CALL AllocateDescriptorSets(DescriptorPool&, const PipelineLayout&, uint32_t, DescriptorSet**, uint32_t, uint32_t) {
-    return Result::SUCCESS;
+static Result AllocateDescriptorSets(DescriptorPool&, const PipelineLayout&, uint32_t, DescriptorSet**, uint32_t, uint32_t) {
+    return Result::Success;
 }
 
-static void NRI_CALL UpdateDescriptorRanges(const UpdateDescriptorRangeDesc*, uint32_t) {
+static void UpdateDescriptorRanges(const UpdateDescriptorRangeDesc*, uint32_t) {
 }
 
-static void NRI_CALL CopyDescriptorRanges(const CopyDescriptorRangeDesc*, uint32_t) {
+static void CopyDescriptorRanges(const CopyDescriptorRangeDesc*, uint32_t) {
 }
 
-static void NRI_CALL ResetDescriptorPool(DescriptorPool&) {
+static void ResetDescriptorPool(DescriptorPool&) {
 }
 
-static void NRI_CALL GetDescriptorSetOffsets(const DescriptorSet&, uint32_t& resourceHeapOffset, uint32_t& samplerHeapOffset) {
+static void GetDescriptorSetOffsets(const DescriptorSet&, uint32_t& resourceHeapOffset, uint32_t& samplerHeapOffset) {
     resourceHeapOffset = 0;
     samplerHeapOffset = 0;
 }
 
-static Result NRI_CALL BeginCommandBuffer(CommandBuffer&, const DescriptorPool*) {
-    return Result::SUCCESS;
+static Result BeginCommandBuffer(CommandBuffer&, const DescriptorPool*) {
+    return Result::Success;
 }
 
-static void NRI_CALL CmdSetDescriptorPool(CommandBuffer&, const DescriptorPool&) {
+static void CmdSetDescriptorPool(CommandBuffer&, const DescriptorPool&) {
 }
 
-static void NRI_CALL CmdSetPipelineLayout(CommandBuffer&, BindPoint, const PipelineLayout&) {
+static void CmdSetPipelineLayout(CommandBuffer&, BindPoint, const PipelineLayout&) {
 }
 
-static void NRI_CALL CmdSetDescriptorSet(CommandBuffer&, const SetDescriptorSetDesc&) {
+static void CmdSetDescriptorSet(CommandBuffer&, const SetDescriptorSetDesc&) {
 }
 
-static void NRI_CALL CmdSetRootConstants(CommandBuffer&, const SetRootConstantsDesc&) {
+static void CmdSetRootConstants(CommandBuffer&, const SetRootConstantsDesc&) {
 }
 
-static void NRI_CALL CmdSetRootDescriptor(CommandBuffer&, const SetRootDescriptorDesc&) {
+static void CmdSetRootDescriptor(CommandBuffer&, const SetRootDescriptorDesc&) {
 }
 
-static void NRI_CALL CmdSetPipeline(CommandBuffer&, const Pipeline&) {
+static void CmdSetPipeline(CommandBuffer&, const Pipeline&) {
 }
 
-static void NRI_CALL CmdBarrier(CommandBuffer&, const BarrierDesc&) {
+static void CmdBarrier(CommandBuffer&, const BarrierDesc&) {
 }
 
-static void NRI_CALL CmdSetIndexBuffer(CommandBuffer&, const Buffer&, uint64_t, IndexType) {
+static void CmdSetIndexBuffer(CommandBuffer&, const Buffer&, uint64_t, IndexType) {
 }
 
-static void NRI_CALL CmdSetVertexBuffers(CommandBuffer&, uint32_t, const VertexBufferDesc*, uint32_t) {
+static void CmdSetVertexBuffers(CommandBuffer&, uint32_t, const VertexBufferDesc*, uint32_t) {
 }
 
-static void NRI_CALL CmdSetViewports(CommandBuffer&, const Viewport*, uint32_t) {
+static void CmdSetViewports(CommandBuffer&, const Viewport*, uint32_t) {
 }
 
-static void NRI_CALL CmdSetScissors(CommandBuffer&, const Rect*, uint32_t) {
+static void CmdSetScissors(CommandBuffer&, const Rect*, uint32_t) {
 }
 
-static void NRI_CALL CmdSetStencilReference(CommandBuffer&, uint8_t, uint8_t) {
+static void CmdSetStencilReference(CommandBuffer&, uint8_t, uint8_t) {
 }
 
-static void NRI_CALL CmdSetDepthBounds(CommandBuffer&, float, float) {
+static void CmdSetDepthBounds(CommandBuffer&, float, float) {
 }
 
-static void NRI_CALL CmdSetBlendConstants(CommandBuffer&, const Color32f&) {
+static void CmdSetBlendConstants(CommandBuffer&, const Color32f&) {
 }
 
-static void NRI_CALL CmdSetSampleLocations(CommandBuffer&, const SampleLocation*, Sample_t, Sample_t) {
+static void CmdSetSampleLocations(CommandBuffer&, const SampleLocation*, Sample_t, Sample_t) {
 }
 
-static void NRI_CALL CmdSetShadingRate(CommandBuffer&, const ShadingRateDesc&) {
+static void CmdSetShadingRate(CommandBuffer&, const ShadingRateDesc&) {
 }
 
-static void NRI_CALL CmdSetDepthBias(CommandBuffer&, const DepthBiasDesc&) {
+static void CmdSetDepthBias(CommandBuffer&, const DepthBiasDesc&) {
 }
 
-static void NRI_CALL CmdBeginRendering(CommandBuffer&, const RenderingDesc&) {
+static void CmdBeginRendering(CommandBuffer&, const RenderingDesc&) {
 }
 
-static void NRI_CALL CmdClearAttachments(CommandBuffer&, const ClearAttachmentDesc*, uint32_t, const Rect*, uint32_t) {
+static void CmdClearAttachments(CommandBuffer&, const ClearAttachmentDesc*, uint32_t, const Rect*, uint32_t) {
 }
 
-static void NRI_CALL CmdDraw(CommandBuffer&, const DrawDesc&) {
+static void CmdDraw(CommandBuffer&, const DrawDesc&) {
 }
 
-static void NRI_CALL CmdDrawIndexed(CommandBuffer&, const DrawIndexedDesc&) {
+static void CmdDrawIndexed(CommandBuffer&, const DrawIndexedDesc&) {
 }
 
-static void NRI_CALL CmdDrawIndirect(CommandBuffer&, const Buffer&, uint64_t, uint32_t, uint32_t, const Buffer*, uint64_t) {
+static void CmdDrawIndirect(CommandBuffer&, const Buffer&, uint64_t, uint32_t, uint32_t, const Buffer*, uint64_t) {
 }
 
-static void NRI_CALL CmdDrawIndexedIndirect(CommandBuffer&, const Buffer&, uint64_t, uint32_t, uint32_t, const Buffer*, uint64_t) {
+static void CmdDrawIndexedIndirect(CommandBuffer&, const Buffer&, uint64_t, uint32_t, uint32_t, const Buffer*, uint64_t) {
 }
 
-static void NRI_CALL CmdEndRendering(CommandBuffer&) {
+static void CmdEndRendering(CommandBuffer&) {
 }
 
-static void NRI_CALL CmdDispatch(CommandBuffer&, const DispatchDesc&) {
+static void CmdDispatch(CommandBuffer&, const DispatchDesc&) {
 }
 
-static void NRI_CALL CmdDispatchIndirect(CommandBuffer&, const Buffer&, uint64_t) {
+static void CmdDispatchIndirect(CommandBuffer&, const Buffer&, uint64_t) {
 }
 
-static void NRI_CALL CmdCopyBuffer(CommandBuffer&, Buffer&, uint64_t, const Buffer&, uint64_t, uint64_t) {
+static void CmdCopyBuffer(CommandBuffer&, Buffer&, uint64_t, const Buffer&, uint64_t, uint64_t) {
 }
 
-static void NRI_CALL CmdCopyTexture(CommandBuffer&, Texture&, const TextureRegionDesc*, const Texture&, const TextureRegionDesc*) {
+static void CmdCopyTexture(CommandBuffer&, Texture&, const TextureRegionDesc*, const Texture&, const TextureRegionDesc*) {
 }
 
-static void NRI_CALL CmdUploadBufferToTexture(CommandBuffer&, Texture&, const TextureRegionDesc&, const Buffer&, const TextureDataLayoutDesc&) {
+static void CmdUploadBufferToTexture(CommandBuffer&, Texture&, const TextureRegionDesc&, const Buffer&, const TextureDataLayoutDesc&) {
 }
 
-static void NRI_CALL CmdReadbackTextureToBuffer(CommandBuffer&, Buffer&, const TextureDataLayoutDesc&, const Texture&, const TextureRegionDesc&) {
+static void CmdReadbackTextureToBuffer(CommandBuffer&, Buffer&, const TextureDataLayoutDesc&, const Texture&, const TextureRegionDesc&) {
 }
 
-static void NRI_CALL CmdZeroBuffer(CommandBuffer&, Buffer&, uint64_t, uint64_t) {
+static void CmdZeroBuffer(CommandBuffer&, Buffer&, uint64_t, uint64_t) {
 }
 
-static void NRI_CALL CmdResolveTexture(CommandBuffer&, Texture&, const TextureRegionDesc*, const Texture&, const TextureRegionDesc*, ResolveOp) {
+static void CmdResolveTexture(CommandBuffer&, Texture&, const TextureRegionDesc*, const Texture&, const TextureRegionDesc*, ResolveOp) {
 }
 
-static void NRI_CALL CmdClearStorage(CommandBuffer&, const ClearStorageDesc&) {
+static void CmdClearStorage(CommandBuffer&, const ClearStorageDesc&) {
 }
 
-static void NRI_CALL CmdResetQueries(CommandBuffer&, QueryPool&, uint32_t, uint32_t) {
+static void CmdResetQueries(CommandBuffer&, QueryPool&, uint32_t, uint32_t) {
 }
 
-static void NRI_CALL CmdBeginQuery(CommandBuffer&, QueryPool&, uint32_t) {
+static void CmdBeginQuery(CommandBuffer&, QueryPool&, uint32_t) {
 }
 
-static void NRI_CALL CmdEndQuery(CommandBuffer&, QueryPool&, uint32_t) {
+static void CmdEndQuery(CommandBuffer&, QueryPool&, uint32_t) {
 }
 
-static void NRI_CALL CmdCopyQueries(CommandBuffer&, const QueryPool&, uint32_t, uint32_t, Buffer&, uint64_t) {
+static void CmdCopyQueries(CommandBuffer&, const QueryPool&, uint32_t, uint32_t, Buffer&, uint64_t) {
 }
 
-static void NRI_CALL CmdBeginAnnotation(CommandBuffer&, const char*, uint32_t) {
+static void CmdBeginAnnotation(CommandBuffer&, const char*, uint32_t) {
 }
 
-static void NRI_CALL CmdEndAnnotation(CommandBuffer&) {
+static void CmdEndAnnotation(CommandBuffer&) {
 }
 
-static void NRI_CALL CmdAnnotation(CommandBuffer&, const char*, uint32_t) {
+static void CmdAnnotation(CommandBuffer&, const char*, uint32_t) {
 }
 
-static Result NRI_CALL EndCommandBuffer(CommandBuffer&) {
-    return Result::SUCCESS;
+static Result EndCommandBuffer(CommandBuffer&) {
+    return Result::Success;
 }
 
-static void NRI_CALL QueueBeginAnnotation(Queue&, const char*, uint32_t) {
+static void QueueBeginAnnotation(Queue&, const char*, uint32_t) {
 }
 
-static void NRI_CALL QueueEndAnnotation(Queue&) {
+static void QueueEndAnnotation(Queue&) {
 }
 
-static void NRI_CALL QueueAnnotation(Queue&, const char*, uint32_t) {
+static void QueueAnnotation(Queue&, const char*, uint32_t) {
 }
 
-static void NRI_CALL GetCalibratedTimestamps(Queue&, uint64_t& timestampGPU, uint64_t& timestampCPU) {
+static void GetCalibratedTimestamps(Queue&, uint64_t& timestampGPU, uint64_t& timestampCPU) {
     timestampGPU = 0;
     timestampCPU = 0;
 }
 
-static void NRI_CALL ResetQueries(QueryPool&, uint32_t, uint32_t) {
+static void ResetQueries(QueryPool&, uint32_t, uint32_t) {
 }
 
-static uint32_t NRI_CALL GetQuerySize(const QueryPool&) {
+static uint32_t GetQuerySize(const QueryPool&) {
     return 0;
 }
 
-static Result NRI_CALL QueueSubmit(Queue&, const QueueSubmitDesc&) {
-    return Result::SUCCESS;
+static Result QueueSubmit(Queue&, const QueueSubmitDesc&) {
+    return Result::Success;
 }
 
-static Result NRI_CALL DeviceWaitIdle(Device*) {
-    return Result::SUCCESS;
+static Result DeviceWaitIdle(Device*) {
+    return Result::Success;
 }
 
-static Result NRI_CALL QueueWaitIdle(Queue*) {
-    return Result::SUCCESS;
+static Result QueueWaitIdle(Queue*) {
+    return Result::Success;
 }
 
-static void NRI_CALL Wait(Fence&, uint64_t) {
+static void Wait(Fence&, uint64_t) {
 }
 
-static uint64_t NRI_CALL GetFenceValue(Fence&) {
+static uint64_t GetFenceValue(Fence&) {
     return 0;
 }
 
-static void NRI_CALL ResetCommandAllocator(CommandAllocator&) {
+static void ResetCommandAllocator(CommandAllocator&) {
 }
 
-static void* NRI_CALL MapBuffer(Buffer&, uint64_t, uint64_t) {
+static void* MapBuffer(Buffer&, uint64_t, uint64_t) {
     return nullptr;
 }
 
-static void NRI_CALL UnmapBuffer(Buffer&) {
+static void UnmapBuffer(Buffer&) {
 }
 
-static uint64_t NRI_CALL GetBufferDeviceAddress(const Buffer&) {
+static uint64_t GetBufferDeviceAddress(const Buffer&) {
     return 0;
 }
 
-static void NRI_CALL SetDebugName(Object*, const char*) {
+static void SetDebugName(Object*, const char*) {
 }
 
-static void* NRI_CALL GetDeviceNativeObject(const Device*) {
+static void* GetDeviceNativeObject(const Device*) {
     return nullptr;
 }
 
-static void* NRI_CALL GetQueueNativeObject(const Queue*) {
+static void* GetQueueNativeObject(const Queue*) {
     return nullptr;
 }
 
-static void* NRI_CALL GetCommandBufferNativeObject(const CommandBuffer*) {
+static void* GetCommandBufferNativeObject(const CommandBuffer*) {
     return nullptr;
 }
 
-static uint64_t NRI_CALL GetBufferNativeObject(const Buffer*) {
+static uint64_t GetBufferNativeObject(const Buffer*) {
     return 0;
 }
 
-static uint64_t NRI_CALL GetTextureNativeObject(const Texture*) {
+static uint64_t GetTextureNativeObject(const Texture*) {
     return 0;
 }
 
-static uint64_t NRI_CALL GetDescriptorNativeObject(const Descriptor*) {
+static uint64_t GetDescriptorNativeObject(const Descriptor*) {
     return 0;
 }
 
@@ -773,7 +773,7 @@ Result DeviceNONE::FillFunctionTable(CoreInterface& table) const {
     table.GetTextureNativeObject = ::GetTextureNativeObject;
     table.GetDescriptorNativeObject = ::GetDescriptorNativeObject;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 #pragma endregion
@@ -781,22 +781,22 @@ Result DeviceNONE::FillFunctionTable(CoreInterface& table) const {
 //============================================================================================================================================================================================
 #pragma region[  Helper  ]
 
-static uint32_t NRI_CALL CalculateAllocationNumber(const Device&, const ResourceGroupDesc&) {
+static uint32_t CalculateAllocationNumber(const Device&, const ResourceGroupDesc&) {
     return 0;
 }
 
-static Result NRI_CALL AllocateAndBindMemory(Device&, const ResourceGroupDesc&, Memory**) {
-    return Result::SUCCESS;
+static Result AllocateAndBindMemory(Device&, const ResourceGroupDesc&, Memory**) {
+    return Result::Success;
 }
 
-static Result NRI_CALL UploadData(Queue&, const TextureUploadDesc*, uint32_t, const BufferUploadDesc*, uint32_t) {
-    return Result::SUCCESS;
+static Result UploadData(Queue&, const TextureUploadDesc*, uint32_t, const BufferUploadDesc*, uint32_t) {
+    return Result::Success;
 }
 
-static Result NRI_CALL QueryVideoMemoryInfo(const Device&, MemoryLocation, VideoMemoryInfo& videoMemoryInfo) {
+static Result QueryVideoMemoryInfo(const Device&, MemoryLocation, VideoMemoryInfo& videoMemoryInfo) {
     videoMemoryInfo = {};
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 Result DeviceNONE::FillFunctionTable(HelperInterface& table) const {
@@ -805,7 +805,7 @@ Result DeviceNONE::FillFunctionTable(HelperInterface& table) const {
     table.UploadData = ::UploadData;
     table.QueryVideoMemoryInfo = ::QueryVideoMemoryInfo;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 #pragma endregion
@@ -815,19 +815,19 @@ Result DeviceNONE::FillFunctionTable(HelperInterface& table) const {
 
 #if NRI_ENABLE_IMGUI_EXTENSION
 
-static Result NRI_CALL CreateImgui(Device&, const ImguiDesc&, Imgui*& imgui) {
+static Result CreateImgui(Device&, const ImguiDesc&, Imgui*& imgui) {
     imgui = DummyObject<Imgui>();
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
-static void NRI_CALL DestroyImgui(Imgui*) {
+static void DestroyImgui(Imgui*) {
 }
 
-static void NRI_CALL CmdCopyImguiData(CommandBuffer&, Streamer&, Imgui&, const CopyImguiDataDesc&) {
+static void CmdCopyImguiData(CommandBuffer&, Streamer&, Imgui&, const CopyImguiDataDesc&) {
 }
 
-static void NRI_CALL CmdDrawImgui(CommandBuffer&, Imgui&, const DrawImguiDesc&) {
+static void CmdDrawImgui(CommandBuffer&, Imgui&, const DrawImguiDesc&) {
 }
 
 Result DeviceNONE::FillFunctionTable(ImguiInterface& table) const {
@@ -836,7 +836,7 @@ Result DeviceNONE::FillFunctionTable(ImguiInterface& table) const {
     table.CmdCopyImguiData = ::CmdCopyImguiData;
     table.CmdDrawImgui = ::CmdDrawImgui;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 #endif
@@ -846,20 +846,20 @@ Result DeviceNONE::FillFunctionTable(ImguiInterface& table) const {
 //============================================================================================================================================================================================
 #pragma region[  LowLatency  ]
 
-static Result NRI_CALL SetLatencySleepMode(SwapChain&, const LatencySleepMode&) {
-    return Result::SUCCESS;
+static Result SetLatencySleepMode(SwapChain&, const LatencySleepMode&) {
+    return Result::Success;
 }
 
-static Result NRI_CALL SetLatencyMarker(SwapChain&, LatencyMarker) {
-    return Result::SUCCESS;
+static Result SetLatencyMarker(SwapChain&, LatencyMarker) {
+    return Result::Success;
 }
 
-static Result NRI_CALL LatencySleep(SwapChain&) {
-    return Result::SUCCESS;
+static Result LatencySleep(SwapChain&) {
+    return Result::Success;
 }
 
-static Result NRI_CALL GetLatencyReport(const SwapChain&, LatencyReport&) {
-    return Result::SUCCESS;
+static Result GetLatencyReport(const SwapChain&, LatencyReport&) {
+    return Result::Success;
 }
 
 Result DeviceNONE::FillFunctionTable(LowLatencyInterface& table) const {
@@ -868,7 +868,7 @@ Result DeviceNONE::FillFunctionTable(LowLatencyInterface& table) const {
     table.LatencySleep = ::LatencySleep;
     table.GetLatencyReport = ::GetLatencyReport;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 #pragma endregion
@@ -876,17 +876,17 @@ Result DeviceNONE::FillFunctionTable(LowLatencyInterface& table) const {
 //============================================================================================================================================================================================
 #pragma region[  MeshShader  ]
 
-static void NRI_CALL CmdDrawMeshTasks(CommandBuffer&, const DrawMeshTasksDesc&) {
+static void CmdDrawMeshTasks(CommandBuffer&, const DrawMeshTasksDesc&) {
 }
 
-static void NRI_CALL CmdDrawMeshTasksIndirect(CommandBuffer&, const Buffer&, uint64_t, uint32_t, uint32_t, const Buffer*, uint64_t) {
+static void CmdDrawMeshTasksIndirect(CommandBuffer&, const Buffer&, uint64_t, uint32_t, uint32_t, const Buffer*, uint64_t) {
 }
 
 Result DeviceNONE::FillFunctionTable(MeshShaderInterface& table) const {
     table.CmdDrawMeshTasks = ::CmdDrawMeshTasks;
     table.CmdDrawMeshTasksIndirect = ::CmdDrawMeshTasksIndirect;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 #pragma endregion
@@ -894,144 +894,144 @@ Result DeviceNONE::FillFunctionTable(MeshShaderInterface& table) const {
 //============================================================================================================================================================================================
 #pragma region[  RayTracing  ]
 
-static Result NRI_CALL CreateRayTracingPipeline(Device&, const RayTracingPipelineDesc&, Pipeline*& pipeline) {
+static Result CreateRayTracingPipeline(Device&, const RayTracingPipelineDesc&, Pipeline*& pipeline) {
     pipeline = DummyObject<Pipeline>();
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
-static Result NRI_CALL CreateAccelerationStructureDescriptor(const AccelerationStructure&, Descriptor*& descriptor) {
+static Result CreateAccelerationStructureDescriptor(const AccelerationStructure&, Descriptor*& descriptor) {
     descriptor = DummyObject<Descriptor>();
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
-static uint64_t NRI_CALL GetAccelerationStructureHandle(const AccelerationStructure&) {
+static uint64_t GetAccelerationStructureHandle(const AccelerationStructure&) {
     return 0;
 }
 
-static uint64_t NRI_CALL GetAccelerationStructureUpdateScratchBufferSize(const AccelerationStructure&) {
+static uint64_t GetAccelerationStructureUpdateScratchBufferSize(const AccelerationStructure&) {
     return 0;
 }
 
-static uint64_t NRI_CALL GetAccelerationStructureBuildScratchBufferSize(const AccelerationStructure&) {
+static uint64_t GetAccelerationStructureBuildScratchBufferSize(const AccelerationStructure&) {
     return 0;
 }
 
-static uint64_t NRI_CALL GetMicromapBuildScratchBufferSize(const Micromap&) {
+static uint64_t GetMicromapBuildScratchBufferSize(const Micromap&) {
     return 0;
 }
 
-static Buffer* NRI_CALL GetAccelerationStructureBuffer(const AccelerationStructure&) {
+static Buffer* GetAccelerationStructureBuffer(const AccelerationStructure&) {
     return DummyObject<Buffer>();
 }
 
-static Buffer* NRI_CALL GetMicromapBuffer(const Micromap&) {
+static Buffer* GetMicromapBuffer(const Micromap&) {
     return DummyObject<Buffer>();
 }
 
-static void NRI_CALL DestroyAccelerationStructure(AccelerationStructure*) {
+static void DestroyAccelerationStructure(AccelerationStructure*) {
 }
 
-static void NRI_CALL DestroyMicromap(Micromap*) {
+static void DestroyMicromap(Micromap*) {
 }
 
-static Result NRI_CALL CreateAccelerationStructure(Device&, const AccelerationStructureDesc&, AccelerationStructure*& accelerationStructure) {
+static Result CreateAccelerationStructure(Device&, const AccelerationStructureDesc&, AccelerationStructure*& accelerationStructure) {
     accelerationStructure = DummyObject<AccelerationStructure>();
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
-static Result NRI_CALL CreateMicromap(Device&, const MicromapDesc&, Micromap*& micromap) {
+static Result CreateMicromap(Device&, const MicromapDesc&, Micromap*& micromap) {
     micromap = DummyObject<Micromap>();
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
-static void NRI_CALL GetAccelerationStructureMemoryDesc(const AccelerationStructure&, MemoryLocation, MemoryDesc& memoryDesc) {
+static void GetAccelerationStructureMemoryDesc(const AccelerationStructure&, MemoryLocation, MemoryDesc& memoryDesc) {
     memoryDesc = {1};
 }
 
-static void NRI_CALL GetMicromapMemoryDesc(const Micromap&, MemoryLocation, MemoryDesc& memoryDesc) {
+static void GetMicromapMemoryDesc(const Micromap&, MemoryLocation, MemoryDesc& memoryDesc) {
     memoryDesc = {1};
 }
 
-static Result NRI_CALL BindAccelerationStructureMemory(const BindAccelerationStructureMemoryDesc*, uint32_t) {
-    return Result::SUCCESS;
+static Result BindAccelerationStructureMemory(const BindAccelerationStructureMemoryDesc*, uint32_t) {
+    return Result::Success;
 }
 
-static Result NRI_CALL BindMicromapMemory(const BindMicromapMemoryDesc*, uint32_t) {
-    return Result::SUCCESS;
+static Result BindMicromapMemory(const BindMicromapMemoryDesc*, uint32_t) {
+    return Result::Success;
 }
 
-static void NRI_CALL GetAccelerationStructureMemoryDesc2(const Device&, const AccelerationStructureDesc&, MemoryLocation, MemoryDesc& memoryDesc) {
+static void GetAccelerationStructureMemoryDesc2(const Device&, const AccelerationStructureDesc&, MemoryLocation, MemoryDesc& memoryDesc) {
     memoryDesc = {1};
 }
 
-static void NRI_CALL GetMicromapMemoryDesc2(const Device&, const MicromapDesc&, MemoryLocation, MemoryDesc& memoryDesc) {
+static void GetMicromapMemoryDesc2(const Device&, const MicromapDesc&, MemoryLocation, MemoryDesc& memoryDesc) {
     memoryDesc = {1};
 }
 
-static Result NRI_CALL CreateCommittedAccelerationStructure(Device&, MemoryLocation, float, const AccelerationStructureDesc&, AccelerationStructure*& accelerationStructure) {
+static Result CreateCommittedAccelerationStructure(Device&, MemoryLocation, float, const AccelerationStructureDesc&, AccelerationStructure*& accelerationStructure) {
     accelerationStructure = DummyObject<AccelerationStructure>();
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
-static Result NRI_CALL CreateCommittedMicromap(Device&, MemoryLocation, float, const MicromapDesc&, Micromap*& micromap) {
+static Result CreateCommittedMicromap(Device&, MemoryLocation, float, const MicromapDesc&, Micromap*& micromap) {
     micromap = DummyObject<Micromap>();
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
-static Result NRI_CALL CreatePlacedAccelerationStructure(Device&, Memory*, uint64_t, const AccelerationStructureDesc&, AccelerationStructure*& accelerationStructure) {
+static Result CreatePlacedAccelerationStructure(Device&, Memory*, uint64_t, const AccelerationStructureDesc&, AccelerationStructure*& accelerationStructure) {
     accelerationStructure = DummyObject<AccelerationStructure>();
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
-static Result NRI_CALL CreatePlacedMicromap(Device&, Memory*, uint64_t, const MicromapDesc&, Micromap*& micromap) {
+static Result CreatePlacedMicromap(Device&, Memory*, uint64_t, const MicromapDesc&, Micromap*& micromap) {
     micromap = DummyObject<Micromap>();
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
-static Result NRI_CALL WriteShaderGroupIdentifiers(const Pipeline&, uint32_t, uint32_t, void*) {
-    return Result::SUCCESS;
+static Result WriteShaderGroupIdentifiers(const Pipeline&, uint32_t, uint32_t, void*) {
+    return Result::Success;
 }
 
-static void NRI_CALL CmdBuildTopLevelAccelerationStructures(CommandBuffer&, const BuildTopLevelAccelerationStructureDesc*, uint32_t) {
+static void CmdBuildTopLevelAccelerationStructures(CommandBuffer&, const BuildTopLevelAccelerationStructureDesc*, uint32_t) {
 }
 
-static void NRI_CALL CmdBuildBottomLevelAccelerationStructures(CommandBuffer&, const BuildBottomLevelAccelerationStructureDesc*, uint32_t) {
+static void CmdBuildBottomLevelAccelerationStructures(CommandBuffer&, const BuildBottomLevelAccelerationStructureDesc*, uint32_t) {
 }
 
-static void NRI_CALL CmdBuildMicromaps(CommandBuffer&, const BuildMicromapDesc*, uint32_t) {
+static void CmdBuildMicromaps(CommandBuffer&, const BuildMicromapDesc*, uint32_t) {
 }
 
-static void NRI_CALL CmdDispatchRays(CommandBuffer&, const DispatchRaysDesc&) {
+static void CmdDispatchRays(CommandBuffer&, const DispatchRaysDesc&) {
 }
 
-static void NRI_CALL CmdDispatchRaysIndirect(CommandBuffer&, const Buffer&, uint64_t) {
+static void CmdDispatchRaysIndirect(CommandBuffer&, const Buffer&, uint64_t) {
 }
 
-static void NRI_CALL CmdWriteAccelerationStructuresSizes(CommandBuffer&, const AccelerationStructure* const*, uint32_t, QueryPool&, uint32_t) {
+static void CmdWriteAccelerationStructuresSizes(CommandBuffer&, const AccelerationStructure* const*, uint32_t, QueryPool&, uint32_t) {
 }
 
-static void NRI_CALL CmdWriteMicromapsSizes(CommandBuffer&, const Micromap* const*, uint32_t, QueryPool&, uint32_t) {
+static void CmdWriteMicromapsSizes(CommandBuffer&, const Micromap* const*, uint32_t, QueryPool&, uint32_t) {
 }
 
-static void NRI_CALL CmdCopyAccelerationStructure(CommandBuffer&, AccelerationStructure&, const AccelerationStructure&, CopyMode) {
+static void CmdCopyAccelerationStructure(CommandBuffer&, AccelerationStructure&, const AccelerationStructure&, CopyMode) {
 }
 
-static void NRI_CALL CmdCopyMicromap(CommandBuffer&, Micromap&, const Micromap&, CopyMode) {
+static void CmdCopyMicromap(CommandBuffer&, Micromap&, const Micromap&, CopyMode) {
 }
 
-static uint64_t NRI_CALL GetAccelerationStructureNativeObject(const AccelerationStructure*) {
+static uint64_t GetAccelerationStructureNativeObject(const AccelerationStructure*) {
     return 0;
 }
 
-static uint64_t NRI_CALL GetMicromapNativeObject(const Micromap*) {
+static uint64_t GetMicromapNativeObject(const Micromap*) {
     return 0;
 }
 
@@ -1071,7 +1071,7 @@ Result DeviceNONE::FillFunctionTable(RayTracingInterface& table) const {
     table.GetAccelerationStructureNativeObject = ::GetAccelerationStructureNativeObject;
     table.GetMicromapNativeObject = ::GetMicromapNativeObject;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 #pragma endregion
@@ -1079,35 +1079,35 @@ Result DeviceNONE::FillFunctionTable(RayTracingInterface& table) const {
 //============================================================================================================================================================================================
 #pragma region[  Streamer  ]
 
-static Result NRI_CALL CreateStreamer(Device&, const StreamerDesc&, Streamer*& streamer) {
+static Result CreateStreamer(Device&, const StreamerDesc&, Streamer*& streamer) {
     streamer = DummyObject<Streamer>();
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
-static void NRI_CALL DestroyStreamer(Streamer*) {
+static void DestroyStreamer(Streamer*) {
 }
 
-static Buffer* NRI_CALL GetStreamerConstantBuffer(Streamer&) {
+static Buffer* GetStreamerConstantBuffer(Streamer&) {
     return nullptr;
 }
 
-static uint32_t NRI_CALL StreamConstantData(Streamer&, const void*, uint32_t) {
+static uint32_t StreamConstantData(Streamer&, const void*, uint32_t) {
     return 0;
 }
 
-static BufferOffset NRI_CALL StreamBufferData(Streamer&, const StreamBufferDataDesc&) {
+static BufferOffset StreamBufferData(Streamer&, const StreamBufferDataDesc&) {
     return {};
 }
 
-static BufferOffset NRI_CALL StreamTextureData(Streamer&, const StreamTextureDataDesc&) {
+static BufferOffset StreamTextureData(Streamer&, const StreamTextureDataDesc&) {
     return {};
 }
 
-static void NRI_CALL EndStreamerFrame(Streamer&) {
+static void EndStreamerFrame(Streamer&) {
 }
 
-static void NRI_CALL CmdCopyStreamedData(CommandBuffer&, Streamer&) {
+static void CmdCopyStreamedData(CommandBuffer&, Streamer&) {
 }
 
 Result DeviceNONE::FillFunctionTable(StreamerInterface& table) const {
@@ -1120,7 +1120,7 @@ Result DeviceNONE::FillFunctionTable(StreamerInterface& table) const {
     table.EndStreamerFrame = ::EndStreamerFrame;
     table.CmdCopyStreamedData = ::CmdCopyStreamedData;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 #pragma endregion
@@ -1128,40 +1128,40 @@ Result DeviceNONE::FillFunctionTable(StreamerInterface& table) const {
 //============================================================================================================================================================================================
 #pragma region[  SwapChain  ]
 
-static Result NRI_CALL CreateSwapChain(Device&, const SwapChainDesc&, SwapChain*& swapChain) {
+static Result CreateSwapChain(Device&, const SwapChainDesc&, SwapChain*& swapChain) {
     swapChain = DummyObject<SwapChain>();
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
-static void NRI_CALL DestroySwapChain(SwapChain*) {
+static void DestroySwapChain(SwapChain*) {
 }
 
-static Texture* const* NRI_CALL GetSwapChainTextures(const SwapChain&, uint32_t& textureNum) {
+static Texture* const* GetSwapChainTextures(const SwapChain&, uint32_t& textureNum) {
     static const void* textures[1] = {};
     textureNum = 1;
 
     return (Texture**)textures;
 }
 
-static Result NRI_CALL GetDisplayDesc(SwapChain&, DisplayDesc& displayDesc) {
+static Result GetDisplayDesc(SwapChain&, DisplayDesc& displayDesc) {
     displayDesc = {};
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
-static Result NRI_CALL AcquireNextTexture(SwapChain&, Fence&, uint32_t& textureIndex) {
+static Result AcquireNextTexture(SwapChain&, Fence&, uint32_t& textureIndex) {
     textureIndex = 0;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
-static Result NRI_CALL WaitForPresent(SwapChain&) {
-    return Result::SUCCESS;
+static Result WaitForPresent(SwapChain&) {
+    return Result::Success;
 }
 
-static Result NRI_CALL QueuePresent(SwapChain&, Fence&) {
-    return Result::SUCCESS;
+static Result QueuePresent(SwapChain&, Fence&) {
+    return Result::Success;
 }
 
 Result DeviceNONE::FillFunctionTable(SwapChainInterface& table) const {
@@ -1173,7 +1173,7 @@ Result DeviceNONE::FillFunctionTable(SwapChainInterface& table) const {
     table.WaitForPresent = ::WaitForPresent;
     table.QueuePresent = ::QueuePresent;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 #pragma endregion
@@ -1181,24 +1181,24 @@ Result DeviceNONE::FillFunctionTable(SwapChainInterface& table) const {
 //============================================================================================================================================================================================
 #pragma region[  Upscaler  ]
 
-static Result NRI_CALL CreateUpscaler(Device&, const UpscalerDesc&, Upscaler*& upscaler) {
+static Result CreateUpscaler(Device&, const UpscalerDesc&, Upscaler*& upscaler) {
     upscaler = DummyObject<Upscaler>();
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
-static void NRI_CALL DestroyUpscaler(Upscaler*) {
+static void DestroyUpscaler(Upscaler*) {
 }
 
-static bool NRI_CALL IsUpscalerSupported(const Device&, UpscalerType) {
+static bool IsUpscalerSupported(const Device&, UpscalerType) {
     return true;
 }
 
-static void NRI_CALL GetUpscalerProps(const Upscaler&, UpscalerProps& upscalerProps) {
+static void GetUpscalerProps(const Upscaler&, UpscalerProps& upscalerProps) {
     upscalerProps = {1.0f, 0.0f, {1, 1}, {1, 1}, {1, 1}, 1};
 }
 
-static void NRI_CALL CmdDispatchUpscale(CommandBuffer&, Upscaler&, const DispatchUpscaleDesc&) {
+static void CmdDispatchUpscale(CommandBuffer&, Upscaler&, const DispatchUpscaleDesc&) {
 }
 
 Result DeviceNONE::FillFunctionTable(UpscalerInterface& table) const {
@@ -1208,7 +1208,7 @@ Result DeviceNONE::FillFunctionTable(UpscalerInterface& table) const {
     table.GetUpscalerProps = ::GetUpscalerProps;
     table.CmdDispatchUpscale = ::CmdDispatchUpscale;
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 #pragma endregion

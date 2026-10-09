@@ -458,7 +458,7 @@ Result PipelineD3D12::CreateFromStream(const GraphicsPipelineDesc& graphicsPipel
         FormatPipelineCacheName(HashGraphicsPipelineDesc(graphicsPipelineDesc), cacheName);
         hr = lib->LoadPipeline(cacheName, &pipelineStateStreamDesc, IID_PPV_ARGS(&m_PipelineState));
         if (SUCCEEDED(hr))
-            return Result::SUCCESS;
+            return Result::Success;
     }
 
     if (graphicsPipelineDesc.flags & GraphicsPipelineBits::FAIL_ON_CACHE_MISS) {
@@ -473,7 +473,7 @@ Result PipelineD3D12::CreateFromStream(const GraphicsPipelineDesc& graphicsPipel
         lib->StorePipeline(cacheName, m_PipelineState); // ignore failures (e.g., name already present), fallback PSO is still valid
     }
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 Result PipelineD3D12::Create(const GraphicsPipelineDesc& graphicsPipelineDesc) {
@@ -500,7 +500,7 @@ Result PipelineD3D12::Create(const ComputePipelineDesc& computePipelineDesc) {
         FormatPipelineCacheName(HashComputePipelineDesc(computePipelineDesc), cacheName);
         hr = lib->LoadComputePipeline(cacheName, &computePipleineStateDesc, IID_PPV_ARGS(&m_PipelineState));
         if (SUCCEEDED(hr))
-            return Result::SUCCESS;
+            return Result::Success;
     }
 
     if (computePipelineDesc.flags & ComputePipelineBits::FAIL_ON_CACHE_MISS) {
@@ -517,7 +517,7 @@ Result PipelineD3D12::Create(const ComputePipelineDesc& computePipelineDesc) {
         NRI_RETURN_ON_BAD_HRESULT(&m_Device, hr, "ID3D12PipelineLibrary::StorePipeline");
     }
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 Result PipelineD3D12::Create(const RayTracingPipelineDesc& rayTracingPipelineDesc) {
@@ -664,7 +664,7 @@ Result PipelineD3D12::Create(const RayTracingPipelineDesc& rayTracingPipelineDes
 
     m_StateObject->QueryInterface(&m_StateObjectProperties);
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 void PipelineD3D12::Bind(ID3D12GraphicsCommandList* graphicsCommandList) const {
@@ -690,5 +690,5 @@ NRI_INLINE Result PipelineD3D12::WriteShaderGroupIdentifiers(uint32_t baseShader
         shaderGroupIndex++;
     }
 
-    return Result::SUCCESS;
+    return Result::Success;
 }

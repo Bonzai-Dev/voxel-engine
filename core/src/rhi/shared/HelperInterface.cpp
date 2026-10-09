@@ -85,9 +85,9 @@ static void DoTransition(const CoreInterface& m_iCore, CommandBuffer* commandBuf
 Result HelperDataUpload::UploadData(const TextureUploadDesc* textureUploadDescs, uint32_t textureUploadDescNum, const BufferUploadDesc* bufferUploadDescs, uint32_t bufferUploadDescNum) {
     Result result = Create(textureUploadDescs, textureUploadDescNum, bufferUploadDescs, bufferUploadDescNum);
 
-    if (result == Result::SUCCESS)
+    if (result == Result::Success)
         result = UploadTextures(textureUploadDescs, textureUploadDescNum);
-    if (result == Result::SUCCESS)
+    if (result == Result::Success)
         result = UploadBuffers(bufferUploadDescs, bufferUploadDescNum);
 
     m_iCore.DestroyCommandBuffer(m_CommandBuffer);
@@ -151,30 +151,30 @@ Result HelperDataUpload::Create(const TextureUploadDesc* textureUploadDescs, uin
         bufferDesc.size = m_UploadBufferSize;
 
         Result result = m_iCore.CreateCommittedBuffer(m_Device, MemoryLocation::HOST_UPLOAD, 0.0f, bufferDesc, m_UploadBuffer);
-        if (result != Result::SUCCESS)
+        if (result != Result::Success)
             return result;
     }
 
     { // Create other resources
         Result result = m_iCore.CreateFence(m_Device, 0, m_Fence);
-        if (result != Result::SUCCESS)
+        if (result != Result::Success)
             return result;
 
         result = m_iCore.CreateCommandAllocator(m_Queue, m_CommandAllocator);
-        if (result != Result::SUCCESS)
+        if (result != Result::Success)
             return result;
 
         result = m_iCore.CreateCommandBuffer(*m_CommandAllocator, m_CommandBuffer);
-        if (result != Result::SUCCESS)
+        if (result != Result::Success)
             return result;
     }
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 Result HelperDataUpload::UploadTextures(const TextureUploadDesc* textureUploadDescs, uint32_t textureDataDescNum) {
     if (!textureDataDescNum)
-        return Result::SUCCESS;
+        return Result::Success;
 
     uint32_t i = 0;
     for (; i < textureDataDescNum; i++) {
@@ -193,12 +193,12 @@ Result HelperDataUpload::UploadTextures(const TextureUploadDesc* textureUploadDe
     while (i < textureDataDescNum) {
         if (!isInitial) {
             Result result = EndCommandBuffersAndSubmit();
-            if (result != Result::SUCCESS)
+            if (result != Result::Success)
                 return result;
         }
 
         Result result = m_iCore.BeginCommandBuffer(*m_CommandBuffer, nullptr);
-        if (result != Result::SUCCESS)
+        if (result != Result::Success)
             return result;
 
         if (isInitial) {
@@ -219,7 +219,7 @@ Result HelperDataUpload::UploadTextures(const TextureUploadDesc* textureUploadDe
 
 Result HelperDataUpload::UploadBuffers(const BufferUploadDesc* bufferUploadDescs, uint32_t bufferUploadDescNum) {
     if (!bufferUploadDescNum)
-        return Result::SUCCESS;
+        return Result::Success;
 
     uint32_t i = 0;
     for (; i < bufferUploadDescNum; i++) {
@@ -237,12 +237,12 @@ Result HelperDataUpload::UploadBuffers(const BufferUploadDesc* bufferUploadDescs
     while (i < bufferUploadDescNum) {
         if (!isInitial) {
             Result result = EndCommandBuffersAndSubmit();
-            if (result != Result::SUCCESS)
+            if (result != Result::Success)
                 return result;
         }
 
         Result result = m_iCore.BeginCommandBuffer(*m_CommandBuffer, nullptr);
-        if (result != Result::SUCCESS)
+        if (result != Result::Success)
             return result;
 
         if (isInitial) {
@@ -268,7 +268,7 @@ Result HelperDataUpload::UploadBuffers(const BufferUploadDesc* bufferUploadDescs
 Result HelperDataUpload::EndCommandBuffersAndSubmit() {
     Result result = m_iCore.EndCommandBuffer(*m_CommandBuffer);
 
-    if (result == Result::SUCCESS) {
+    if (result == Result::Success) {
         FenceSubmitDesc fenceSubmitDesc = {};
         fenceSubmitDesc.fence = m_Fence;
         fenceSubmitDesc.value = m_FenceValue;
@@ -280,7 +280,7 @@ Result HelperDataUpload::EndCommandBuffersAndSubmit() {
         queueSubmitDesc.signalFenceNum = 1;
 
         result = m_iCore.QueueSubmit(m_Queue, queueSubmitDesc);
-        if (result == Result::SUCCESS) {
+        if (result == Result::Success) {
             m_iCore.Wait(*m_Fence, m_FenceValue);
             m_iCore.ResetCommandAllocator(*m_CommandAllocator);
 
@@ -408,7 +408,7 @@ Result HelperDeviceMemoryAllocator::AllocateAndBindMemory(const ResourceGroupDes
     size_t allocationNum = 0;
     Result result = TryToAllocateAndBindMemory(resourceGroupDesc, allocations, allocationNum);
 
-    if (result != Result::SUCCESS) {
+    if (result != Result::Success) {
         for (size_t i = 0; i < allocationNum; i++) {
             m_iCore.FreeMemory(allocations[i]);
             allocations[i] = nullptr;
@@ -440,7 +440,7 @@ Result HelperDeviceMemoryAllocator::TryToAllocateAndBindMemory(const ResourceGro
         allocateMemoryDesc.priority = resourceGroupDesc.residencyPriority;
 
         Result result = m_iCore.AllocateMemory(m_Device, allocateMemoryDesc, memory);
-        if (result != Result::SUCCESS)
+        if (result != Result::Success)
             return result;
 
         FillMemoryBindingDescs(heap.buffers.data(), heap.bufferOffsets.data(), (uint32_t)heap.buffers.size(), *memory);
@@ -450,11 +450,11 @@ Result HelperDeviceMemoryAllocator::TryToAllocateAndBindMemory(const ResourceGro
     }
 
     Result result = ProcessDedicatedResources(resourceGroupDesc, allocations, allocationNum);
-    if (result != Result::SUCCESS)
+    if (result != Result::Success)
         return result;
 
     result = m_iCore.BindBufferMemory(m_BufferBindingDescs.data(), (uint32_t)m_BufferBindingDescs.size());
-    if (result != Result::SUCCESS)
+    if (result != Result::Success)
         return result;
 
     result = m_iCore.BindTextureMemory(m_TextureBindingDescs.data(), (uint32_t)m_TextureBindingDescs.size());
@@ -477,7 +477,7 @@ Result HelperDeviceMemoryAllocator::ProcessDedicatedResources(const ResourceGrou
         allocateMemoryDesc.priority = resourceGroupDesc.residencyPriority;
 
         Result result = m_iCore.AllocateMemory(m_Device, allocateMemoryDesc, memory);
-        if (result != Result::SUCCESS)
+        if (result != Result::Success)
             return result;
 
         FillMemoryBindingDescs(m_DedicatedBuffers.data() + i, &zeroOffset, 1, *memory);
@@ -496,7 +496,7 @@ Result HelperDeviceMemoryAllocator::ProcessDedicatedResources(const ResourceGrou
         allocateMemoryDesc.priority = resourceGroupDesc.residencyPriority;
 
         Result result = m_iCore.AllocateMemory(m_Device, allocateMemoryDesc, memory);
-        if (result != Result::SUCCESS)
+        if (result != Result::Success)
             return result;
 
         FillMemoryBindingDescs(m_DedicatedTextures.data() + i, &zeroOffset, 1, *memory);
@@ -504,7 +504,7 @@ Result HelperDeviceMemoryAllocator::ProcessDedicatedResources(const ResourceGrou
         allocationNum++;
     }
 
-    return Result::SUCCESS;
+    return Result::Success;
 }
 
 HelperDeviceMemoryAllocator::MemoryHeap& HelperDeviceMemoryAllocator::FindOrCreateHeap(const MemoryDesc& memoryDesc, uint64_t preferredMemorySize) {

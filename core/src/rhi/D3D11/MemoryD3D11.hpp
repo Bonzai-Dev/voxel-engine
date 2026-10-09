@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 enum class MemoryResidencyPriority {
     DEFAULT,
@@ -37,7 +37,7 @@ struct MemoryD3D11 final : public DebugNameBase {
         m_Location = (MemoryLocation)allocateMemoryDesc.type;
         m_Priority = allocateMemoryDesc.priority;
 
-        return Result::SUCCESS;
+        return Result::Success;
     }
 
 private:
@@ -46,4 +46,4 @@ private:
     float m_Priority = 0.0f;
 };
 
-} // namespace nri
+} // namespace Core::RHI

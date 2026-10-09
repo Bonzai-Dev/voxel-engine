@@ -94,7 +94,7 @@ NRI_INLINE Result DescriptorPoolVal::AllocateDescriptorSets(const PipelineLayout
     PipelineLayout* pipelineLayoutImpl = NRI_GET_IMPL(PipelineLayout, &pipelineLayout);
 
     Result result = GetCoreInterfaceImpl().AllocateDescriptorSets(*GetImpl(), *pipelineLayoutImpl, setIndex, descriptorSets, instanceNum, variableDescriptorNum);
-    if (result != Result::SUCCESS)
+    if (result != Result::Success)
         return result;
 
     for (uint32_t i = 0; i < instanceNum; i++) {

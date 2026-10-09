@@ -103,6 +103,6 @@ NriStruct(WrapperD3D12Interface) {
     Nri(Result) (NRI_CALL *CreateAccelerationStructureD3D12)    (NriRef(Device) device, const NriRef(AccelerationStructureD3D12Desc) accelerationStructureD3D12Desc, NriOut NriRef(AccelerationStructure*) accelerationStructure);
 };
 
-NRI_API Nri(Result) NRI_CALL nriCreateDeviceFromD3D12Device(const NriRef(DeviceCreationD3D12Desc) DeviceInfo, NriOut NriRef(Device*) device);
+NRI_API Nri(Result) nriCreateDeviceFromD3D12Device(const NriRef(DeviceCreationD3D12Desc) DeviceInfo, NriOut NriRef(Device*) device);
 
 NriNamespaceEnd

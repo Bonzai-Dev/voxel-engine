@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace nri {
+namespace Core::RHI {
 
 struct PipelineVK final : public DebugNameBase {
     inline PipelineVK(DeviceVK& device)
@@ -55,4 +55,4 @@ private:
     bool m_OwnsNativeObjects = true;
 };
 
-} // namespace nri
+} // namespace Core::RHI

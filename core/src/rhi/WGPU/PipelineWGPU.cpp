@@ -296,7 +296,7 @@ Result PipelineWGPU::Create(const GraphicsPipelineDesc& graphicsPipelineDesc) {
     primitive.cullMode = GetCullMode(graphicsPipelineDesc.rasterization.cullMode);
 
     WGPUDepthStencilState depthStencil = WGPU_DEPTH_STENCIL_STATE_INIT;
-    if (graphicsPipelineDesc.outputMerger.depthStencilFormat != Format::UNKNOWN) {
+    if (graphicsPipelineDesc.outputMerger.depthStencilFormat != Format::Unknown) {
         const OutputMergerDesc& outputMerger = graphicsPipelineDesc.outputMerger;
         const RasterizationDesc& rasterization = graphicsPipelineDesc.rasterization;
         depthStencil.format = GetTextureFormat(outputMerger.depthStencilFormat);
@@ -323,7 +323,7 @@ Result PipelineWGPU::Create(const GraphicsPipelineDesc& graphicsPipelineDesc) {
     desc.primitive = primitive;
     desc.multisample = multisample;
     desc.fragment = fragmentShader ? &fragment : nullptr;
-    desc.depthStencil = graphicsPipelineDesc.outputMerger.depthStencilFormat != Format::UNKNOWN ? &depthStencil : nullptr;
+    desc.depthStencil = graphicsPipelineDesc.outputMerger.depthStencilFormat != Format::Unknown ? &depthStencil : nullptr;
 
     m_RenderPipeline = wgpuDeviceCreateRenderPipeline(m_Device, &desc);
 

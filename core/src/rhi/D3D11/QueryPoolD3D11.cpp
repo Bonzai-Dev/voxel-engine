@@ -9,7 +9,7 @@ Result QueryPoolD3D11::Create(const QueryPoolDesc& queryPoolDesc) {
     else if (queryPoolDesc.queryType == QueryType::PIPELINE_STATISTICS)
         queryDesc.Query = D3D11_QUERY_PIPELINE_STATISTICS;
     else
-        return queryPoolDesc.queryType < QueryType::MAX_NUM ? Result::UNSUPPORTED : Result::INVALID_ARGUMENT;
+        return queryPoolDesc.queryType < QueryType::MAX_NUM ? Result::Unsupported : Result::InvalidArgument;
 
     m_Type = queryPoolDesc.queryType;
 
@@ -48,7 +48,7 @@ void QueryPoolD3D11::GetData(uint8_t* dstMemory, uint32_t offset, uint32_t num) 
     }
 }
 
-NRI_INLINE void QueryPoolD3D11::SetDebugName(const char* name) {
+ENGINE_FORCE_INLINE void QueryPoolD3D11::SetDebugName(const char* name) {
     for (ComPtr<ID3D11Query>& query : m_QueryPool)
         NRI_SET_D3D_DEBUG_OBJECT_NAME(query, name);
 }

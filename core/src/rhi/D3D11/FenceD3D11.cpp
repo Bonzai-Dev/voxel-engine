@@ -26,14 +26,14 @@ Result FenceD3D11::Create(uint64_t initialValue) {
     return Result::Success;
 }
 
-NRI_INLINE uint64_t FenceD3D11::GetFenceValue() const {
+ENGINE_FORCE_INLINE uint64_t FenceD3D11::GetFenceValue() const {
     if (m_Fence)
         return m_Fence->GetCompletedValue();
 
     return m_Value;
 }
 
-NRI_INLINE void FenceD3D11::QueueSignal(uint64_t value) {
+ENGINE_FORCE_INLINE void FenceD3D11::QueueSignal(uint64_t value) {
     if (m_Fence) {
         HRESULT hr = m_Device.GetImmediateContext()->Signal(m_Fence, value);
         NRI_RETURN_VOID_ON_BAD_HRESULT(&m_Device, hr, "D3D11DeviceContext4::Signal");
@@ -43,14 +43,14 @@ NRI_INLINE void FenceD3D11::QueueSignal(uint64_t value) {
     }
 }
 
-NRI_INLINE void FenceD3D11::QueueWait(uint64_t value) {
+ENGINE_FORCE_INLINE void FenceD3D11::QueueWait(uint64_t value) {
     if (m_Fence) {
         HRESULT hr = m_Device.GetImmediateContext()->Wait(m_Fence, value);
         NRI_RETURN_VOID_ON_BAD_HRESULT(&m_Device, hr, "D3D11DeviceContext4::Wait");
     }
 }
 
-NRI_INLINE void FenceD3D11::Wait(uint64_t value) {
+ENGINE_FORCE_INLINE void FenceD3D11::Wait(uint64_t value) {
     if (m_Fence) {
         if (m_Event == 0 || m_Event == INVALID_HANDLE_VALUE) {
             while (m_Fence->GetCompletedValue() < value)

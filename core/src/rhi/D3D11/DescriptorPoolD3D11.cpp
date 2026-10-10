@@ -18,11 +18,11 @@ Result DescriptorPoolD3D11::Create(const DescriptorPoolDesc& descriptorPoolDesc)
     return Result::Success;
 }
 
-NRI_INLINE Result DescriptorPoolD3D11::AllocateDescriptorSets(const PipelineLayout& pipelineLayout, uint32_t setIndex, DescriptorSet** descriptorSets, uint32_t instanceNum, uint32_t variableDescriptorNum) {
+ENGINE_FORCE_INLINE Result DescriptorPoolD3D11::AllocateDescriptorSets(const PipelineLayout& pipelineLayout, uint32_t setIndex, DescriptorSet** descriptorSets, uint32_t instanceNum, uint32_t variableDescriptorNum) {
     ExclusiveScope lock(m_Lock);
 
     if (variableDescriptorNum)
-        return Result::UNSUPPORTED;
+        return Result::Unsupported;
 
     if (m_DescriptorNum + instanceNum > m_DescriptorPool.size())
         return Result::OUT_OF_MEMORY;
@@ -43,7 +43,7 @@ NRI_INLINE Result DescriptorPoolD3D11::AllocateDescriptorSets(const PipelineLayo
     return Result::Success;
 }
 
-NRI_INLINE void DescriptorPoolD3D11::Reset() {
+ENGINE_FORCE_INLINE void DescriptorPoolD3D11::Reset() {
     ExclusiveScope lock(m_Lock);
 
     m_DescriptorNum = 0;

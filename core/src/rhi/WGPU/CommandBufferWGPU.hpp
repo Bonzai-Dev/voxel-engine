@@ -12,7 +12,7 @@ struct ClearPipelineWGPU {
     uint32_t colorNum = 0;
     uint32_t colorAttachmentIndex = 0;
     std::array<Format, COLOR_ATTACHMENT_MAX_NUM_WGPU> colorFormats = {};
-    Format depthStencilFormat = Format::UNKNOWN;
+    Format depthStencilFormat = Format::Unknown;
     PlaneBits planes = PlaneBits::NONE;
     Sample_t sampleNum = 1;
 };
@@ -28,7 +28,7 @@ struct ClearStorageTexturePipelineWGPU {
     WGPUPipelineLayout pipelineLayout = nullptr;
     WGPUComputePipeline pipeline = nullptr;
     WGPUTextureViewDimension dimension = WGPUTextureViewDimension_Undefined;
-    Format format = Format::UNKNOWN;
+    Format format = Format::Unknown;
 };
 
 struct RootConstantStateWGPU {
@@ -187,7 +187,7 @@ private:
     uint32_t m_ComputeDirtyDescriptorSetMin = uint32_t(-1);
     uint32_t m_ComputeDirtyDescriptorSetMax = 0;
     std::array<Format, COLOR_ATTACHMENT_MAX_NUM_WGPU> m_RenderColorFormats = {};
-    Format m_RenderDepthStencilFormat = Format::UNKNOWN;
+    Format m_RenderDepthStencilFormat = Format::Unknown;
     Dim_t m_RenderWidth = 0;
     Dim_t m_RenderHeight = 0;
     Sample_t m_RenderSampleNum = 1;

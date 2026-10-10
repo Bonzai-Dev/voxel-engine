@@ -54,8 +54,8 @@ void TextureWGPU::SetSurfaceTexture(WGPUTexture texture, Format format, Dim_t wi
     }
 
     m_Desc = {};
-    m_Desc.type = TextureType::TEXTURE_2D;
-    m_Desc.usage = TextureUsageBits::COLOR_ATTACHMENT;
+    m_Desc.type = TextureDimension::Texture2D;
+    m_Desc.usage = TextureUsageBits::ColorAttachment;
     m_Desc.format = format;
     m_Desc.width = width;
     m_Desc.height = height;

@@ -17,7 +17,7 @@ Result QueueD3D12::Create(QueueType queueType, float priority) {
 
 Result QueueD3D12::Create(ID3D12CommandQueue* queue) {
     if (!queue)
-        return Result::INVALID_ARGUMENT;
+        return Result::InvalidArgument;
 
     const D3D12_COMMAND_QUEUE_DESC& queueDesc = queue->GetDesc();
 
@@ -27,33 +27,33 @@ Result QueueD3D12::Create(ID3D12CommandQueue* queue) {
     return Result::Success;
 }
 
-NRI_INLINE void QueueD3D12::BeginAnnotation(const char* name, uint32_t bgra) {
+ENGINE_FORCE_INLINE void QueueD3D12::BeginAnnotation(const char* name, uint32_t bgra) {
     if (m_Device.HasPix())
         m_Device.GetPix().BeginEventOnQueue(m_Queue, bgra, name);
     else
         PIXBeginEvent(m_Queue, bgra, name);
 }
 
-NRI_INLINE void QueueD3D12::EndAnnotation() {
+ENGINE_FORCE_INLINE void QueueD3D12::EndAnnotation() {
     if (m_Device.HasPix())
         m_Device.GetPix().EndEventOnQueue(m_Queue);
     else
         PIXEndEvent(m_Queue);
 }
 
-NRI_INLINE void QueueD3D12::Annotation(const char* name, uint32_t bgra) {
+ENGINE_FORCE_INLINE void QueueD3D12::Annotation(const char* name, uint32_t bgra) {
     if (m_Device.HasPix())
         m_Device.GetPix().SetMarkerOnQueue(m_Queue, bgra, name);
     else
         PIXSetMarker(m_Queue, bgra, name);
 }
 
-NRI_INLINE void QueueD3D12::GetCalibratedTimestamps(uint64_t& timestampGPU, uint64_t& timestampCPU) {
+ENGINE_FORCE_INLINE void QueueD3D12::GetCalibratedTimestamps(uint64_t& timestampGPU, uint64_t& timestampCPU) {
     HRESULT hr = m_Queue->GetClockCalibration(&timestampGPU, &timestampCPU);
     NRI_RETURN_VOID_ON_BAD_HRESULT(&m_Device, hr, "GetClockCalibration");
 }
 
-NRI_INLINE Result QueueD3D12::Submit(const QueueSubmitDesc& queueSubmitDesc) {
+ENGINE_FORCE_INLINE Result QueueD3D12::Submit(const QueueSubmitDesc& queueSubmitDesc) {
     for (uint32_t i = 0; i < queueSubmitDesc.waitFenceNum; i++) {
         const FenceSubmitDesc& fenceSubmitDesc = queueSubmitDesc.waitFences[i];
         FenceD3D12* fence = (FenceD3D12*)fenceSubmitDesc.fence;
@@ -81,7 +81,7 @@ NRI_INLINE Result QueueD3D12::Submit(const QueueSubmitDesc& queueSubmitDesc) {
     return Result::Success;
 }
 
-NRI_INLINE Result QueueD3D12::WaitIdle() {
+ENGINE_FORCE_INLINE Result QueueD3D12::WaitIdle() {
     FenceD3D12* fence = nullptr;
     Result result = m_Device.CreateImplementation<FenceD3D12>(fence, 0);
     if (result == Result::Success) {

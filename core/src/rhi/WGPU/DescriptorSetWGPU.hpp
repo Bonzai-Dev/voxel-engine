@@ -15,7 +15,7 @@ struct DescriptorRangeMappingWGPU {
     WGPUTextureFormat storageTextureFormat = WGPUTextureFormat_Undefined;
     WGPUTextureViewDimension storageTextureViewDimension = WGPUTextureViewDimension_2D;
     WGPUStorageTextureAccess storageTextureAccess = WGPUStorageTextureAccess_WriteOnly;
-    DescriptorType type = DescriptorType::TEXTURE;
+    DescriptorType type = DescriptorType::Texture;
     bool isArray = false;
 };
 

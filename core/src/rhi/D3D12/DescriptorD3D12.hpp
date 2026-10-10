@@ -71,7 +71,7 @@ private:
 
     DescriptorHandle m_Handle = {};
     DescriptorType m_Type = DescriptorType::MAX_NUM;
-    Format m_Format = Format::UNKNOWN;
+    Format m_Format = Format::Unknown;
 };
 
 } // namespace Core::RHI

@@ -334,7 +334,7 @@ Result CommandBufferD3D12::Create(const CommandBufferD3D12Desc& commandBufferD3D
     return Result::Success;
 }
 
-NRI_INLINE Result CommandBufferD3D12::Begin(const DescriptorPool* descriptorPool) {
+ENGINE_FORCE_INLINE Result CommandBufferD3D12::Begin(const DescriptorPool* descriptorPool) {
     HRESULT hr = m_GraphicsCommandList->Reset(m_CommandAllocator, nullptr);
     NRI_RETURN_ON_BAD_HRESULT(&m_Device, hr, "ID3D12GraphicsCommandList::Reset");
 
@@ -349,14 +349,14 @@ NRI_INLINE Result CommandBufferD3D12::Begin(const DescriptorPool* descriptorPool
     return Result::Success;
 }
 
-NRI_INLINE Result CommandBufferD3D12::End() {
+ENGINE_FORCE_INLINE Result CommandBufferD3D12::End() {
     if (FAILED(m_GraphicsCommandList->Close()))
         return Result::FAILURE;
 
     return Result::Success;
 }
 
-NRI_INLINE void CommandBufferD3D12::SetViewports(const Viewport* viewports, uint32_t viewportNum) {
+ENGINE_FORCE_INLINE void CommandBufferD3D12::SetViewports(const Viewport* viewports, uint32_t viewportNum) {
     Scratch<D3D12_VIEWPORT> d3dViewports = NRI_ALLOCATE_SCRATCH(m_Device, D3D12_VIEWPORT, viewportNum);
     for (uint32_t i = 0; i < viewportNum; i++) {
         const Viewport& in = viewports[i];
@@ -378,18 +378,18 @@ NRI_INLINE void CommandBufferD3D12::SetViewports(const Viewport* viewports, uint
     m_GraphicsCommandList->RSSetViewports(viewportNum, d3dViewports);
 }
 
-NRI_INLINE void CommandBufferD3D12::SetScissors(const Rect* rects, uint32_t rectNum) {
+ENGINE_FORCE_INLINE void CommandBufferD3D12::SetScissors(const Rect* rects, uint32_t rectNum) {
     Scratch<D3D12_RECT> d3dRects = NRI_ALLOCATE_SCRATCH(m_Device, D3D12_RECT, rectNum);
     ConvertRects(rects, rectNum, d3dRects);
 
     m_GraphicsCommandList->RSSetScissorRects(rectNum, d3dRects);
 }
 
-NRI_INLINE void CommandBufferD3D12::SetDepthBounds(float boundsMin, float boundsMax) {
+ENGINE_FORCE_INLINE void CommandBufferD3D12::SetDepthBounds(float boundsMin, float boundsMax) {
     m_GraphicsCommandList->OMSetDepthBounds(boundsMin, boundsMax);
 }
 
-NRI_INLINE void CommandBufferD3D12::SetStencilReference(uint8_t frontRef, uint8_t backRef) {
+ENGINE_FORCE_INLINE void CommandBufferD3D12::SetStencilReference(uint8_t frontRef, uint8_t backRef) {
     MaybeUnused(backRef);
 #if NRI_ENABLE_AGILITY_SDK_SUPPORT
     if (m_Device.GetDesc().features.independentFrontAndBackStencilReferenceAndMasks && m_Device.GetVersion() >= 8)
@@ -399,18 +399,18 @@ NRI_INLINE void CommandBufferD3D12::SetStencilReference(uint8_t frontRef, uint8_
         m_GraphicsCommandList->OMSetStencilRef(frontRef);
 }
 
-NRI_INLINE void CommandBufferD3D12::SetSampleLocations(const SampleLocation* locations, Sample_t locationNum, Sample_t sampleNum) {
+ENGINE_FORCE_INLINE void CommandBufferD3D12::SetSampleLocations(const SampleLocation* locations, Sample_t locationNum, Sample_t sampleNum) {
     static_assert(sizeof(D3D12_SAMPLE_POSITION) == sizeof(SampleLocation));
 
     uint32_t pixelNum = locationNum / sampleNum;
     m_GraphicsCommandList->SetSamplePositions(sampleNum, pixelNum, (D3D12_SAMPLE_POSITION*)locations);
 }
 
-NRI_INLINE void CommandBufferD3D12::SetBlendConstants(const Color32f& color) {
+ENGINE_FORCE_INLINE void CommandBufferD3D12::SetBlendConstants(const Color32f& color) {
     m_GraphicsCommandList->OMSetBlendFactor(&color.x);
 }
 
-NRI_INLINE void CommandBufferD3D12::SetShadingRate(const ShadingRateDesc& shadingRateDesc) {
+ENGINE_FORCE_INLINE void CommandBufferD3D12::SetShadingRate(const ShadingRateDesc& shadingRateDesc) {
     D3D12_SHADING_RATE shadingRate = GetShadingRate(shadingRateDesc.shadingRate);
     D3D12_SHADING_RATE_COMBINER shadingRateCombiners[2] = {
         GetShadingRateCombiner(shadingRateDesc.primitiveCombiner),
@@ -420,7 +420,7 @@ NRI_INLINE void CommandBufferD3D12::SetShadingRate(const ShadingRateDesc& shadin
     m_GraphicsCommandList->RSSetShadingRate(shadingRate, shadingRateCombiners);
 }
 
-NRI_INLINE void CommandBufferD3D12::SetDepthBias(const DepthBiasDesc& depthBiasDesc) {
+ENGINE_FORCE_INLINE void CommandBufferD3D12::SetDepthBias(const DepthBiasDesc& depthBiasDesc) {
     MaybeUnused(depthBiasDesc);
 #if NRI_ENABLE_AGILITY_SDK_SUPPORT
     if (GetDevice().GetVersion() >= 9)
@@ -428,7 +428,7 @@ NRI_INLINE void CommandBufferD3D12::SetDepthBias(const DepthBiasDesc& depthBiasD
 #endif
 }
 
-NRI_INLINE void CommandBufferD3D12::ClearAttachments(const ClearAttachmentDesc* clearAttachmentDescs, uint32_t clearAttachmentDescNum, const Rect* rects, uint32_t rectNum) {
+ENGINE_FORCE_INLINE void CommandBufferD3D12::ClearAttachments(const ClearAttachmentDesc* clearAttachmentDescs, uint32_t clearAttachmentDescNum, const Rect* rects, uint32_t rectNum) {
     Scratch<D3D12_RECT> d3dRects = NRI_ALLOCATE_SCRATCH(m_Device, D3D12_RECT, rectNum);
     ConvertRects(rects, rectNum, d3dRects);
 
@@ -451,7 +451,7 @@ NRI_INLINE void CommandBufferD3D12::ClearAttachments(const ClearAttachmentDesc* 
     }
 }
 
-NRI_INLINE void CommandBufferD3D12::ClearStorage(const ClearStorageDesc& clearStorageDesc) {
+ENGINE_FORCE_INLINE void CommandBufferD3D12::ClearStorage(const ClearStorageDesc& clearStorageDesc) {
     DescriptorSetD3D12* descriptorSet = m_DescriptorSets[clearStorageDesc.setIndex];
     const DescriptorD3D12& descriptorD3D12 = *(DescriptorD3D12*)clearStorageDesc.descriptor;
 
@@ -466,7 +466,7 @@ NRI_INLINE void CommandBufferD3D12::ClearStorage(const ClearStorageDesc& clearSt
         m_GraphicsCommandList->ClearUnorderedAccessViewFloat({handleGPU}, {handleCPU}, descriptorD3D12.GetResource(), &clearStorageDesc.value.f.x, 0, nullptr);
 }
 
-NRI_INLINE void CommandBufferD3D12::BeginRendering(const RenderingDesc& renderingDesc) {
+ENGINE_FORCE_INLINE void CommandBufferD3D12::BeginRendering(const RenderingDesc& renderingDesc) {
     ResetAttachments();
 
     std::array<D3D12_CPU_DESCRIPTOR_HANDLE, D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT> renderTargets = {};
@@ -539,7 +539,7 @@ NRI_INLINE void CommandBufferD3D12::BeginRendering(const RenderingDesc& renderin
     m_RenderPass = true;
 }
 
-NRI_INLINE void CommandBufferD3D12::EndRendering() {
+ENGINE_FORCE_INLINE void CommandBufferD3D12::EndRendering() {
     uint32_t resourceBarrierNum = 0;
     if (!m_Device.GetDesc().features.enhancedBarriers) {
         for (const AttachmentDescD3D12& attachmentDesc : m_RenderTargets) {
@@ -681,7 +681,7 @@ NRI_INLINE void CommandBufferD3D12::EndRendering() {
     m_RenderPass = false;
 }
 
-NRI_INLINE void CommandBufferD3D12::SetVertexBuffers(uint32_t baseSlot, const VertexBufferDesc* vertexBufferDescs, uint32_t vertexBufferNum) {
+ENGINE_FORCE_INLINE void CommandBufferD3D12::SetVertexBuffers(uint32_t baseSlot, const VertexBufferDesc* vertexBufferDescs, uint32_t vertexBufferNum) {
     Scratch<D3D12_VERTEX_BUFFER_VIEW> vertexBufferViews = NRI_ALLOCATE_SCRATCH(m_Device, D3D12_VERTEX_BUFFER_VIEW, vertexBufferNum);
     for (uint32_t i = 0; i < vertexBufferNum; i++) {
         const VertexBufferDesc& vertexBufferDesc = vertexBufferDescs[i];
@@ -701,7 +701,7 @@ NRI_INLINE void CommandBufferD3D12::SetVertexBuffers(uint32_t baseSlot, const Ve
     m_GraphicsCommandList->IASetVertexBuffers(baseSlot, vertexBufferNum, vertexBufferViews);
 }
 
-NRI_INLINE void CommandBufferD3D12::SetIndexBuffer(const Buffer& buffer, uint64_t offset, IndexType indexType) {
+ENGINE_FORCE_INLINE void CommandBufferD3D12::SetIndexBuffer(const Buffer& buffer, uint64_t offset, IndexType indexType) {
     const BufferD3D12& bufferD3D12 = (BufferD3D12&)buffer;
 
     D3D12_INDEX_BUFFER_VIEW indexBufferView;
@@ -712,7 +712,7 @@ NRI_INLINE void CommandBufferD3D12::SetIndexBuffer(const Buffer& buffer, uint64_
     m_GraphicsCommandList->IASetIndexBuffer(&indexBufferView);
 }
 
-NRI_INLINE void CommandBufferD3D12::SetPipelineLayout(BindPoint bindPoint, const PipelineLayout& pipelineLayout) {
+ENGINE_FORCE_INLINE void CommandBufferD3D12::SetPipelineLayout(BindPoint bindPoint, const PipelineLayout& pipelineLayout) {
     const PipelineLayoutD3D12& pipelineLayoutD3D12 = (PipelineLayoutD3D12&)pipelineLayout;
     if (bindPoint == BindPoint::GRAPHICS)
         m_GraphicsCommandList->SetGraphicsRootSignature(pipelineLayoutD3D12);
@@ -723,33 +723,33 @@ NRI_INLINE void CommandBufferD3D12::SetPipelineLayout(BindPoint bindPoint, const
     m_PipelineBindPoint = bindPoint;
 }
 
-NRI_INLINE void CommandBufferD3D12::SetPipeline(const Pipeline& pipeline) {
+ENGINE_FORCE_INLINE void CommandBufferD3D12::SetPipeline(const Pipeline& pipeline) {
     PipelineD3D12* pipelineD3D12 = (PipelineD3D12*)&pipeline;
     pipelineD3D12->Bind(m_GraphicsCommandList);
 }
 
-NRI_INLINE void CommandBufferD3D12::SetDescriptorPool(const DescriptorPool& descriptorPool) {
+ENGINE_FORCE_INLINE void CommandBufferD3D12::SetDescriptorPool(const DescriptorPool& descriptorPool) {
     ((DescriptorPoolD3D12&)descriptorPool).Bind(m_GraphicsCommandList);
 }
 
-NRI_INLINE void CommandBufferD3D12::SetDescriptorSet(const SetDescriptorSetDesc& setDescriptorSetDesc) {
+ENGINE_FORCE_INLINE void CommandBufferD3D12::SetDescriptorSet(const SetDescriptorSetDesc& setDescriptorSetDesc) {
     BindPoint bindPoint = setDescriptorSetDesc.bindPoint == BindPoint::INHERIT ? m_PipelineBindPoint : setDescriptorSetDesc.bindPoint;
     m_PipelineLayout->SetDescriptorSet(m_GraphicsCommandList, bindPoint, setDescriptorSetDesc);
 
     m_DescriptorSets[setDescriptorSetDesc.setIndex] = (DescriptorSetD3D12*)setDescriptorSetDesc.descriptorSet;
 }
 
-NRI_INLINE void CommandBufferD3D12::SetRootConstants(const SetRootConstantsDesc& setRootConstantsDesc) {
+ENGINE_FORCE_INLINE void CommandBufferD3D12::SetRootConstants(const SetRootConstantsDesc& setRootConstantsDesc) {
     BindPoint bindPoint = setRootConstantsDesc.bindPoint == BindPoint::INHERIT ? m_PipelineBindPoint : setRootConstantsDesc.bindPoint;
     m_PipelineLayout->SetRootConstants(m_GraphicsCommandList, bindPoint, setRootConstantsDesc);
 }
 
-NRI_INLINE void CommandBufferD3D12::SetRootDescriptor(const SetRootDescriptorDesc& setRootDescriptorDesc) {
+ENGINE_FORCE_INLINE void CommandBufferD3D12::SetRootDescriptor(const SetRootDescriptorDesc& setRootDescriptorDesc) {
     BindPoint bindPoint = setRootDescriptorDesc.bindPoint == BindPoint::INHERIT ? m_PipelineBindPoint : setRootDescriptorDesc.bindPoint;
     m_PipelineLayout->SetRootDescriptor(m_GraphicsCommandList, bindPoint, setRootDescriptorDesc);
 }
 
-NRI_INLINE void CommandBufferD3D12::Draw(const DrawDesc& drawDesc) {
+ENGINE_FORCE_INLINE void CommandBufferD3D12::Draw(const DrawDesc& drawDesc) {
     if (m_PipelineLayout && m_PipelineLayout->IsDrawParametersEmulationEnabled()) {
         struct BaseVertexInstance {
             uint32_t baseVertex;
@@ -767,7 +767,7 @@ NRI_INLINE void CommandBufferD3D12::Draw(const DrawDesc& drawDesc) {
     m_GraphicsCommandList->DrawInstanced(drawDesc.vertexNum, drawDesc.instanceNum, drawDesc.baseVertex, drawDesc.baseInstance);
 }
 
-NRI_INLINE void CommandBufferD3D12::DrawIndexed(const DrawIndexedDesc& drawIndexedDesc) {
+ENGINE_FORCE_INLINE void CommandBufferD3D12::DrawIndexed(const DrawIndexedDesc& drawIndexedDesc) {
     if (m_PipelineLayout && m_PipelineLayout->IsDrawParametersEmulationEnabled()) {
         struct BaseVertexInstance {
             int32_t baseVertex;
@@ -785,7 +785,7 @@ NRI_INLINE void CommandBufferD3D12::DrawIndexed(const DrawIndexedDesc& drawIndex
     m_GraphicsCommandList->DrawIndexedInstanced(drawIndexedDesc.indexNum, drawIndexedDesc.instanceNum, drawIndexedDesc.baseIndex, drawIndexedDesc.baseVertex, drawIndexedDesc.baseInstance);
 }
 
-NRI_INLINE void CommandBufferD3D12::DrawIndirect(const Buffer& buffer, uint64_t offset, uint32_t drawNum, uint32_t stride, const Buffer* countBuffer, uint64_t countBufferOffset) {
+ENGINE_FORCE_INLINE void CommandBufferD3D12::DrawIndirect(const Buffer& buffer, uint64_t offset, uint32_t drawNum, uint32_t stride, const Buffer* countBuffer, uint64_t countBufferOffset) {
     ID3D12Resource* pCountBuffer = nullptr;
     if (countBuffer)
         pCountBuffer = *(BufferD3D12*)countBuffer;
@@ -793,7 +793,7 @@ NRI_INLINE void CommandBufferD3D12::DrawIndirect(const Buffer& buffer, uint64_t 
     m_GraphicsCommandList->ExecuteIndirect(m_Device.GetDrawCommandSignature(m_PipelineLayout, stride), drawNum, (BufferD3D12&)buffer, offset, pCountBuffer, countBufferOffset);
 }
 
-NRI_INLINE void CommandBufferD3D12::DrawIndexedIndirect(const Buffer& buffer, uint64_t offset, uint32_t drawNum, uint32_t stride, const Buffer* countBuffer, uint64_t countBufferOffset) {
+ENGINE_FORCE_INLINE void CommandBufferD3D12::DrawIndexedIndirect(const Buffer& buffer, uint64_t offset, uint32_t drawNum, uint32_t stride, const Buffer* countBuffer, uint64_t countBufferOffset) {
     ID3D12Resource* pCountBuffer = nullptr;
     if (countBuffer)
         pCountBuffer = *(BufferD3D12*)countBuffer;
@@ -801,14 +801,14 @@ NRI_INLINE void CommandBufferD3D12::DrawIndexedIndirect(const Buffer& buffer, ui
     m_GraphicsCommandList->ExecuteIndirect(m_Device.GetDrawIndexedCommandSignature(m_PipelineLayout, stride), drawNum, (BufferD3D12&)buffer, offset, pCountBuffer, countBufferOffset);
 }
 
-NRI_INLINE void CommandBufferD3D12::CopyBuffer(Buffer& dstBuffer, uint64_t dstOffset, const Buffer& srcBuffer, uint64_t srcOffset, uint64_t size) {
+ENGINE_FORCE_INLINE void CommandBufferD3D12::CopyBuffer(Buffer& dstBuffer, uint64_t dstOffset, const Buffer& srcBuffer, uint64_t srcOffset, uint64_t size) {
     if (size == WHOLE_SIZE)
         size = ((BufferD3D12&)srcBuffer).GetDesc().size;
 
     m_GraphicsCommandList->CopyBufferRegion((BufferD3D12&)dstBuffer, dstOffset, (BufferD3D12&)srcBuffer, srcOffset, size);
 }
 
-NRI_INLINE void CommandBufferD3D12::CopyTexture(Texture& dstTexture, const TextureRegionDesc* dstRegion, const Texture& srcTexture, const TextureRegionDesc* srcRegion) {
+ENGINE_FORCE_INLINE void CommandBufferD3D12::CopyTexture(Texture& dstTexture, const TextureRegionDesc* dstRegion, const Texture& srcTexture, const TextureRegionDesc* srcRegion) {
     const TextureD3D12& dst = (TextureD3D12&)dstTexture;
     const TextureD3D12& src = (TextureD3D12&)srcTexture;
 
@@ -847,7 +847,7 @@ NRI_INLINE void CommandBufferD3D12::CopyTexture(Texture& dstTexture, const Textu
     }
 }
 
-NRI_INLINE void CommandBufferD3D12::ZeroBuffer(Buffer& buffer, uint64_t offset, uint64_t size) {
+ENGINE_FORCE_INLINE void CommandBufferD3D12::ZeroBuffer(Buffer& buffer, uint64_t offset, uint64_t size) {
     const BufferD3D12& dst = (BufferD3D12&)buffer;
     ID3D12Resource* zeroBuffer = m_Device.GetZeroBuffer();
     D3D12_RESOURCE_DESC zeroBufferDesc = zeroBuffer->GetDesc();
@@ -866,7 +866,7 @@ NRI_INLINE void CommandBufferD3D12::ZeroBuffer(Buffer& buffer, uint64_t offset, 
     }
 }
 
-NRI_INLINE void CommandBufferD3D12::ResolveTexture(Texture& dstTexture, const TextureRegionDesc* dstRegion, const Texture& srcTexture, const TextureRegionDesc* srcRegion, ResolveOp resolveOp) {
+ENGINE_FORCE_INLINE void CommandBufferD3D12::ResolveTexture(Texture& dstTexture, const TextureRegionDesc* dstRegion, const Texture& srcTexture, const TextureRegionDesc* srcRegion, ResolveOp resolveOp) {
     const TextureD3D12& dst = (TextureD3D12&)dstTexture;
     const TextureD3D12& src = (TextureD3D12&)srcTexture;
     const TextureDesc& dstDesc = dst.GetDesc();
@@ -907,7 +907,7 @@ NRI_INLINE void CommandBufferD3D12::ResolveTexture(Texture& dstTexture, const Te
     }
 }
 
-NRI_INLINE void CommandBufferD3D12::UploadBufferToTexture(Texture& dstTexture, const TextureRegionDesc& dstRegion, const Buffer& srcBuffer, const TextureDataLayoutDesc& srcDataLayout) {
+ENGINE_FORCE_INLINE void CommandBufferD3D12::UploadBufferToTexture(Texture& dstTexture, const TextureRegionDesc& dstRegion, const Buffer& srcBuffer, const TextureDataLayoutDesc& srcDataLayout) {
     const TextureD3D12& dst = (TextureD3D12&)dstTexture;
     const TextureDesc& dstDesc = dst.GetDesc();
 
@@ -933,7 +933,7 @@ NRI_INLINE void CommandBufferD3D12::UploadBufferToTexture(Texture& dstTexture, c
     m_GraphicsCommandList->CopyTextureRegion(&dstTextureCopyLocation, dstRegion.x, dstRegion.y, dstRegion.z, &srcTextureCopyLocation, nullptr);
 }
 
-NRI_INLINE void CommandBufferD3D12::ReadbackTextureToBuffer(Buffer& dstBuffer, const TextureDataLayoutDesc& dstDataLayout, const Texture& srcTexture, const TextureRegionDesc& srcRegion) {
+ENGINE_FORCE_INLINE void CommandBufferD3D12::ReadbackTextureToBuffer(Buffer& dstBuffer, const TextureDataLayoutDesc& dstDataLayout, const Texture& srcTexture, const TextureRegionDesc& srcRegion) {
     const TextureD3D12& src = (TextureD3D12&)srcTexture;
     const TextureDesc& srcDesc = src.GetDesc();
 
@@ -966,17 +966,17 @@ NRI_INLINE void CommandBufferD3D12::ReadbackTextureToBuffer(Buffer& dstBuffer, c
     m_GraphicsCommandList->CopyTextureRegion(&dstTextureCopyLocation, 0, 0, 0, &srcTextureCopyLocation, &srcBox);
 }
 
-NRI_INLINE void CommandBufferD3D12::Dispatch(const DispatchDesc& dispatchDesc) {
+ENGINE_FORCE_INLINE void CommandBufferD3D12::Dispatch(const DispatchDesc& dispatchDesc) {
     m_GraphicsCommandList->Dispatch(dispatchDesc.x, dispatchDesc.y, dispatchDesc.z);
 }
 
-NRI_INLINE void CommandBufferD3D12::DispatchIndirect(const Buffer& buffer, uint64_t offset) {
+ENGINE_FORCE_INLINE void CommandBufferD3D12::DispatchIndirect(const Buffer& buffer, uint64_t offset) {
     static_assert(sizeof(DispatchDesc) == sizeof(D3D12_DISPATCH_ARGUMENTS));
 
     m_GraphicsCommandList->ExecuteIndirect(m_Device.GetDispatchCommandSignature(), 1, (BufferD3D12&)buffer, offset, nullptr, 0);
 }
 
-NRI_INLINE void CommandBufferD3D12::Barrier(const BarrierDesc& barrierDesc) {
+ENGINE_FORCE_INLINE void CommandBufferD3D12::Barrier(const BarrierDesc& barrierDesc) {
 #if NRI_ENABLE_AGILITY_SDK_SUPPORT
     if (m_Device.GetDesc().features.enhancedBarriers) {
         // Count
@@ -1162,7 +1162,7 @@ NRI_INLINE void CommandBufferD3D12::Barrier(const BarrierDesc& barrierDesc) {
     }
 }
 
-NRI_INLINE void CommandBufferD3D12::ResetQueries(QueryPool& queryPool, uint32_t, uint32_t) {
+ENGINE_FORCE_INLINE void CommandBufferD3D12::ResetQueries(QueryPool& queryPool, uint32_t, uint32_t) {
     QueryPoolD3D12& queryPoolD3D12 = (QueryPoolD3D12&)queryPool;
     if (queryPoolD3D12.GetType() >= QUERY_TYPE_ACCELERATION_STRUCTURE_SIZE) {
         // TODO: "bufferForAccelerationStructuresSizes" is completely hidden from a user, transition needs to be done under the hood.
@@ -1198,17 +1198,17 @@ NRI_INLINE void CommandBufferD3D12::ResetQueries(QueryPool& queryPool, uint32_t,
     }
 }
 
-NRI_INLINE void CommandBufferD3D12::BeginQuery(QueryPool& queryPool, uint32_t offset) {
+ENGINE_FORCE_INLINE void CommandBufferD3D12::BeginQuery(QueryPool& queryPool, uint32_t offset) {
     QueryPoolD3D12& queryPoolD3D12 = (QueryPoolD3D12&)queryPool;
     m_GraphicsCommandList->BeginQuery(queryPoolD3D12, queryPoolD3D12.GetType(), offset);
 }
 
-NRI_INLINE void CommandBufferD3D12::EndQuery(QueryPool& queryPool, uint32_t offset) {
+ENGINE_FORCE_INLINE void CommandBufferD3D12::EndQuery(QueryPool& queryPool, uint32_t offset) {
     QueryPoolD3D12& queryPoolD3D12 = (QueryPoolD3D12&)queryPool;
     m_GraphicsCommandList->EndQuery(queryPoolD3D12, queryPoolD3D12.GetType(), offset);
 }
 
-NRI_INLINE void CommandBufferD3D12::CopyQueries(const QueryPool& queryPool, uint32_t offset, uint32_t num, Buffer& buffer, uint64_t alignedBufferOffset) {
+ENGINE_FORCE_INLINE void CommandBufferD3D12::CopyQueries(const QueryPool& queryPool, uint32_t offset, uint32_t num, Buffer& buffer, uint64_t alignedBufferOffset) {
     QueryPoolD3D12& queryPoolD3D12 = (QueryPoolD3D12&)queryPool;
     const BufferD3D12& bufferD3D12 = (BufferD3D12&)buffer;
 
@@ -1253,28 +1253,28 @@ NRI_INLINE void CommandBufferD3D12::CopyQueries(const QueryPool& queryPool, uint
         m_GraphicsCommandList->ResolveQueryData(queryPoolD3D12, queryPoolD3D12.GetType(), offset, num, bufferD3D12, alignedBufferOffset);
 }
 
-NRI_INLINE void CommandBufferD3D12::BeginAnnotation(const char* name, uint32_t bgra) {
+ENGINE_FORCE_INLINE void CommandBufferD3D12::BeginAnnotation(const char* name, uint32_t bgra) {
     if (m_Device.HasPix())
         m_Device.GetPix().BeginEventOnCommandList(m_GraphicsCommandList, bgra, name);
     else
         PIXBeginEvent(m_GraphicsCommandList, bgra, name);
 }
 
-NRI_INLINE void CommandBufferD3D12::EndAnnotation() {
+ENGINE_FORCE_INLINE void CommandBufferD3D12::EndAnnotation() {
     if (m_Device.HasPix())
         m_Device.GetPix().EndEventOnCommandList(m_GraphicsCommandList);
     else
         PIXEndEvent(m_GraphicsCommandList);
 }
 
-NRI_INLINE void CommandBufferD3D12::Annotation(const char* name, uint32_t bgra) {
+ENGINE_FORCE_INLINE void CommandBufferD3D12::Annotation(const char* name, uint32_t bgra) {
     if (m_Device.HasPix())
         m_Device.GetPix().SetMarkerOnCommandList(m_GraphicsCommandList, bgra, name);
     else
         PIXSetMarker(m_GraphicsCommandList, bgra, name);
 }
 
-NRI_INLINE void CommandBufferD3D12::BuildTopLevelAccelerationStructures(const BuildTopLevelAccelerationStructureDesc* buildTopLevelAccelerationStructureDescs, uint32_t buildTopLevelAccelerationStructureDescNum) {
+ENGINE_FORCE_INLINE void CommandBufferD3D12::BuildTopLevelAccelerationStructures(const BuildTopLevelAccelerationStructureDesc* buildTopLevelAccelerationStructureDescs, uint32_t buildTopLevelAccelerationStructureDescNum) {
     static_assert(sizeof(D3D12_RAYTRACING_INSTANCE_DESC) == sizeof(TopLevelInstance), "Mismatched sizeof");
 
     for (uint32_t i = 0; i < buildTopLevelAccelerationStructureDescNum; i++) {
@@ -1301,7 +1301,7 @@ NRI_INLINE void CommandBufferD3D12::BuildTopLevelAccelerationStructures(const Bu
     }
 }
 
-NRI_INLINE void CommandBufferD3D12::BuildBottomLevelAccelerationStructures(const BuildBottomLevelAccelerationStructureDesc* buildBottomLevelAccelerationStructureDescs, uint32_t buildBottomLevelAccelerationStructureDescNum) {
+ENGINE_FORCE_INLINE void CommandBufferD3D12::BuildBottomLevelAccelerationStructures(const BuildBottomLevelAccelerationStructureDesc* buildBottomLevelAccelerationStructureDescs, uint32_t buildBottomLevelAccelerationStructureDescNum) {
     // Scratch memory
     uint32_t geometryMaxNum = 0;
     uint32_t micromapMaxNum = 0;
@@ -1351,7 +1351,7 @@ NRI_INLINE void CommandBufferD3D12::BuildBottomLevelAccelerationStructures(const
     }
 }
 
-NRI_INLINE void CommandBufferD3D12::BuildMicromaps(const BuildMicromapDesc* buildMicromapDescs, uint32_t buildMicromapDescNum) {
+ENGINE_FORCE_INLINE void CommandBufferD3D12::BuildMicromaps(const BuildMicromapDesc* buildMicromapDescs, uint32_t buildMicromapDescNum) {
 #if NRI_ENABLE_AGILITY_SDK_SUPPORT
     static_assert(sizeof(MicromapTriangle) == sizeof(D3D12_RAYTRACING_OPACITY_MICROMAP_DESC), "Type mismatch");
 
@@ -1392,15 +1392,15 @@ NRI_INLINE void CommandBufferD3D12::BuildMicromaps(const BuildMicromapDesc* buil
 #endif
 }
 
-NRI_INLINE void CommandBufferD3D12::CopyAccelerationStructure(AccelerationStructure& dst, const AccelerationStructure& src, CopyMode copyMode) {
+ENGINE_FORCE_INLINE void CommandBufferD3D12::CopyAccelerationStructure(AccelerationStructure& dst, const AccelerationStructure& src, CopyMode copyMode) {
     m_GraphicsCommandList->CopyRaytracingAccelerationStructure(((AccelerationStructureD3D12&)dst).GetHandle(), ((AccelerationStructureD3D12&)src).GetHandle(), GetCopyMode(copyMode));
 }
 
-NRI_INLINE void CommandBufferD3D12::CopyMicromap(Micromap& dst, const Micromap& src, CopyMode copyMode) {
+ENGINE_FORCE_INLINE void CommandBufferD3D12::CopyMicromap(Micromap& dst, const Micromap& src, CopyMode copyMode) {
     m_GraphicsCommandList->CopyRaytracingAccelerationStructure(((MicromapD3D12&)dst).GetHandle(), ((MicromapD3D12&)src).GetHandle(), GetCopyMode(copyMode));
 }
 
-NRI_INLINE void CommandBufferD3D12::WriteAccelerationStructuresSizes(const AccelerationStructure* const* accelerationStructures, uint32_t accelerationStructureNum, QueryPool& queryPool, uint32_t queryPoolOffset) {
+ENGINE_FORCE_INLINE void CommandBufferD3D12::WriteAccelerationStructuresSizes(const AccelerationStructure* const* accelerationStructures, uint32_t accelerationStructureNum, QueryPool& queryPool, uint32_t queryPoolOffset) {
     Scratch<D3D12_GPU_VIRTUAL_ADDRESS> virtualAddresses = NRI_ALLOCATE_SCRATCH(m_Device, D3D12_GPU_VIRTUAL_ADDRESS, accelerationStructureNum);
     for (uint32_t i = 0; i < accelerationStructureNum; i++)
         virtualAddresses[i] = ((AccelerationStructureD3D12*)accelerationStructures[i])->GetHandle();
@@ -1419,7 +1419,7 @@ NRI_INLINE void CommandBufferD3D12::WriteAccelerationStructuresSizes(const Accel
     m_GraphicsCommandList->EmitRaytracingAccelerationStructurePostbuildInfo(&postbuildInfo, accelerationStructureNum, virtualAddresses);
 }
 
-NRI_INLINE void CommandBufferD3D12::WriteMicromapsSizes(const Micromap* const* micromaps, uint32_t micromapNum, QueryPool& queryPool, uint32_t queryPoolOffset) {
+ENGINE_FORCE_INLINE void CommandBufferD3D12::WriteMicromapsSizes(const Micromap* const* micromaps, uint32_t micromapNum, QueryPool& queryPool, uint32_t queryPoolOffset) {
     Scratch<D3D12_GPU_VIRTUAL_ADDRESS> virtualAddresses = NRI_ALLOCATE_SCRATCH(m_Device, D3D12_GPU_VIRTUAL_ADDRESS, micromapNum);
     for (uint32_t i = 0; i < micromapNum; i++)
         virtualAddresses[i] = ((AccelerationStructureD3D12&)micromaps[i]).GetHandle();
@@ -1438,7 +1438,7 @@ NRI_INLINE void CommandBufferD3D12::WriteMicromapsSizes(const Micromap* const* m
     m_GraphicsCommandList->EmitRaytracingAccelerationStructurePostbuildInfo(&postbuildInfo, micromapNum, virtualAddresses);
 }
 
-NRI_INLINE void CommandBufferD3D12::DispatchRays(const DispatchRaysDesc& dispatchRaysDesc) {
+ENGINE_FORCE_INLINE void CommandBufferD3D12::DispatchRays(const DispatchRaysDesc& dispatchRaysDesc) {
     D3D12_DISPATCH_RAYS_DESC desc = {};
 
     desc.RayGenerationShaderRecord.StartAddress = (*(BufferD3D12*)dispatchRaysDesc.raygenShader.buffer).GetDeviceAddress() + dispatchRaysDesc.raygenShader.offset;
@@ -1469,17 +1469,17 @@ NRI_INLINE void CommandBufferD3D12::DispatchRays(const DispatchRaysDesc& dispatc
     m_GraphicsCommandList->DispatchRays(&desc);
 }
 
-NRI_INLINE void CommandBufferD3D12::DispatchRaysIndirect(const Buffer& buffer, uint64_t offset) {
+ENGINE_FORCE_INLINE void CommandBufferD3D12::DispatchRaysIndirect(const Buffer& buffer, uint64_t offset) {
     static_assert(sizeof(DispatchRaysIndirectDesc) == sizeof(D3D12_DISPATCH_RAYS_DESC));
 
     m_GraphicsCommandList->ExecuteIndirect(m_Device.GetDispatchRaysCommandSignature(), 1, (BufferD3D12&)buffer, offset, nullptr, 0);
 }
 
-NRI_INLINE void CommandBufferD3D12::DrawMeshTasks(const DrawMeshTasksDesc& drawMeshTasksDesc) {
+ENGINE_FORCE_INLINE void CommandBufferD3D12::DrawMeshTasks(const DrawMeshTasksDesc& drawMeshTasksDesc) {
     m_GraphicsCommandList->DispatchMesh(drawMeshTasksDesc.x, drawMeshTasksDesc.y, drawMeshTasksDesc.z);
 }
 
-NRI_INLINE void CommandBufferD3D12::DrawMeshTasksIndirect(const Buffer& buffer, uint64_t offset, uint32_t drawNum, uint32_t stride, const Buffer* countBuffer, uint64_t countBufferOffset) {
+ENGINE_FORCE_INLINE void CommandBufferD3D12::DrawMeshTasksIndirect(const Buffer& buffer, uint64_t offset, uint32_t drawNum, uint32_t stride, const Buffer* countBuffer, uint64_t countBufferOffset) {
     static_assert(sizeof(DrawMeshTasksDesc) == sizeof(D3D12_DISPATCH_MESH_ARGUMENTS));
 
     ID3D12Resource* pCountBuffer = nullptr;

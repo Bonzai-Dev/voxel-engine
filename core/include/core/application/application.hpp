@@ -1,7 +1,7 @@
 #pragma once
 #include <memory>
-#include <core/renderer/renderer.hpp>
-#include <core/logger.hpp>
+// #include <core/renderer/renderer.hpp>
+// #include <core/logger.hpp>
 #include <core/events/input_events.hpp>
 #include "window.hpp"
 #include "layer.hpp"
@@ -96,11 +96,11 @@ namespace Core {
 
       void pollInputs() const;
 
-      Logger logger;
+      // Logger logger;
 
       // Graphics::Backend selectGraphicsBackend() const;
       // mutable std::unique_ptr<Graphics::VulkanRenderingDevice> renderingDevice;
-      std::unique_ptr<Renderer::Renderer> renderer;
+      // std::unique_ptr<Renderer::Renderer> renderer;
 
       const char *name;
       mutable Events::EventDispatcher eventDispatcher;

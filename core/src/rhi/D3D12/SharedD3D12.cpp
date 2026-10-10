@@ -407,13 +407,13 @@ bool nri::GetTextureDesc(const TextureD3D12Desc& textureD3D12Desc, TextureDesc& 
     textureDesc.sampleNum = (uint8_t)desc.SampleDesc.Count;
 
     if (desc.Flags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET)
-        textureDesc.usage |= TextureUsageBits::COLOR_ATTACHMENT;
+        textureDesc.usage |= TextureUsageBits::ColorAttachment;
     if (desc.Flags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL)
-        textureDesc.usage |= TextureUsageBits::DEPTH_STENCIL_ATTACHMENT;
+        textureDesc.usage |= TextureUsageBits::DepthStencilAttachment;
     if (!(desc.Flags & D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE))
-        textureDesc.usage |= TextureUsageBits::SHADER_RESOURCE | TextureUsageBits::INPUT_ATTACHMENT;
+        textureDesc.usage |= TextureUsageBits::ShaderResource | TextureUsageBits::InputAttachment;
     if (desc.Flags & D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS)
-        textureDesc.usage |= TextureUsageBits::SHADER_RESOURCE_STORAGE;
+        textureDesc.usage |= TextureUsageBits::ShaderResourceStorage;
 
     if (textureD3D12Desc.format)
         textureDesc.format = DXGIFormatToNRIFormat(textureD3D12Desc.format);
@@ -436,7 +436,7 @@ bool nri::GetBufferDesc(const BufferD3D12Desc& bufferD3D12Desc, BufferDesc& buff
     bufferDesc.structureStride = bufferD3D12Desc.structureStride;
 
     // There are almost no restrictions on usages in D3D12
-    bufferDesc.usage = BufferUsageBits::VERTEX_BUFFER | BufferUsageBits::INDEX_BUFFER | BufferUsageBits::CONSTANT_BUFFER | BufferUsageBits::ARGUMENT_BUFFER | BufferUsageBits::ACCELERATION_STRUCTURE_BUILD_INPUT;
+    bufferDesc.usage = BufferUsageBits::VERTEX_BUFFER | BufferUsageBits::INDEX_BUFFER | BufferUsageBits::ConstantBuffer | BufferUsageBits::ARGUMENT_BUFFER | BufferUsageBits::ACCELERATION_STRUCTURE_BUILD_INPUT;
 
     if (!(desc.Flags & D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE))
         bufferDesc.usage |= BufferUsageBits::SHADER_RESOURCE;

@@ -70,7 +70,7 @@ Result CreateDeviceWGPU(const DeviceCreationDesc& desc, DeviceBase*& device) {
 //============================================================================================================================================================================================
 #pragma region[  Core  ]
 
-static const DeviceInfo& GetDeviceInfo(const Device& device) {
+static const DeviceInfo& GetDeviceDesc(const Device& device) {
     return ((DeviceWGPU&)device).GetDesc();
 }
 
@@ -609,7 +609,7 @@ static uint64_t GetDescriptorNativeObject(const Descriptor* descriptor) {
     switch (descriptorWGPU.GetDescriptorType()) {
         case DescriptorType::SAMPLER:
             return uint64_t(descriptorWGPU.GetSampler());
-        case DescriptorType::TEXTURE:
+        case DescriptorType::Texture:
         case DescriptorType::STORAGE_TEXTURE:
         case DescriptorType::MUTABLE:
         case DescriptorType::INPUT_ATTACHMENT:
@@ -620,7 +620,7 @@ static uint64_t GetDescriptorNativeObject(const Descriptor* descriptor) {
 }
 
 Result DeviceWGPU::FillFunctionTable(CoreInterface& table) const {
-    table.GetDeviceInfo = ::GetDeviceInfo;
+    table.GetDeviceDesc = ::GetDeviceDesc;
     table.GetBufferDesc = ::GetBufferDesc;
     table.GetTextureDesc = ::GetTextureDesc;
     table.GetFormatSupport = ::GetFormatSupport;
@@ -836,7 +836,7 @@ Result DeviceWGPU::FillFunctionTable(ImguiInterface& table) const {
 
 Result DeviceWGPU::FillFunctionTable(LowLatencyInterface&) const {
     // TODO: WebGPU has no NRI low-latency extension mapping yet. Keep "features.lowLatency = false".
-    return Result::UNSUPPORTED;
+    return Result::Unsupported;
 }
 
 #pragma endregion
@@ -846,7 +846,7 @@ Result DeviceWGPU::FillFunctionTable(LowLatencyInterface&) const {
 
 Result DeviceWGPU::FillFunctionTable(MeshShaderInterface&) const {
     // TODO: WebGPU does not expose mesh shaders. Keep "features.meshShader = false".
-    return Result::UNSUPPORTED;
+    return Result::Unsupported;
 }
 
 #pragma endregion
@@ -856,7 +856,7 @@ Result DeviceWGPU::FillFunctionTable(MeshShaderInterface&) const {
 
 Result DeviceWGPU::FillFunctionTable(RayTracingInterface&) const {
     // TODO: WebGPU does not expose ray tracing or acceleration structures.
-    return Result::UNSUPPORTED;
+    return Result::Unsupported;
 }
 
 #pragma endregion
@@ -957,7 +957,7 @@ static Result QueuePresent(SwapChain& swapChain, Fence&) {
 
 Result DeviceWGPU::FillFunctionTable(SwapChainInterface& table) const {
     if (!m_Desc.features.swapChain)
-        return Result::UNSUPPORTED;
+        return Result::Unsupported;
 
     table.CreateSwapChain = ::CreateSwapChain;
     table.DestroySwapChain = ::DestroySwapChain;
@@ -977,7 +977,7 @@ Result DeviceWGPU::FillFunctionTable(SwapChainInterface& table) const {
 
 Result DeviceWGPU::FillFunctionTable(UpscalerInterface&) const {
     // TODO: No WGPU mapping exists for the upscaler extension yet.
-    return Result::UNSUPPORTED;
+    return Result::Unsupported;
 }
 
 #pragma endregion

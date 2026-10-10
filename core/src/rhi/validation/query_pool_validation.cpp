@@ -10,6 +10,6 @@ void QueryPoolVal::ResetQueries(uint32_t offset, uint32_t num) {
     GetCoreInterfaceImpl().ResetQueries(*GetImpl(), offset, num);
 }
 
-NRI_INLINE uint32_t QueryPoolVal::GetQuerySize() const {
+ENGINE_FORCE_INLINE uint32_t QueryPoolVal::GetQuerySize() const {
     return GetCoreInterfaceImpl().GetQuerySize(*GetImpl());
 }

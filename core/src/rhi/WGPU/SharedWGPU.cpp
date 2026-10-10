@@ -255,18 +255,18 @@ Format nri::GetNRIFormat(WGPUTextureFormat format) {
         case WGPUTextureFormat_RGBA16Float:
             return Format::RGBA16_SFLOAT;
         default:
-            return Format::UNKNOWN;
+            return Format::Unknown;
     }
 }
 
 WGPUTextureUsage nri::GetTextureUsage(TextureUsageBits usage) {
     WGPUTextureUsage result = WGPUTextureUsage_CopySrc | WGPUTextureUsage_CopyDst;
 
-    if (usage & (TextureUsageBits::SHADER_RESOURCE | TextureUsageBits::INPUT_ATTACHMENT))
+    if (usage & (TextureUsageBits::ShaderResource | TextureUsageBits::InputAttachment))
         result |= WGPUTextureUsage_TextureBinding;
-    if (usage & TextureUsageBits::SHADER_RESOURCE_STORAGE)
+    if (usage & TextureUsageBits::ShaderResourceStorage)
         result |= WGPUTextureUsage_StorageBinding;
-    if (usage & (TextureUsageBits::COLOR_ATTACHMENT | TextureUsageBits::DEPTH_STENCIL_ATTACHMENT))
+    if (usage & (TextureUsageBits::ColorAttachment | TextureUsageBits::DepthStencilAttachment))
         result |= WGPUTextureUsage_RenderAttachment;
 
     return result;
@@ -279,7 +279,7 @@ WGPUBufferUsage nri::GetBufferUsage(BufferUsageBits usage) {
         result |= WGPUBufferUsage_Vertex;
     if (usage & BufferUsageBits::INDEX_BUFFER)
         result |= WGPUBufferUsage_Index;
-    if (usage & BufferUsageBits::CONSTANT_BUFFER)
+    if (usage & BufferUsageBits::ConstantBuffer)
         result |= WGPUBufferUsage_Uniform;
     if (usage & (BufferUsageBits::SHADER_RESOURCE | BufferUsageBits::SHADER_RESOURCE_STORAGE))
         result |= WGPUBufferUsage_Storage;
@@ -380,7 +380,7 @@ WGPUVertexFormat nri::GetVertexFormat(Format format) {
 
 WGPUTextureDimension nri::GetTextureDimension(TextureType type) {
     switch (type) {
-        case TextureType::TEXTURE_1D:
+        case TextureDimension::Texture1D:
             return WGPUTextureDimension_1D;
         case TextureType::TEXTURE_3D:
             return WGPUTextureDimension_3D;
@@ -391,15 +391,15 @@ WGPUTextureDimension nri::GetTextureDimension(TextureType type) {
 
 WGPUTextureViewDimension nri::GetTextureViewDimension(TextureView type, const TextureDesc& textureDesc) {
     switch (type) {
-        case TextureView::TEXTURE_ARRAY:
-        case TextureView::STORAGE_TEXTURE_ARRAY:
-            return textureDesc.type == TextureType::TEXTURE_1D ? WGPUTextureViewDimension_1D : WGPUTextureViewDimension_2DArray;
-        case TextureView::TEXTURE_CUBE:
+        case TextureView::TextureArray:
+        case TextureView::StorageTextureArray:
+            return textureDesc.type == TextureDimension::Texture1D ? WGPUTextureViewDimension_1D : WGPUTextureViewDimension_2DArray;
+        case TextureView::TextureCube:
             return WGPUTextureViewDimension_Cube;
-        case TextureView::TEXTURE_CUBE_ARRAY:
+        case TextureView::TextureCubeArray:
             return WGPUTextureViewDimension_CubeArray;
         default:
-            if (textureDesc.type == TextureType::TEXTURE_1D)
+            if (textureDesc.type == TextureDimension::Texture1D)
                 return WGPUTextureViewDimension_1D;
             if (textureDesc.type == TextureType::TEXTURE_3D)
                 return WGPUTextureViewDimension_3D;
@@ -737,19 +737,19 @@ Vendor nri::GetVendorFromPCIID(uint32_t vendorId) {
         case 0x8086:
             return Vendor::INTEL;
         default:
-            return Vendor::UNKNOWN;
+            return Vendor::Unknown;
     }
 }
 
 Architecture nri::GetArchitecture(WGPUAdapterType adapterType) {
     switch (adapterType) {
         case WGPUAdapterType_DiscreteGPU:
-            return Architecture::Discrete;
+            return Architecture::DISCRETE;
         case WGPUAdapterType_IntegratedGPU:
-            return Architecture::Integrated;
+            return Architecture::INTEGRATED;
         case WGPUAdapterType_CPU:
-            return Architecture::Software;
+            return Architecture::SOFTWARE;
         default:
-            return Architecture::UNKNOWN;
+            return Architecture::Unknown;
     }
 }

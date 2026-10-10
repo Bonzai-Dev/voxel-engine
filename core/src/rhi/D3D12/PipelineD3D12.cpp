@@ -386,7 +386,7 @@ Result PipelineD3D12::CreateFromStream(const GraphicsPipelineDesc& graphicsPipel
         else if (shader.stage == StageBits::FRAGMENT_SHADER)
             FillShaderBytecode(stateStream.pixelShader.desc, shader);
         else
-            return Result::INVALID_ARGUMENT;
+            return Result::InvalidArgument;
     }
 
     // Vertex input
@@ -677,7 +677,7 @@ void PipelineD3D12::Bind(ID3D12GraphicsCommandList* graphicsCommandList) const {
         graphicsCommandList->IASetPrimitiveTopology(m_PrimitiveTopology);
 }
 
-NRI_INLINE Result PipelineD3D12::WriteShaderGroupIdentifiers(uint32_t baseShaderGroupIndex, uint32_t shaderGroupNum, void* dst) const {
+ENGINE_FORCE_INLINE Result PipelineD3D12::WriteShaderGroupIdentifiers(uint32_t baseShaderGroupIndex, uint32_t shaderGroupNum, void* dst) const {
     uint8_t* ptr = (uint8_t*)dst;
     size_t identifierSize = (size_t)m_Device.GetDesc().shaderStage.rayTracing.shaderGroupIdentifierSize;
     uint32_t shaderGroupIndex = baseShaderGroupIndex;

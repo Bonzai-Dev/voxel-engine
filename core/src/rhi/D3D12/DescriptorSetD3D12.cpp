@@ -22,7 +22,7 @@ DescriptorHandleGPU DescriptorSetD3D12::GetDescriptorHandleGPU(uint32_t rangeInd
     return descriptorHandleGPU;
 }
 
-NRI_INLINE void DescriptorSetD3D12::UpdateDescriptorRanges(const UpdateDescriptorRangeDesc* updateDescriptorRangeDescs, uint32_t updateDescriptorRangeDescNum) {
+ENGINE_FORCE_INLINE void DescriptorSetD3D12::UpdateDescriptorRanges(const UpdateDescriptorRangeDesc* updateDescriptorRangeDescs, uint32_t updateDescriptorRangeDescNum) {
     for (uint32_t i = 0; i < updateDescriptorRangeDescNum; i++) {
         const UpdateDescriptorRangeDesc& updateDescriptorRangeDesc = updateDescriptorRangeDescs[i];
 
@@ -43,7 +43,7 @@ NRI_INLINE void DescriptorSetD3D12::UpdateDescriptorRanges(const UpdateDescripto
     }
 }
 
-NRI_INLINE void DescriptorSetD3D12::Copy(const CopyDescriptorRangeDesc* copyDescriptorRangeDescs, uint32_t copyDescriptorRangeDescNum) {
+ENGINE_FORCE_INLINE void DescriptorSetD3D12::Copy(const CopyDescriptorRangeDesc* copyDescriptorRangeDescs, uint32_t copyDescriptorRangeDescNum) {
     for (uint32_t i = 0; i < copyDescriptorRangeDescNum; i++) {
         const CopyDescriptorRangeDesc& copyDescriptorSetDesc = copyDescriptorRangeDescs[i];
 

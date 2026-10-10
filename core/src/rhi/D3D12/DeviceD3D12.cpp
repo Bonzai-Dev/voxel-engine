@@ -101,16 +101,16 @@ static D3D12_RESOURCE_FLAGS GetBufferFlags(BufferUsageBits bufferUsage) {
 static D3D12_RESOURCE_FLAGS GetTextureFlags(TextureUsageBits textureUsage) {
     D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE;
 
-    if (textureUsage & TextureUsageBits::SHADER_RESOURCE_STORAGE)
+    if (textureUsage & TextureUsageBits::ShaderResourceStorage)
         flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
 
-    if (textureUsage & TextureUsageBits::COLOR_ATTACHMENT)
+    if (textureUsage & TextureUsageBits::ColorAttachment)
         flags |= D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 
-    if (textureUsage & TextureUsageBits::DEPTH_STENCIL_ATTACHMENT) {
+    if (textureUsage & TextureUsageBits::DepthStencilAttachment) {
         flags |= D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 
-        bool isShaderResource = textureUsage & (TextureUsageBits::SHADER_RESOURCE | TextureUsageBits::INPUT_ATTACHMENT);
+        bool isShaderResource = textureUsage & (TextureUsageBits::ShaderResource | TextureUsageBits::InputAttachment);
         if (!isShaderResource)
             flags |= D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE;
     }
@@ -1089,8 +1089,8 @@ constexpr std::array<D3D12_HEAP_TYPE, (size_t)MemoryLocation::MAX_NUM> g_HeapTyp
 NRI_VALIDATE_ARRAY(g_HeapTypes);
 
 D3D12_HEAP_TYPE DeviceD3D12::GetHeapType(MemoryLocation memoryLocation) const {
-    if (memoryLocation == MemoryLocation::DEVICE_UPLOAD && m_Desc.memory.deviceUploadHeapSize == 0)
-        memoryLocation = MemoryLocation::HOST_UPLOAD;
+    if (memoryLocation == MemoryLocation::DeviceUpload && m_Desc.memory.deviceUploadHeapSize == 0)
+        memoryLocation = MemoryLocation::HostUpload;
 
     return g_HeapTypes[(size_t)memoryLocation];
 }
@@ -1244,7 +1244,7 @@ void DeviceD3D12::GetResourceDesc(const TextureDesc& textureDesc, D3D12_RESOURCE
     desc.Height = Align(std::max(textureDesc.height, (Dim_t)1), formatProps.blockHeight);
     desc.DepthOrArraySize = std::max(textureDesc.type == TextureType::TEXTURE_3D ? textureDesc.depth : textureDesc.layerNum, (Dim_t)1);
     desc.MipLevels = std::max(textureDesc.mipNum, (Dim_t)1);
-    desc.Format = (textureDesc.usage & TextureUsageBits::SHADING_RATE_ATTACHMENT) ? dxgiFormat.typed : dxgiFormat.typeless;
+    desc.Format = (textureDesc.usage & TextureUsageBits::ShadingRateAttachment) ? dxgiFormat.typed : dxgiFormat.typeless;
     desc.SampleDesc.Count = std::max(textureDesc.sampleNum, (Sample_t)1);
     desc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
     desc.Flags = GetTextureFlags(textureDesc.usage);
@@ -1507,10 +1507,10 @@ void DeviceD3D12::Destruct() {
     Destroy(GetAllocationCallbacks(), this);
 }
 
-NRI_INLINE Result DeviceD3D12::GetQueue(QueueType queueType, uint32_t queueIndex, Queue*& queue) {
+ENGINE_FORCE_INLINE Result DeviceD3D12::GetQueue(QueueType queueType, uint32_t queueIndex, Queue*& queue) {
     const auto& queueFamily = m_QueueFamilies[(uint32_t)queueType];
     if (queueFamily.empty())
-        return Result::UNSUPPORTED;
+        return Result::Unsupported;
 
     if (queueIndex < queueFamily.size()) {
         queue = (Queue*)m_QueueFamilies[(uint32_t)queueType].at(queueIndex);
@@ -1520,7 +1520,7 @@ NRI_INLINE Result DeviceD3D12::GetQueue(QueueType queueType, uint32_t queueIndex
     return Result::FAILURE;
 }
 
-NRI_INLINE Result DeviceD3D12::WaitIdle() {
+ENGINE_FORCE_INLINE Result DeviceD3D12::WaitIdle() {
     for (auto& queueFamily : m_QueueFamilies) {
         for (auto queue : queueFamily) {
             Result result = queue->WaitIdle();
@@ -1532,7 +1532,7 @@ NRI_INLINE Result DeviceD3D12::WaitIdle() {
     return Result::Success;
 }
 
-NRI_INLINE Result DeviceD3D12::BindBufferMemory(const BindBufferMemoryDesc* bindBufferMemoryDescs, uint32_t bindBufferMemoryDescNum) {
+ENGINE_FORCE_INLINE Result DeviceD3D12::BindBufferMemory(const BindBufferMemoryDesc* bindBufferMemoryDescs, uint32_t bindBufferMemoryDescNum) {
     for (uint32_t i = 0; i < bindBufferMemoryDescNum; i++) {
         const auto& desc = bindBufferMemoryDescs[i];
         Result result = ((BufferD3D12*)desc.buffer)->BindMemory(*(MemoryD3D12*)desc.memory, desc.offset);
@@ -1543,7 +1543,7 @@ NRI_INLINE Result DeviceD3D12::BindBufferMemory(const BindBufferMemoryDesc* bind
     return Result::Success;
 }
 
-NRI_INLINE Result DeviceD3D12::BindTextureMemory(const BindTextureMemoryDesc* bindTextureMemoryDescs, uint32_t bindTextureMemoryDescNum) {
+ENGINE_FORCE_INLINE Result DeviceD3D12::BindTextureMemory(const BindTextureMemoryDesc* bindTextureMemoryDescs, uint32_t bindTextureMemoryDescNum) {
     for (uint32_t i = 0; i < bindTextureMemoryDescNum; i++) {
         const auto& desc = bindTextureMemoryDescs[i];
         Result result = ((TextureD3D12*)desc.texture)->BindMemory(*(MemoryD3D12*)desc.memory, desc.offset);
@@ -1554,7 +1554,7 @@ NRI_INLINE Result DeviceD3D12::BindTextureMemory(const BindTextureMemoryDesc* bi
     return Result::Success;
 }
 
-NRI_INLINE Result DeviceD3D12::BindAccelerationStructureMemory(const BindAccelerationStructureMemoryDesc* bindAccelerationStructureMemoryDescs, uint32_t bindAccelerationStructureMemoryDescNum) {
+ENGINE_FORCE_INLINE Result DeviceD3D12::BindAccelerationStructureMemory(const BindAccelerationStructureMemoryDesc* bindAccelerationStructureMemoryDescs, uint32_t bindAccelerationStructureMemoryDescNum) {
     for (uint32_t i = 0; i < bindAccelerationStructureMemoryDescNum; i++) {
         const auto& desc = bindAccelerationStructureMemoryDescs[i];
         Result result = ((AccelerationStructureD3D12*)desc.accelerationStructure)->BindMemory(*(MemoryD3D12*)desc.memory, desc.offset);
@@ -1565,7 +1565,7 @@ NRI_INLINE Result DeviceD3D12::BindAccelerationStructureMemory(const BindAcceler
     return Result::Success;
 }
 
-NRI_INLINE Result DeviceD3D12::BindMicromapMemory(const BindMicromapMemoryDesc* bindMicromapMemoryDescs, uint32_t bindMicromapMemoryDescNum) {
+ENGINE_FORCE_INLINE Result DeviceD3D12::BindMicromapMemory(const BindMicromapMemoryDesc* bindMicromapMemoryDescs, uint32_t bindMicromapMemoryDescNum) {
     for (uint32_t i = 0; i < bindMicromapMemoryDescNum; i++) {
         const auto& desc = bindMicromapMemoryDescs[i];
         Result result = ((MicromapD3D12*)desc.micromap)->BindMemory(*(MemoryD3D12*)desc.memory, desc.offset);
@@ -1584,7 +1584,7 @@ NRI_INLINE Result DeviceD3D12::BindMicromapMemory(const BindMicromapMemoryDesc* 
     if ((formatSupport.Support2 & (optional)) != 0) \
         supportBits |= bit;
 
-NRI_INLINE FormatSupportBits DeviceD3D12::GetFormatSupport(Format format) const {
+ENGINE_FORCE_INLINE FormatSupportBits DeviceD3D12::GetFormatSupport(Format format) const {
     DXGI_FORMAT dxgiFormat = GetDxgiFormat(format).typed;
     if (dxgiFormat == DXGI_FORMAT_UNKNOWN)
         return FormatSupportBits::UNSUPPORTED;

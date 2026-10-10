@@ -45,7 +45,7 @@ private:
     uint32_t m_CurrentTextureIndex = uint32_t(-1);
     Dim_t m_Width = 0;
     Dim_t m_Height = 0;
-    Format m_Format = Format::UNKNOWN;
+    Format m_Format = Format::Unknown;
 };
 
 } // namespace Core::RHI

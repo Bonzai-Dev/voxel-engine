@@ -8,7 +8,7 @@ Result TextureD3D12::Create(const TextureDesc& textureDesc) {
 
 Result TextureD3D12::Create(const TextureD3D12Desc& textureD3D12Desc) {
     if (!GetTextureDesc(textureD3D12Desc, m_Desc))
-        return Result::INVALID_ARGUMENT;
+        return Result::InvalidArgument;
 
     m_Texture = (ID3D12ResourceBest*)textureD3D12Desc.d3d12Resource;
 
@@ -34,10 +34,10 @@ Result TextureD3D12::Allocate(MemoryLocation memoryLocation, float priority, boo
     uint32_t flags = D3D12MA::ALLOCATION_FLAG_STRATEGY_MIN_MEMORY;
     flags |= committed ? D3D12MA::ALLOCATION_FLAG_COMMITTED : D3D12MA::ALLOCATION_FLAG_CAN_ALIAS;
 
-    const DeviceInfo& DeviceInfo = m_Device.GetDesc();
+    const DeviceInfo& deviceDesc = m_Device.GetDesc();
     D3D12_HEAP_FLAGS heapFlags = D3D12_HEAP_FLAG_ALLOW_ALL_BUFFERS_AND_TEXTURES;
-    if (DeviceInfo.tiers.memory == 0) {
-        if (m_Desc.usage & (TextureUsageBits::COLOR_ATTACHMENT | TextureUsageBits::DEPTH_STENCIL_ATTACHMENT))
+    if (deviceDesc.tiers.memory == 0) {
+        if (m_Desc.usage & (TextureUsageBits::ColorAttachment | TextureUsageBits::DepthStencilAttachment))
             heapFlags = D3D12_HEAP_FLAG_ALLOW_ONLY_RT_DS_TEXTURES;
         else
             heapFlags = D3D12_HEAP_FLAG_ALLOW_ONLY_NON_RT_DS_TEXTURES;

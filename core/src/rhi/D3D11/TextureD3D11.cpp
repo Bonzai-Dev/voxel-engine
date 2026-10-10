@@ -6,20 +6,20 @@ Result TextureD3D11::Allocate(MemoryLocation memoryLocation, float priority) {
     const DxgiFormat& dxgiFormat = GetDxgiFormat(m_Desc.format);
 
     uint32_t bindFlags = 0;
-    if (m_Desc.usage & (TextureUsageBits::SHADER_RESOURCE | TextureUsageBits::INPUT_ATTACHMENT))
+    if (m_Desc.usage & (TextureUsageBits::ShaderResource | TextureUsageBits::InputAttachment))
         bindFlags |= D3D11_BIND_SHADER_RESOURCE;
-    if (m_Desc.usage & TextureUsageBits::SHADER_RESOURCE_STORAGE)
+    if (m_Desc.usage & TextureUsageBits::ShaderResourceStorage)
         bindFlags |= D3D11_BIND_UNORDERED_ACCESS;
-    if (m_Desc.usage & TextureUsageBits::COLOR_ATTACHMENT)
+    if (m_Desc.usage & TextureUsageBits::ColorAttachment)
         bindFlags |= D3D11_BIND_RENDER_TARGET;
-    if (m_Desc.usage & TextureUsageBits::DEPTH_STENCIL_ATTACHMENT)
+    if (m_Desc.usage & TextureUsageBits::DepthStencilAttachment)
         bindFlags |= D3D11_BIND_DEPTH_STENCIL;
 
     D3D11_USAGE usage = D3D11_USAGE_DEFAULT;
     uint32_t cpuAccessFlags = 0;
     switch (memoryLocation) {
-        case MemoryLocation::DEVICE_UPLOAD:
-        case MemoryLocation::HOST_UPLOAD:
+        case MemoryLocation::DeviceUpload:
+        case MemoryLocation::HostUpload:
             usage = D3D11_USAGE_DYNAMIC;
             cpuAccessFlags = D3D11_CPU_ACCESS_WRITE;
             break;
@@ -32,7 +32,7 @@ Result TextureD3D11::Allocate(MemoryLocation memoryLocation, float priority) {
     }
 
     HRESULT hr = E_INVALIDARG;
-    if (m_Desc.type == TextureType::TEXTURE_1D) {
+    if (m_Desc.type == TextureDimension::Texture1D) {
         D3D11_TEXTURE1D_DESC desc = {};
         desc.Width = m_Desc.width;
         desc.MipLevels = m_Desc.mipNum;
@@ -91,7 +91,7 @@ Result TextureD3D11::Create(const TextureDesc& textureDesc) {
 
 Result TextureD3D11::Create(const TextureD3D11Desc& textureD3D11Desc) {
     if (!GetTextureDesc(textureD3D11Desc, m_Desc))
-        return Result::INVALID_ARGUMENT;
+        return Result::InvalidArgument;
 
     m_Texture = textureD3D11Desc.d3d11Resource;
 

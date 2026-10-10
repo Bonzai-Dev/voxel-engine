@@ -631,7 +631,7 @@ void DeviceD3D11::InitializeAmdExt(AGSContext* agsContext, bool isImported) {
 }
 
 void DeviceD3D11::GetMemoryDesc(const BufferDesc& bufferDesc, MemoryLocation memoryLocation, MemoryDesc& memoryDesc) const {
-    const bool isConstantBuffer = (bufferDesc.usage & BufferUsageBits::CONSTANT_BUFFER) == (uint32_t)BufferUsageBits::CONSTANT_BUFFER;
+    const bool isConstantBuffer = (bufferDesc.usage & BufferUsageBits::ConstantBuffer) == (uint32_t)BufferUsageBits::ConstantBuffer;
 
     uint32_t alignment = 65536;
     if (isConstantBuffer)
@@ -667,20 +667,20 @@ void DeviceD3D11::Destruct() {
     Destroy(GetAllocationCallbacks(), this);
 }
 
-NRI_INLINE Result DeviceD3D11::GetQueue(QueueType queueType, uint32_t queueIndex, Queue*& queue) {
+ENGINE_FORCE_INLINE Result DeviceD3D11::GetQueue(QueueType queueType, uint32_t queueIndex, Queue*& queue) {
     const auto& queueFamily = m_QueueFamilies[(uint32_t)queueType];
     if (queueFamily.empty())
-        return Result::UNSUPPORTED;
+        return Result::Unsupported;
 
     if (queueIndex < queueFamily.size()) {
         queue = (Queue*)m_QueueFamilies[(uint32_t)queueType].at(queueIndex);
         return Result::Success;
     }
 
-    return Result::INVALID_ARGUMENT;
+    return Result::InvalidArgument;
 }
 
-NRI_INLINE Result DeviceD3D11::WaitIdle() {
+ENGINE_FORCE_INLINE Result DeviceD3D11::WaitIdle() {
     QueueD3D11* anyQueue = nullptr;
     for (auto& queueFamily : m_QueueFamilies) {
         if (!queueFamily.empty()) {
@@ -696,7 +696,7 @@ NRI_INLINE Result DeviceD3D11::WaitIdle() {
     return Result::Success;
 }
 
-NRI_INLINE Result DeviceD3D11::BindBufferMemory(const BindBufferMemoryDesc* bindBufferMemoryDescs, uint32_t bindBufferMemoryDescNum) {
+ENGINE_FORCE_INLINE Result DeviceD3D11::BindBufferMemory(const BindBufferMemoryDesc* bindBufferMemoryDescs, uint32_t bindBufferMemoryDescNum) {
     for (uint32_t i = 0; i < bindBufferMemoryDescNum; i++) {
         const BindBufferMemoryDesc& desc = bindBufferMemoryDescs[i];
         const MemoryD3D11& memory = *(MemoryD3D11*)desc.memory;
@@ -708,7 +708,7 @@ NRI_INLINE Result DeviceD3D11::BindBufferMemory(const BindBufferMemoryDesc* bind
     return Result::Success;
 }
 
-NRI_INLINE Result DeviceD3D11::BindTextureMemory(const BindTextureMemoryDesc* bindTextureMemoryDescs, uint32_t bindTextureMemoryDescNum) {
+ENGINE_FORCE_INLINE Result DeviceD3D11::BindTextureMemory(const BindTextureMemoryDesc* bindTextureMemoryDescs, uint32_t bindTextureMemoryDescNum) {
     for (uint32_t i = 0; i < bindTextureMemoryDescNum; i++) {
         const BindTextureMemoryDesc& desc = bindTextureMemoryDescs[i];
         const MemoryD3D11& memory = *(MemoryD3D11*)desc.memory;
@@ -728,7 +728,7 @@ NRI_INLINE Result DeviceD3D11::BindTextureMemory(const BindTextureMemoryDesc* bi
     if ((formatSupport2.OutFormatSupport2 & (optional)) != 0) \
         supportBits |= bit;
 
-NRI_INLINE FormatSupportBits DeviceD3D11::GetFormatSupport(Format format) const {
+ENGINE_FORCE_INLINE FormatSupportBits DeviceD3D11::GetFormatSupport(Format format) const {
     DXGI_FORMAT dxgiFormat = GetDxgiFormat(format).typed;
     if (dxgiFormat == DXGI_FORMAT_UNKNOWN)
         return FormatSupportBits::UNSUPPORTED;

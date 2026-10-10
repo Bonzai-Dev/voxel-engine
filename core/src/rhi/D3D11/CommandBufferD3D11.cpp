@@ -90,7 +90,7 @@ void CommandBufferD3D11::Submit() {
     m_CommandList = nullptr;
 }
 
-NRI_INLINE Result CommandBufferD3D11::Begin(const DescriptorPool* descriptorPool) {
+ENGINE_FORCE_INLINE Result CommandBufferD3D11::Begin(const DescriptorPool* descriptorPool) {
     m_CommandList = nullptr;
     m_Pipeline = nullptr;
     m_PipelineLayout = nullptr;
@@ -109,7 +109,7 @@ NRI_INLINE Result CommandBufferD3D11::Begin(const DescriptorPool* descriptorPool
     return Result::Success;
 }
 
-NRI_INLINE Result CommandBufferD3D11::End() {
+ENGINE_FORCE_INLINE Result CommandBufferD3D11::End() {
     HRESULT hr = m_DeferredContext->FinishCommandList(FALSE, &m_CommandList);
     NRI_RETURN_ON_BAD_HRESULT(&m_Device, hr, "ID3D11DeviceContext::FinishCommandList");
 
@@ -118,7 +118,7 @@ NRI_INLINE Result CommandBufferD3D11::End() {
     return Result::Success;
 }
 
-NRI_INLINE void CommandBufferD3D11::SetViewports(const Viewport* viewports, uint32_t viewportNum) {
+ENGINE_FORCE_INLINE void CommandBufferD3D11::SetViewports(const Viewport* viewports, uint32_t viewportNum) {
     Scratch<D3D11_VIEWPORT> d3dViewports = NRI_ALLOCATE_SCRATCH(m_Device, D3D11_VIEWPORT, viewportNum);
     for (uint32_t i = 0; i < viewportNum; i++) {
         const Viewport& in = viewports[i];
@@ -134,7 +134,7 @@ NRI_INLINE void CommandBufferD3D11::SetViewports(const Viewport* viewports, uint
     m_DeferredContext->RSSetViewports(viewportNum, d3dViewports);
 }
 
-NRI_INLINE void CommandBufferD3D11::SetScissors(const Rect* rects, uint32_t rectNum) {
+ENGINE_FORCE_INLINE void CommandBufferD3D11::SetScissors(const Rect* rects, uint32_t rectNum) {
     Scratch<D3D11_RECT> rectsD3D = NRI_ALLOCATE_SCRATCH(m_Device, D3D11_RECT, rectNum);
 
     for (uint32_t i = 0; i < rectNum; i++) {
@@ -145,7 +145,7 @@ NRI_INLINE void CommandBufferD3D11::SetScissors(const Rect* rects, uint32_t rect
     m_DeferredContext->RSSetScissorRects(rectNum, &rectsD3D[0]);
 }
 
-NRI_INLINE void CommandBufferD3D11::SetDepthBounds(float boundsMin, float boundsMax) {
+ENGINE_FORCE_INLINE void CommandBufferD3D11::SetDepthBounds(float boundsMin, float boundsMax) {
     if (m_DepthBounds[0] != boundsMin || m_DepthBounds[1] != boundsMax) {
         bool isEnabled = boundsMin != 0.0f || boundsMax != 1.0f;
         MaybeUnused(isEnabled);
@@ -168,7 +168,7 @@ NRI_INLINE void CommandBufferD3D11::SetDepthBounds(float boundsMin, float bounds
     }
 }
 
-NRI_INLINE void CommandBufferD3D11::SetStencilReference(uint8_t frontRef, uint8_t backRef) {
+ENGINE_FORCE_INLINE void CommandBufferD3D11::SetStencilReference(uint8_t frontRef, uint8_t backRef) {
     MaybeUnused(backRef);
 
     if (m_Pipeline)
@@ -177,7 +177,7 @@ NRI_INLINE void CommandBufferD3D11::SetStencilReference(uint8_t frontRef, uint8_
     m_StencilRef = frontRef;
 }
 
-NRI_INLINE void CommandBufferD3D11::SetSampleLocations(const SampleLocation* locations, Sample_t locationNum, Sample_t sampleNum) {
+ENGINE_FORCE_INLINE void CommandBufferD3D11::SetSampleLocations(const SampleLocation* locations, Sample_t locationNum, Sample_t sampleNum) {
     MaybeUnused(sampleNum); // already have this in "m_RasterizerDesc"
 
     m_SamplePositionsState.Set(locations, locationNum);
@@ -186,14 +186,14 @@ NRI_INLINE void CommandBufferD3D11::SetSampleLocations(const SampleLocation* loc
         m_Pipeline->ChangeRasterizerState(m_DeferredContext, m_SamplePositionsState);
 }
 
-NRI_INLINE void CommandBufferD3D11::SetBlendConstants(const Color32f& color) {
+ENGINE_FORCE_INLINE void CommandBufferD3D11::SetBlendConstants(const Color32f& color) {
     if (m_Pipeline)
         m_Pipeline->ChangeBlendConstants(m_DeferredContext, color);
 
     m_BlendFactor = color;
 }
 
-NRI_INLINE void CommandBufferD3D11::ClearAttachments(const ClearAttachmentDesc* clearAttachmentDescs, uint32_t clearAttachmentDescNum, const Rect* rects, uint32_t rectNum) {
+ENGINE_FORCE_INLINE void CommandBufferD3D11::ClearAttachments(const ClearAttachmentDesc* clearAttachmentDescs, uint32_t clearAttachmentDescNum, const Rect* rects, uint32_t rectNum) {
     if (!rectNum) {
         for (uint32_t i = 0; i < clearAttachmentDescNum; i++) {
             const ClearAttachmentDesc& clearAttachmentDesc = clearAttachmentDescs[i];
@@ -236,7 +236,7 @@ NRI_INLINE void CommandBufferD3D11::ClearAttachments(const ClearAttachmentDesc* 
     }
 }
 
-NRI_INLINE void CommandBufferD3D11::ClearStorage(const ClearStorageDesc& clearStorageDesc) {
+ENGINE_FORCE_INLINE void CommandBufferD3D11::ClearStorage(const ClearStorageDesc& clearStorageDesc) {
     DescriptorD3D11& descriptorD3D11 = *(DescriptorD3D11*)clearStorageDesc.descriptor;
 
     const FormatProps& formatProps = GetFormatProps(descriptorD3D11.GetFormat());
@@ -246,7 +246,7 @@ NRI_INLINE void CommandBufferD3D11::ClearStorage(const ClearStorageDesc& clearSt
         m_DeferredContext->ClearUnorderedAccessViewFloat(descriptorD3D11, &clearStorageDesc.value.f.x);
 }
 
-NRI_INLINE void CommandBufferD3D11::BeginRendering(const RenderingDesc& renderingDesc) {
+ENGINE_FORCE_INLINE void CommandBufferD3D11::BeginRendering(const RenderingDesc& renderingDesc) {
     ResetAttachments();
 
     std::array<ID3D11RenderTargetView*, D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT> renderTargets = {};
@@ -332,7 +332,7 @@ NRI_INLINE void CommandBufferD3D11::BeginRendering(const RenderingDesc& renderin
 #endif
 }
 
-NRI_INLINE void CommandBufferD3D11::EndRendering() {
+ENGINE_FORCE_INLINE void CommandBufferD3D11::EndRendering() {
     // D3D11 doesn't support depth-stencil resolve
     for (const AttachmentDescD3D11& attachmentDesc : m_RenderTargets) {
         if (!attachmentDesc.resolveDst)
@@ -354,7 +354,7 @@ NRI_INLINE void CommandBufferD3D11::EndRendering() {
     ResetAttachments();
 }
 
-NRI_INLINE void CommandBufferD3D11::SetVertexBuffers(uint32_t baseSlot, const VertexBufferDesc* vertexBufferDescs, uint32_t vertexBufferNum) {
+ENGINE_FORCE_INLINE void CommandBufferD3D11::SetVertexBuffers(uint32_t baseSlot, const VertexBufferDesc* vertexBufferDescs, uint32_t vertexBufferNum) {
     Scratch<uint8_t> scratch = NRI_ALLOCATE_SCRATCH(m_Device, uint8_t, vertexBufferNum * (sizeof(ID3D11Buffer*) + sizeof(uint32_t) * 2));
     uint8_t* ptr = scratch;
 
@@ -384,14 +384,14 @@ NRI_INLINE void CommandBufferD3D11::SetVertexBuffers(uint32_t baseSlot, const Ve
     m_DeferredContext->IASetVertexBuffers(baseSlot, vertexBufferNum, buffers, strides, offsets);
 }
 
-NRI_INLINE void CommandBufferD3D11::SetIndexBuffer(const Buffer& buffer, uint64_t offset, IndexType indexType) {
+ENGINE_FORCE_INLINE void CommandBufferD3D11::SetIndexBuffer(const Buffer& buffer, uint64_t offset, IndexType indexType) {
     const BufferD3D11& bufferD3D11 = (BufferD3D11&)buffer;
     const DXGI_FORMAT format = indexType == IndexType::UINT16 ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT;
 
     m_DeferredContext->IASetIndexBuffer(bufferD3D11, format, (uint32_t)offset);
 }
 
-NRI_INLINE void CommandBufferD3D11::SetPipelineLayout(BindPoint bindPoint, const PipelineLayout& pipelineLayout) {
+ENGINE_FORCE_INLINE void CommandBufferD3D11::SetPipelineLayout(BindPoint bindPoint, const PipelineLayout& pipelineLayout) {
     PipelineLayoutD3D11* pipelineLayoutD3D11 = (PipelineLayoutD3D11*)&pipelineLayout;
     pipelineLayoutD3D11->Bind(m_DeferredContext);
 
@@ -399,28 +399,28 @@ NRI_INLINE void CommandBufferD3D11::SetPipelineLayout(BindPoint bindPoint, const
     m_PipelineBindPoint = bindPoint;
 }
 
-NRI_INLINE void CommandBufferD3D11::SetPipeline(const Pipeline& pipeline) {
+ENGINE_FORCE_INLINE void CommandBufferD3D11::SetPipeline(const Pipeline& pipeline) {
     PipelineD3D11* pipelineD3D11 = (PipelineD3D11*)&pipeline;
     pipelineD3D11->Bind(m_DeferredContext, m_Pipeline, m_StencilRef, m_BlendFactor, m_SamplePositionsState);
 
     m_Pipeline = pipelineD3D11; // needed only for "SetStencilReference", "SetBlendConstants" and "SetSampleLocations"
 }
 
-NRI_INLINE void CommandBufferD3D11::SetDescriptorPool(const DescriptorPool&) {
+ENGINE_FORCE_INLINE void CommandBufferD3D11::SetDescriptorPool(const DescriptorPool&) {
 }
 
-NRI_INLINE void CommandBufferD3D11::SetDescriptorSet(const SetDescriptorSetDesc& setDescriptorSetDesc) {
+ENGINE_FORCE_INLINE void CommandBufferD3D11::SetDescriptorSet(const SetDescriptorSetDesc& setDescriptorSetDesc) {
     BindPoint bindPoint = setDescriptorSetDesc.bindPoint == BindPoint::INHERIT ? m_PipelineBindPoint : setDescriptorSetDesc.bindPoint;
     const DescriptorSetD3D11& descriptorSetD3D11 = *(DescriptorSetD3D11*)setDescriptorSetDesc.descriptorSet;
 
     m_PipelineLayout->SetDescriptorSet(bindPoint, m_BindingState, m_DeferredContext, setDescriptorSetDesc.setIndex, &descriptorSetD3D11, nullptr, 0);
 }
 
-NRI_INLINE void CommandBufferD3D11::SetRootConstants(const SetRootConstantsDesc& setRootConstantsDesc) {
+ENGINE_FORCE_INLINE void CommandBufferD3D11::SetRootConstants(const SetRootConstantsDesc& setRootConstantsDesc) {
     m_PipelineLayout->SetRootConstants(m_DeferredContext, setRootConstantsDesc);
 }
 
-NRI_INLINE void CommandBufferD3D11::SetRootDescriptor(const SetRootDescriptorDesc& setRootDescriptorDesc) {
+ENGINE_FORCE_INLINE void CommandBufferD3D11::SetRootDescriptor(const SetRootDescriptorDesc& setRootDescriptorDesc) {
     BindPoint bindPoint = setRootDescriptorDesc.bindPoint == BindPoint::INHERIT ? m_PipelineBindPoint : setRootDescriptorDesc.bindPoint;
     uint32_t setIndex = m_PipelineLayout->GetRootBindingIndex(setRootDescriptorDesc.rootDescriptorIndex);
     const DescriptorD3D11& descriptorD3D11 = *(DescriptorD3D11*)setRootDescriptorDesc.descriptor;
@@ -428,15 +428,15 @@ NRI_INLINE void CommandBufferD3D11::SetRootDescriptor(const SetRootDescriptorDes
     m_PipelineLayout->SetDescriptorSet(bindPoint, m_BindingState, m_DeferredContext, setIndex, nullptr, &descriptorD3D11, setRootDescriptorDesc.offset);
 }
 
-NRI_INLINE void CommandBufferD3D11::Draw(const DrawDesc& drawDesc) {
+ENGINE_FORCE_INLINE void CommandBufferD3D11::Draw(const DrawDesc& drawDesc) {
     m_DeferredContext->DrawInstanced(drawDesc.vertexNum, drawDesc.instanceNum, drawDesc.baseVertex, drawDesc.baseInstance);
 }
 
-NRI_INLINE void CommandBufferD3D11::DrawIndexed(const DrawIndexedDesc& drawIndexedDesc) {
+ENGINE_FORCE_INLINE void CommandBufferD3D11::DrawIndexed(const DrawIndexedDesc& drawIndexedDesc) {
     m_DeferredContext->DrawIndexedInstanced(drawIndexedDesc.indexNum, drawIndexedDesc.instanceNum, drawIndexedDesc.baseIndex, drawIndexedDesc.baseVertex, drawIndexedDesc.baseInstance);
 }
 
-NRI_INLINE void CommandBufferD3D11::DrawIndirect(const Buffer& buffer, uint64_t offset, uint32_t drawNum, uint32_t stride, const Buffer* countBuffer, uint64_t countBufferOffset) {
+ENGINE_FORCE_INLINE void CommandBufferD3D11::DrawIndirect(const Buffer& buffer, uint64_t offset, uint32_t drawNum, uint32_t stride, const Buffer* countBuffer, uint64_t countBufferOffset) {
     MaybeUnused(countBuffer, countBufferOffset);
 
     const BufferD3D11& bufferD3D11 = (BufferD3D11&)buffer;
@@ -468,7 +468,7 @@ NRI_INLINE void CommandBufferD3D11::DrawIndirect(const Buffer& buffer, uint64_t 
     }
 }
 
-NRI_INLINE void CommandBufferD3D11::DrawIndexedIndirect(const Buffer& buffer, uint64_t offset, uint32_t drawNum, uint32_t stride, const Buffer* countBuffer, uint64_t countBufferOffset) {
+ENGINE_FORCE_INLINE void CommandBufferD3D11::DrawIndexedIndirect(const Buffer& buffer, uint64_t offset, uint32_t drawNum, uint32_t stride, const Buffer* countBuffer, uint64_t countBufferOffset) {
     MaybeUnused(countBuffer, countBufferOffset);
 
     const BufferD3D11& bufferD3D11 = (BufferD3D11&)buffer;
@@ -500,7 +500,7 @@ NRI_INLINE void CommandBufferD3D11::DrawIndexedIndirect(const Buffer& buffer, ui
     }
 }
 
-NRI_INLINE void CommandBufferD3D11::CopyBuffer(Buffer& dstBuffer, uint64_t dstOffset, const Buffer& srcBuffer, uint64_t srcOffset, uint64_t size) {
+ENGINE_FORCE_INLINE void CommandBufferD3D11::CopyBuffer(Buffer& dstBuffer, uint64_t dstOffset, const Buffer& srcBuffer, uint64_t srcOffset, uint64_t size) {
     const BufferD3D11& dst = (BufferD3D11&)dstBuffer;
     const BufferD3D11& src = (BufferD3D11&)srcBuffer;
 
@@ -524,7 +524,7 @@ NRI_INLINE void CommandBufferD3D11::CopyBuffer(Buffer& dstBuffer, uint64_t dstOf
     }
 }
 
-NRI_INLINE void CommandBufferD3D11::CopyTexture(Texture& dstTexture, const TextureRegionDesc* dstRegion, const Texture& srcTexture, const TextureRegionDesc* srcRegion) {
+ENGINE_FORCE_INLINE void CommandBufferD3D11::CopyTexture(Texture& dstTexture, const TextureRegionDesc* dstRegion, const Texture& srcTexture, const TextureRegionDesc* srcRegion) {
     const TextureD3D11& dst = (TextureD3D11&)dstTexture;
     const TextureD3D11& src = (TextureD3D11&)srcTexture;
 
@@ -556,7 +556,7 @@ NRI_INLINE void CommandBufferD3D11::CopyTexture(Texture& dstTexture, const Textu
     }
 }
 
-NRI_INLINE void CommandBufferD3D11::UploadBufferToTexture(Texture& dstTexture, const TextureRegionDesc& dstRegion, const Buffer& srcBuffer, const TextureDataLayoutDesc& srcDataLayout) {
+ENGINE_FORCE_INLINE void CommandBufferD3D11::UploadBufferToTexture(Texture& dstTexture, const TextureRegionDesc& dstRegion, const Buffer& srcBuffer, const TextureDataLayoutDesc& srcDataLayout) {
     BufferD3D11& src = (BufferD3D11&)srcBuffer;
     const TextureD3D11& dst = (TextureD3D11&)dstTexture;
 
@@ -582,7 +582,7 @@ NRI_INLINE void CommandBufferD3D11::UploadBufferToTexture(Texture& dstTexture, c
     src.Unmap();
 }
 
-NRI_INLINE void CommandBufferD3D11::ReadbackTextureToBuffer(Buffer& dstBuffer, const TextureDataLayoutDesc& dstDataLayout, const Texture& srcTexture, const TextureRegionDesc& srcRegion) {
+ENGINE_FORCE_INLINE void CommandBufferD3D11::ReadbackTextureToBuffer(Buffer& dstBuffer, const TextureDataLayoutDesc& dstDataLayout, const Texture& srcTexture, const TextureRegionDesc& srcRegion) {
     NRI_CHECK(dstDataLayout.offset == 0, "D3D11 implementation currently supports copying a texture region to a buffer only with offset = 0!");
 
     BufferD3D11& dst = (BufferD3D11&)dstBuffer;
@@ -605,7 +605,7 @@ NRI_INLINE void CommandBufferD3D11::ReadbackTextureToBuffer(Buffer& dstBuffer, c
     CopyTexture((Texture&)dstTemp, &dstRegion, srcTexture, &srcRegion);
 }
 
-NRI_INLINE void CommandBufferD3D11::ZeroBuffer(Buffer& buffer, uint64_t offset, uint64_t size) {
+ENGINE_FORCE_INLINE void CommandBufferD3D11::ZeroBuffer(Buffer& buffer, uint64_t offset, uint64_t size) {
     const BufferD3D11& dst = (BufferD3D11&)buffer;
     ID3D11Buffer* zeroBuffer = m_Device.GetZeroBuffer();
 
@@ -631,7 +631,7 @@ NRI_INLINE void CommandBufferD3D11::ZeroBuffer(Buffer& buffer, uint64_t offset, 
     }
 }
 
-NRI_INLINE void CommandBufferD3D11::ResolveTexture(Texture& dstTexture, const TextureRegionDesc* dstRegion, const Texture& srcTexture, const TextureRegionDesc* srcRegion) {
+ENGINE_FORCE_INLINE void CommandBufferD3D11::ResolveTexture(Texture& dstTexture, const TextureRegionDesc* dstRegion, const Texture& srcTexture, const TextureRegionDesc* srcRegion) {
     const TextureD3D11& dst = (TextureD3D11&)dstTexture;
     const TextureD3D11& src = (TextureD3D11&)srcTexture;
     const TextureDesc& dstDesc = dst.GetDesc();
@@ -659,15 +659,15 @@ NRI_INLINE void CommandBufferD3D11::ResolveTexture(Texture& dstTexture, const Te
     }
 }
 
-NRI_INLINE void CommandBufferD3D11::Dispatch(const DispatchDesc& dispatchDesc) {
+ENGINE_FORCE_INLINE void CommandBufferD3D11::Dispatch(const DispatchDesc& dispatchDesc) {
     m_DeferredContext->Dispatch(dispatchDesc.x, dispatchDesc.y, dispatchDesc.z);
 }
 
-NRI_INLINE void CommandBufferD3D11::DispatchIndirect(const Buffer& buffer, uint64_t offset) {
+ENGINE_FORCE_INLINE void CommandBufferD3D11::DispatchIndirect(const Buffer& buffer, uint64_t offset) {
     m_DeferredContext->DispatchIndirect((BufferD3D11&)buffer, (uint32_t)offset);
 }
 
-NRI_INLINE void CommandBufferD3D11::Barrier(const BarrierDesc& barrierDesc) {
+ENGINE_FORCE_INLINE void CommandBufferD3D11::Barrier(const BarrierDesc& barrierDesc) {
     if (barrierDesc.textureNum == 0 && barrierDesc.bufferNum == 0)
         return;
 
@@ -746,19 +746,19 @@ NRI_INLINE void CommandBufferD3D11::Barrier(const BarrierDesc& barrierDesc) {
     }
 }
 
-NRI_INLINE void CommandBufferD3D11::BeginQuery(QueryPool& queryPool, uint32_t offset) {
+ENGINE_FORCE_INLINE void CommandBufferD3D11::BeginQuery(QueryPool& queryPool, uint32_t offset) {
     ((QueryPoolD3D11&)queryPool).BeginQuery(m_DeferredContext, offset);
 }
 
-NRI_INLINE void CommandBufferD3D11::EndQuery(QueryPool& queryPool, uint32_t offset) {
+ENGINE_FORCE_INLINE void CommandBufferD3D11::EndQuery(QueryPool& queryPool, uint32_t offset) {
     ((QueryPoolD3D11&)queryPool).EndQuery(m_DeferredContext, offset);
 }
 
-NRI_INLINE void CommandBufferD3D11::CopyQueries(const QueryPool& queryPool, uint32_t offset, uint32_t num, Buffer& dstBuffer, uint64_t dstOffset) {
+ENGINE_FORCE_INLINE void CommandBufferD3D11::CopyQueries(const QueryPool& queryPool, uint32_t offset, uint32_t num, Buffer& dstBuffer, uint64_t dstOffset) {
     ((BufferD3D11&)dstBuffer).AssignQueryPoolRange((QueryPoolD3D11*)&queryPool, offset, num, dstOffset);
 }
 
-NRI_INLINE void CommandBufferD3D11::BeginAnnotation(const char* name, uint32_t bgra) {
+ENGINE_FORCE_INLINE void CommandBufferD3D11::BeginAnnotation(const char* name, uint32_t bgra) {
 #if USE_ANNOTATION_INT
     if (m_Version >= 2)
         PIXBeginEvent(m_DeferredContext, bgra, name);
@@ -767,7 +767,7 @@ NRI_INLINE void CommandBufferD3D11::BeginAnnotation(const char* name, uint32_t b
         PIXBeginEvent(m_Annotation, bgra, name);
 }
 
-NRI_INLINE void CommandBufferD3D11::EndAnnotation() {
+ENGINE_FORCE_INLINE void CommandBufferD3D11::EndAnnotation() {
 #if USE_ANNOTATION_INT
     if (m_Version >= 2)
         PIXEndEvent(m_DeferredContext);
@@ -776,7 +776,7 @@ NRI_INLINE void CommandBufferD3D11::EndAnnotation() {
         PIXEndEvent(m_Annotation);
 }
 
-NRI_INLINE void CommandBufferD3D11::Annotation(const char* name, uint32_t bgra) {
+ENGINE_FORCE_INLINE void CommandBufferD3D11::Annotation(const char* name, uint32_t bgra) {
 #if USE_ANNOTATION_INT
     if (m_Version >= 2)
         PIXSetMarker(m_DeferredContext, bgra, name);

@@ -60,7 +60,7 @@ Result CreateDeviceD3D11(const DeviceCreationDesc& desc, const DeviceCreationD3D
 //============================================================================================================================================================================================
 #pragma region[  Core  ]
 
-static const DeviceInfo& GetDeviceInfo(const Device& device) {
+static const DeviceInfo& GetDeviceDesc(const Device& device) {
     return ((DeviceD3D11&)device).GetDesc();
 }
 
@@ -760,7 +760,7 @@ static void* EmuGetCommandBufferNativeObject(const CommandBuffer* commandBuffer)
 }
 
 Result DeviceD3D11::FillFunctionTable(CoreInterface& table) const {
-    table.GetDeviceInfo = ::GetDeviceInfo;
+    table.GetDeviceDesc = ::GetDeviceDesc;
     table.GetBufferDesc = ::GetBufferDesc;
     table.GetTextureDesc = ::GetTextureDesc;
     table.GetFormatSupport = ::GetFormatSupport;
@@ -1036,7 +1036,7 @@ static Result GetLatencyReport(const SwapChain& swapChain, LatencyReport& latenc
 
 Result DeviceD3D11::FillFunctionTable(LowLatencyInterface& table) const {
     if (!m_Desc.features.lowLatency)
-        return Result::UNSUPPORTED;
+        return Result::Unsupported;
 
     table.SetLatencySleepMode = ::SetLatencySleepMode;
     table.SetLatencyMarker = ::SetLatencyMarker;
@@ -1141,7 +1141,7 @@ static Result QueuePresent(SwapChain& swapChain, Fence&) {
 
 Result DeviceD3D11::FillFunctionTable(SwapChainInterface& table) const {
     if (!m_Desc.features.swapChain)
-        return Result::UNSUPPORTED;
+        return Result::Unsupported;
 
     table.CreateSwapChain = ::CreateSwapChain;
     table.DestroySwapChain = ::DestroySwapChain;

@@ -161,7 +161,7 @@ static WGPUTextureView CreateDepthStencilViewWGPU(const DescriptorWGPU& descript
     const TextureViewDesc& viewDesc = descriptor.GetTextureViewDesc();
 
     WGPUTextureViewDescriptor desc = WGPU_TEXTURE_VIEW_DESCRIPTOR_INIT;
-    desc.format = GetTextureFormat(viewDesc.format == Format::UNKNOWN ? textureDesc.format : viewDesc.format);
+    desc.format = GetTextureFormat(viewDesc.format == Format::Unknown ? textureDesc.format : viewDesc.format);
     desc.dimension = GetTextureViewDimension(viewDesc.type, textureDesc);
     desc.baseMipLevel = viewDesc.mipOffset;
     desc.mipLevelCount = viewDesc.mipNum == REMAINING ? WGPU_MIP_LEVEL_COUNT_UNDEFINED : viewDesc.mipNum;
@@ -280,7 +280,7 @@ WGPURenderPipeline CommandBufferWGPU::GetClearPipeline(uint32_t colorAttachmentI
     multisample.mask = 0xFFFFFFFF;
 
     WGPUDepthStencilState depthStencil = WGPU_DEPTH_STENCIL_STATE_INIT;
-    if (m_RenderDepthStencilFormat != Format::UNKNOWN) {
+    if (m_RenderDepthStencilFormat != Format::Unknown) {
         depthStencil.format = GetTextureFormat(m_RenderDepthStencilFormat);
         depthStencil.depthWriteEnabled = (planes & PlaneBits::DEPTH) ? WGPUOptionalBool_True : WGPUOptionalBool_False;
         depthStencil.depthCompare = WGPUCompareFunction_Always;
@@ -306,7 +306,7 @@ WGPURenderPipeline CommandBufferWGPU::GetClearPipeline(uint32_t colorAttachmentI
     pipelineDesc.primitive = primitive;
     pipelineDesc.multisample = multisample;
     pipelineDesc.fragment = m_RenderColorNum ? &fragment : nullptr;
-    pipelineDesc.depthStencil = m_RenderDepthStencilFormat == Format::UNKNOWN ? nullptr : &depthStencil;
+    pipelineDesc.depthStencil = m_RenderDepthStencilFormat == Format::Unknown ? nullptr : &depthStencil;
 
     WGPURenderPipeline pipeline = wgpuDeviceCreateRenderPipeline(m_Device, &pipelineDesc);
     wgpuShaderModuleRelease(shader);
@@ -665,8 +665,8 @@ Result CommandBufferWGPU::Begin(const DescriptorPool* descriptorPool) {
     m_BoundComputePipeline = nullptr;
     m_BindPoint = BindPoint::GRAPHICS;
     for (Format& format : m_RenderColorFormats)
-        format = Format::UNKNOWN;
-    m_RenderDepthStencilFormat = Format::UNKNOWN;
+        format = Format::Unknown;
+    m_RenderDepthStencilFormat = Format::Unknown;
     m_RenderColorNum = 0;
     m_RenderSampleNum = 1;
     m_RenderWidth = 0;
@@ -1160,8 +1160,8 @@ void CommandBufferWGPU::BeginRendering(const RenderingDesc& renderingDesc) {
     WGPURenderPassDepthStencilAttachment depthStencilAttachment = WGPU_RENDER_PASS_DEPTH_STENCIL_ATTACHMENT_INIT;
     const WGPURenderPassDepthStencilAttachment* depthStencilAttachmentPtr = nullptr;
     for (Format& format : m_RenderColorFormats)
-        format = Format::UNKNOWN;
-    m_RenderDepthStencilFormat = Format::UNKNOWN;
+        format = Format::Unknown;
+    m_RenderDepthStencilFormat = Format::Unknown;
     m_RenderColorNum = std::min<uint32_t>(renderingDesc.colorNum, COLOR_ATTACHMENT_MAX_NUM_WGPU);
     m_RenderSampleNum = 1;
     m_RenderWidth = 0;
@@ -1282,7 +1282,7 @@ void CommandBufferWGPU::ClearAttachments(const ClearAttachmentDesc* clearAttachm
         const ClearAttachmentDesc& clearAttachmentDesc = clearAttachmentDescs[i];
 
         uint32_t colorAttachmentIndex = clearAttachmentDesc.colorAttachmentIndex;
-        if (colorAttachmentIndex < m_RenderColorNum && (NormalizeClearPlanesWGPU(clearAttachmentDesc.planes, m_RenderColorFormats[colorAttachmentIndex]) & PlaneBits::COLOR) && m_RenderColorFormats[colorAttachmentIndex] != Format::UNKNOWN) {
+        if (colorAttachmentIndex < m_RenderColorNum && (NormalizeClearPlanesWGPU(clearAttachmentDesc.planes, m_RenderColorFormats[colorAttachmentIndex]) & PlaneBits::COLOR) && m_RenderColorFormats[colorAttachmentIndex] != Format::Unknown) {
             WGPUPipelineLayout clearPipelineLayout = nullptr;
             WGPURenderPipeline clearPipeline = GetClearPipeline(colorAttachmentIndex, PlaneBits::COLOR, clearPipelineLayout);
             MaybeUnused(clearPipelineLayout);
@@ -1297,7 +1297,7 @@ void CommandBufferWGPU::ClearAttachments(const ClearAttachmentDesc* clearAttachm
         }
 
         PlaneBits depthStencilPlanes = (PlaneBits)(NormalizeClearPlanesWGPU(clearAttachmentDesc.planes, m_RenderDepthStencilFormat) & (PlaneBits::DEPTH | PlaneBits::STENCIL));
-        if (depthStencilPlanes != PlaneBits::NONE && depthStencilPlanes != PlaneBits::ALL && m_RenderDepthStencilFormat != Format::UNKNOWN) {
+        if (depthStencilPlanes != PlaneBits::NONE && depthStencilPlanes != PlaneBits::ALL && m_RenderDepthStencilFormat != Format::Unknown) {
             WGPUPipelineLayout clearPipelineLayout = nullptr;
             WGPURenderPipeline clearPipeline = GetClearPipeline(0, depthStencilPlanes, clearPipelineLayout);
             MaybeUnused(clearPipelineLayout);
@@ -1759,7 +1759,7 @@ void CommandBufferWGPU::ClearStorage(const ClearStorageDesc& clearStorageDesc) {
             return;
         }
 
-        Format format = descriptor.GetBufferFormat() == Format::UNKNOWN ? Format::R32_UINT : descriptor.GetBufferFormat();
+        Format format = descriptor.GetBufferFormat() == Format::Unknown ? Format::R32_UINT : descriptor.GetBufferFormat();
         ClearStorageBufferConstantsWGPU constants = {};
         if (!FillClearPatternWords(constants.words, constants.period, format, clearStorageDesc.value))
             return;

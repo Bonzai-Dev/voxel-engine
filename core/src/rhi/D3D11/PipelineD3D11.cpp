@@ -27,7 +27,7 @@ Result PipelineD3D11::Create(const GraphicsPipelineDesc& pipelineDesc) {
                 hr = m_Device->CreatePixelShader(shaderDesc->bytecode, (size_t)shaderDesc->size, nullptr, &m_FragmentShader);
                 NRI_RETURN_ON_BAD_HRESULT(&m_Device, hr, "ID3D11Device::CreatePixelShader");
             } else
-                return Result::INVALID_ARGUMENT;
+                return Result::InvalidArgument;
         }
     }
 
@@ -282,7 +282,7 @@ void PipelineD3D11::Bind(ID3D11DeviceContextBest* deferredContext, const Pipelin
     }
 }
 
-NRI_INLINE void PipelineD3D11::SetDebugName(const char* name) {
+ENGINE_FORCE_INLINE void PipelineD3D11::SetDebugName(const char* name) {
     NRI_SET_D3D_DEBUG_OBJECT_NAME(m_VertexShader, name);
     NRI_SET_D3D_DEBUG_OBJECT_NAME(m_TessControlShader, name);
     NRI_SET_D3D_DEBUG_OBJECT_NAME(m_TessEvaluationShader, name);

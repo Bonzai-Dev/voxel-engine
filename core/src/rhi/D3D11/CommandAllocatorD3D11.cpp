@@ -28,6 +28,6 @@ Result nri::CreateCommandBuffer(DeviceD3D11& device, ID3D11DeviceContext* precre
     return result;
 }
 
-NRI_INLINE Result CommandAllocatorD3D11::CreateCommandBuffer(CommandBuffer*& commandBuffer) {
+ENGINE_FORCE_INLINE Result CommandAllocatorD3D11::CreateCommandBuffer(CommandBuffer*& commandBuffer) {
     return nri::CreateCommandBuffer(m_Device, nullptr, commandBuffer);
 }

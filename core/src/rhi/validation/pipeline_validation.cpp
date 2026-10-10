@@ -21,6 +21,6 @@ PipelineVal::PipelineVal(DeviceVal& device, Pipeline* pipeline, const RayTracing
     , m_PipelineLayout(rayTracingPipelineDesc.pipelineLayout) {
 }
 
-NRI_INLINE Result PipelineVal::WriteShaderGroupIdentifiers(uint32_t baseShaderGroupIndex, uint32_t shaderGroupNum, void* dst) {
+ENGINE_FORCE_INLINE Result PipelineVal::WriteShaderGroupIdentifiers(uint32_t baseShaderGroupIndex, uint32_t shaderGroupNum, void* dst) {
     return GetRayTracingInterfaceImpl().WriteShaderGroupIdentifiers(*GetImpl(), baseShaderGroupIndex, shaderGroupNum, dst);
 }

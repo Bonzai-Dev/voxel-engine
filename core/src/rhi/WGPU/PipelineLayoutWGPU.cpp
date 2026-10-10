@@ -10,7 +10,7 @@ static void FillLayoutEntry(WGPUBindGroupLayoutEntry& entry, DescriptorType desc
         case DescriptorType::SAMPLER:
             entry.sampler.type = WGPUSamplerBindingType_Filtering;
             break;
-        case DescriptorType::TEXTURE:
+        case DescriptorType::Texture:
         case DescriptorType::INPUT_ATTACHMENT:
             // TODO: NRI input attachments are not native WebGPU subpass inputs; keep "shaderFeatures.inputAttachments = false".
             entry.texture.sampleType = textureSampleType;
@@ -56,7 +56,7 @@ static std::array<uint32_t, (size_t)DescriptorType::MAX_NUM> GetBindingOffsets(c
 
     std::array<uint32_t, (size_t)DescriptorType::MAX_NUM> bindingOffsets = {};
     bindingOffsets[(size_t)DescriptorType::SAMPLER] = vkBindingOffsets.sRegister;
-    bindingOffsets[(size_t)DescriptorType::TEXTURE] = vkBindingOffsets.tRegister;
+    bindingOffsets[(size_t)DescriptorType::Texture] = vkBindingOffsets.tRegister;
     bindingOffsets[(size_t)DescriptorType::STORAGE_TEXTURE] = vkBindingOffsets.uRegister;
     bindingOffsets[(size_t)DescriptorType::BUFFER] = vkBindingOffsets.tRegister;
     bindingOffsets[(size_t)DescriptorType::STORAGE_BUFFER] = vkBindingOffsets.uRegister;
@@ -336,7 +336,7 @@ static WGPUTextureFormat GetStorageTextureFormatFromSpirv(uint32_t imageFormat) 
 struct TextureBindingWGPU {
     uint32_t set = 0;
     uint32_t binding = 0;
-    DescriptorType type = DescriptorType::TEXTURE;
+    DescriptorType type = DescriptorType::Texture;
     WGPUTextureSampleType sampleType = WGPUTextureSampleType_Float;
     WGPUTextureViewDimension viewDimension = WGPUTextureViewDimension_2D;
     WGPUBool multisampled = WGPU_FALSE;
@@ -648,7 +648,7 @@ static void ReflectTexturesFromWgsl(const ShaderDesc& shaderDesc, TextureBinding
         TextureBindingWGPU textureBinding = {};
         textureBinding.set = set;
         textureBinding.binding = binding;
-        textureBinding.type = DescriptorType::TEXTURE;
+        textureBinding.type = DescriptorType::Texture;
         textureBinding.sampleType = sampleType;
         textureBinding.viewDimension = GetTextureViewDimensionFromWgsl(typeBegin, typeEnd);
         textureBinding.multisampled = IsMultisampledTextureTypeWgsl(typeBegin, typeEnd) ? WGPU_TRUE : WGPU_FALSE;
@@ -781,7 +781,7 @@ static void ReflectTextures(DeviceWGPU& device, const ShaderDesc& shaderDesc, Te
                     type.viewDimension = GetStorageTextureViewDimensionFromSpirv(dim, arrayed);
                     type.access = count >= 10 ? GetStorageTextureAccessFromSpirv(operands[8]) : WGPUStorageTextureAccess_Undefined;
                 } else {
-                    type.type = DescriptorType::TEXTURE;
+                    type.type = DescriptorType::Texture;
                     type.sampleType = GetTextureSampleTypeFromSpirv(scalarTypes, sampledType, depth, idBound);
                     type.viewDimension = GetTextureViewDimensionFromSpirv(dim, arrayed);
                     type.multisampled = ms ? WGPU_TRUE : WGPU_FALSE;
@@ -882,7 +882,7 @@ Result PipelineLayoutWGPU::UpdateTextureBindings(Vector<DescriptorSetMappingWGPU
                 if (textureBinding.binding < range.bindingBase || textureBinding.binding >= range.bindingBase + range.descriptorNum)
                     continue;
 
-                if ((range.type == DescriptorType::TEXTURE || range.type == DescriptorType::INPUT_ATTACHMENT) && textureBinding.type == DescriptorType::TEXTURE) {
+                if ((range.type == DescriptorType::Texture || range.type == DescriptorType::INPUT_ATTACHMENT) && textureBinding.type == DescriptorType::Texture) {
                     if (range.textureSampleType != textureBinding.sampleType || range.textureViewDimension != textureBinding.viewDimension || range.textureMultisampled != textureBinding.multisampled) {
                         range.textureSampleType = textureBinding.sampleType;
                         range.textureViewDimension = textureBinding.viewDimension;

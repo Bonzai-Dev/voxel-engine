@@ -209,7 +209,7 @@ bool nri::GetTextureDesc(const TextureD3D11Desc& textureD3D11Desc, TextureDesc& 
         textureDesc.mipNum = (Dim_t)desc.MipLevels;
         textureDesc.layerNum = (Dim_t)desc.ArraySize;
         textureDesc.sampleNum = 1;
-        textureDesc.type = TextureType::TEXTURE_1D;
+        textureDesc.type = TextureDimension::Texture1D;
         textureDesc.format = DXGIFormatToNRIFormat(desc.Format);
 
         bindFlags = desc.BindFlags;
@@ -224,7 +224,7 @@ bool nri::GetTextureDesc(const TextureD3D11Desc& textureD3D11Desc, TextureDesc& 
         textureDesc.mipNum = (Dim_t)desc.MipLevels;
         textureDesc.layerNum = (Dim_t)desc.ArraySize;
         textureDesc.sampleNum = (Sample_t)desc.SampleDesc.Count;
-        textureDesc.type = TextureType::TEXTURE_2D;
+        textureDesc.type = TextureDimension::Texture2D;
         textureDesc.format = DXGIFormatToNRIFormat(desc.Format);
 
         bindFlags = desc.BindFlags;
@@ -246,13 +246,13 @@ bool nri::GetTextureDesc(const TextureD3D11Desc& textureD3D11Desc, TextureDesc& 
     }
 
     if (bindFlags & D3D11_BIND_RENDER_TARGET)
-        textureDesc.usage |= TextureUsageBits::COLOR_ATTACHMENT;
+        textureDesc.usage |= TextureUsageBits::ColorAttachment;
     if (bindFlags & D3D11_BIND_DEPTH_STENCIL)
-        textureDesc.usage |= TextureUsageBits::DEPTH_STENCIL_ATTACHMENT;
+        textureDesc.usage |= TextureUsageBits::DepthStencilAttachment;
     if (bindFlags & D3D11_BIND_SHADER_RESOURCE)
-        textureDesc.usage |= TextureUsageBits::SHADER_RESOURCE | TextureUsageBits::INPUT_ATTACHMENT;
+        textureDesc.usage |= TextureUsageBits::ShaderResource | TextureUsageBits::InputAttachment;
     if (bindFlags & D3D11_BIND_UNORDERED_ACCESS)
-        textureDesc.usage |= TextureUsageBits::SHADER_RESOURCE_STORAGE;
+        textureDesc.usage |= TextureUsageBits::ShaderResourceStorage;
 
     if (textureD3D11Desc.format)
         textureDesc.format = DXGIFormatToNRIFormat(textureD3D11Desc.format);
@@ -285,7 +285,7 @@ bool nri::GetBufferDesc(const BufferD3D11Desc& bufferD3D11Desc, BufferDesc& buff
     if (desc.BindFlags & D3D11_BIND_INDEX_BUFFER)
         bufferDesc.usage |= BufferUsageBits::INDEX_BUFFER;
     if (desc.BindFlags & D3D11_BIND_CONSTANT_BUFFER)
-        bufferDesc.usage |= BufferUsageBits::CONSTANT_BUFFER;
+        bufferDesc.usage |= BufferUsageBits::ConstantBuffer;
     if (desc.BindFlags & D3D11_BIND_SHADER_RESOURCE)
         bufferDesc.usage |= BufferUsageBits::SHADER_RESOURCE;
     if (desc.BindFlags & D3D11_BIND_UNORDERED_ACCESS)

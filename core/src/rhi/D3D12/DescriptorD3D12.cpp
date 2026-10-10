@@ -71,9 +71,9 @@ Result DescriptorD3D12::Create(const TextureViewDesc& textureViewDesc) {
     m_Format = textureViewDesc.format;
     m_Resource = textureD3D12;
 
-    if (textureDesc.type == TextureType::TEXTURE_1D) {
+    if (textureDesc.type == TextureDimension::Texture1D) {
         switch (textureViewDesc.type) {
-            case TextureView::TEXTURE: {
+            case TextureView::Texture: {
                 D3D12_SHADER_RESOURCE_VIEW_DESC desc = {};
                 desc.Format = format;
                 desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE1D;
@@ -83,7 +83,7 @@ Result DescriptorD3D12::Create(const TextureViewDesc& textureViewDesc) {
 
                 return CreateShaderResourceView(textureD3D12, desc);
             }
-            case TextureView::TEXTURE_ARRAY: {
+            case TextureView::TextureArray: {
                 D3D12_SHADER_RESOURCE_VIEW_DESC desc = {};
                 desc.Format = format;
                 desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE1DARRAY;
@@ -95,7 +95,7 @@ Result DescriptorD3D12::Create(const TextureViewDesc& textureViewDesc) {
 
                 return CreateShaderResourceView(textureD3D12, desc);
             }
-            case TextureView::STORAGE_TEXTURE: {
+            case TextureView::StorageTexture: {
                 D3D12_UNORDERED_ACCESS_VIEW_DESC desc = {};
                 desc.Format = format;
                 desc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE1D;
@@ -103,7 +103,7 @@ Result DescriptorD3D12::Create(const TextureViewDesc& textureViewDesc) {
 
                 return CreateUnorderedAccessView(textureD3D12, desc);
             }
-            case TextureView::STORAGE_TEXTURE_ARRAY: {
+            case TextureView::StorageTextureArray: {
                 D3D12_UNORDERED_ACCESS_VIEW_DESC desc = {};
                 desc.Format = format;
                 desc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE1DARRAY;
@@ -113,7 +113,7 @@ Result DescriptorD3D12::Create(const TextureViewDesc& textureViewDesc) {
 
                 return CreateUnorderedAccessView(textureD3D12, desc);
             }
-            case TextureView::COLOR_ATTACHMENT: {
+            case TextureView::ColorAttachment: {
                 D3D12_RENDER_TARGET_VIEW_DESC desc = {};
                 desc.Format = format;
                 desc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE1DARRAY;
@@ -123,7 +123,7 @@ Result DescriptorD3D12::Create(const TextureViewDesc& textureViewDesc) {
 
                 return CreateRenderTargetView(textureD3D12, desc);
             }
-            case TextureView::DEPTH_STENCIL_ATTACHMENT: {
+            case TextureView::DepthStencilAttachment: {
                 D3D12_DEPTH_STENCIL_VIEW_DESC desc = {};
                 desc.Format = format;
                 desc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE1DARRAY;
@@ -142,12 +142,12 @@ Result DescriptorD3D12::Create(const TextureViewDesc& textureViewDesc) {
             }
             default:
                 NRI_CHECK(false, "Unexpected 'textureViewDesc.type'");
-                return Result::INVALID_ARGUMENT;
+                return Result::InvalidArgument;
         }
-    } else if (textureDesc.type == TextureType::TEXTURE_2D) {
+    } else if (textureDesc.type == TextureDimension::Texture2D) {
         switch (textureViewDesc.type) {
-            case TextureView::SUBPASS_INPUT:
-            case TextureView::TEXTURE: {
+            case TextureView::SubpassInput:
+            case TextureView::Texture: {
                 D3D12_SHADER_RESOURCE_VIEW_DESC desc = {};
                 desc.Format = GetPatchedShaderResourceViewFormat(format, textureViewDesc.planes);
                 desc.Shader4ComponentMapping = GetComponentMapping(textureViewDesc.components);
@@ -162,7 +162,7 @@ Result DescriptorD3D12::Create(const TextureViewDesc& textureViewDesc) {
 
                 return CreateShaderResourceView(textureD3D12, desc);
             }
-            case TextureView::TEXTURE_ARRAY: {
+            case TextureView::TextureArray: {
                 D3D12_SHADER_RESOURCE_VIEW_DESC desc = {};
                 desc.Format = GetPatchedShaderResourceViewFormat(format, textureViewDesc.planes);
                 desc.Shader4ComponentMapping = GetComponentMapping(textureViewDesc.components);
@@ -181,7 +181,7 @@ Result DescriptorD3D12::Create(const TextureViewDesc& textureViewDesc) {
 
                 return CreateShaderResourceView(textureD3D12, desc);
             }
-            case TextureView::TEXTURE_CUBE: {
+            case TextureView::TextureCube: {
                 D3D12_SHADER_RESOURCE_VIEW_DESC desc = {};
                 desc.Format = GetPatchedShaderResourceViewFormat(format, textureViewDesc.planes);
                 desc.Shader4ComponentMapping = GetComponentMapping(textureViewDesc.components);
@@ -191,7 +191,7 @@ Result DescriptorD3D12::Create(const TextureViewDesc& textureViewDesc) {
 
                 return CreateShaderResourceView(textureD3D12, desc);
             }
-            case TextureView::TEXTURE_CUBE_ARRAY: {
+            case TextureView::TextureCubeArray: {
                 D3D12_SHADER_RESOURCE_VIEW_DESC desc = {};
                 desc.Format = GetPatchedShaderResourceViewFormat(format, textureViewDesc.planes);
                 desc.Shader4ComponentMapping = GetComponentMapping(textureViewDesc.components);
@@ -203,7 +203,7 @@ Result DescriptorD3D12::Create(const TextureViewDesc& textureViewDesc) {
 
                 return CreateShaderResourceView(textureD3D12, desc);
             }
-            case TextureView::STORAGE_TEXTURE: {
+            case TextureView::StorageTexture: {
                 D3D12_UNORDERED_ACCESS_VIEW_DESC desc = {};
                 desc.Format = format;
                 desc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
@@ -212,7 +212,7 @@ Result DescriptorD3D12::Create(const TextureViewDesc& textureViewDesc) {
 
                 return CreateUnorderedAccessView(textureD3D12, desc);
             }
-            case TextureView::STORAGE_TEXTURE_ARRAY: {
+            case TextureView::StorageTextureArray: {
                 D3D12_UNORDERED_ACCESS_VIEW_DESC desc = {};
                 desc.Format = format;
                 desc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2DARRAY;
@@ -223,7 +223,7 @@ Result DescriptorD3D12::Create(const TextureViewDesc& textureViewDesc) {
 
                 return CreateUnorderedAccessView(textureD3D12, desc);
             }
-            case TextureView::COLOR_ATTACHMENT: {
+            case TextureView::ColorAttachment: {
                 D3D12_RENDER_TARGET_VIEW_DESC desc = {};
                 desc.Format = format;
                 if (textureDesc.sampleNum > 1) {
@@ -240,7 +240,7 @@ Result DescriptorD3D12::Create(const TextureViewDesc& textureViewDesc) {
 
                 return CreateRenderTargetView(textureD3D12, desc);
             }
-            case TextureView::DEPTH_STENCIL_ATTACHMENT: {
+            case TextureView::DepthStencilAttachment: {
                 D3D12_DEPTH_STENCIL_VIEW_DESC desc = {};
                 desc.Format = format;
                 if (textureDesc.sampleNum > 1) {
@@ -263,15 +263,15 @@ Result DescriptorD3D12::Create(const TextureViewDesc& textureViewDesc) {
 
                 return CreateDepthStencilView(textureD3D12, desc);
             }
-            case TextureView::SHADING_RATE_ATTACHMENT:
+            case TextureView::ShadingRateAttachment:
                 return Result::Success; // a resource view is not needed
             default:
                 NRI_CHECK(false, "Unexpected 'textureViewDesc.type'");
-                return Result::INVALID_ARGUMENT;
+                return Result::InvalidArgument;
         }
     } else {
         switch (textureViewDesc.type) {
-            case TextureView::TEXTURE: {
+            case TextureView::Texture: {
                 D3D12_SHADER_RESOURCE_VIEW_DESC desc = {};
                 desc.Format = format;
                 desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE3D;
@@ -281,7 +281,7 @@ Result DescriptorD3D12::Create(const TextureViewDesc& textureViewDesc) {
 
                 return CreateShaderResourceView(textureD3D12, desc);
             }
-            case TextureView::STORAGE_TEXTURE: {
+            case TextureView::StorageTexture: {
                 D3D12_UNORDERED_ACCESS_VIEW_DESC desc = {};
                 desc.Format = format;
                 desc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE3D;
@@ -291,7 +291,7 @@ Result DescriptorD3D12::Create(const TextureViewDesc& textureViewDesc) {
 
                 return CreateUnorderedAccessView(textureD3D12, desc);
             }
-            case TextureView::COLOR_ATTACHMENT: {
+            case TextureView::ColorAttachment: {
                 D3D12_RENDER_TARGET_VIEW_DESC desc = {};
                 desc.Format = format;
                 desc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE3D;
@@ -303,7 +303,7 @@ Result DescriptorD3D12::Create(const TextureViewDesc& textureViewDesc) {
             }
             default:
                 NRI_CHECK(false, "Unexpected 'textureViewDesc.type'");
-                return Result::INVALID_ARGUMENT;
+                return Result::InvalidArgument;
         }
     }
 }
@@ -313,7 +313,7 @@ Result DescriptorD3D12::Create(const BufferViewDesc& bufferViewDesc) {
     const BufferDesc& bufferDesc = bufferD3D12.GetDesc();
     uint64_t size = bufferViewDesc.size == WHOLE_SIZE ? bufferDesc.size : bufferViewDesc.size;
 
-    Format patchedFormat = Format::UNKNOWN;
+    Format patchedFormat = Format::Unknown;
     uint32_t structureStride = 0;
     bool isRaw = false;
 
@@ -376,7 +376,7 @@ Result DescriptorD3D12::Create(const BufferViewDesc& bufferViewDesc) {
         }
         default:
             NRI_CHECK(false, "Unexpected 'bufferViewDesc.type'");
-            return Result::INVALID_ARGUMENT;
+            return Result::InvalidArgument;
     }
 }
 
@@ -506,7 +506,7 @@ Result DescriptorD3D12::CreateShaderResourceView(ID3D12Resource* resource, const
 
         m_Type = (isStructured || isByteAddress) ? DescriptorType::STRUCTURED_BUFFER : DescriptorType::BUFFER;
     } else
-        m_Type = DescriptorType::TEXTURE;
+        m_Type = DescriptorType::Texture;
 
     return result;
 }

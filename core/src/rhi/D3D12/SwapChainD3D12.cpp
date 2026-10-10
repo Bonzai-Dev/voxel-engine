@@ -49,7 +49,7 @@ SwapChainD3D12::~SwapChainD3D12() {
 Result SwapChainD3D12::Create(const SwapChainDesc& swapChainDesc) {
     HWND hwnd = (HWND)swapChainDesc.window.windows.hwnd;
     if (!hwnd)
-        return Result::INVALID_ARGUMENT;
+        return Result::InvalidArgument;
 
     QueueD3D12& queue = *(QueueD3D12*)swapChainDesc.queue;
 
@@ -177,13 +177,13 @@ Result SwapChainD3D12::Create(const SwapChainDesc& swapChainDesc) {
     return Result::Success;
 }
 
-NRI_INLINE Texture* const* SwapChainD3D12::GetTextures(uint32_t& textureNum) const {
+ENGINE_FORCE_INLINE Texture* const* SwapChainD3D12::GetTextures(uint32_t& textureNum) const {
     textureNum = (uint32_t)m_Textures.size();
 
     return (Texture**)m_Textures.data();
 }
 
-NRI_INLINE Result SwapChainD3D12::AcquireNextTexture(uint32_t& textureIndex) {
+ENGINE_FORCE_INLINE Result SwapChainD3D12::AcquireNextTexture(uint32_t& textureIndex) {
     textureIndex = m_SwapChain->GetCurrentBackBufferIndex();
 
     // Is device lost?
@@ -193,7 +193,7 @@ NRI_INLINE Result SwapChainD3D12::AcquireNextTexture(uint32_t& textureIndex) {
     return Result::Success;
 }
 
-NRI_INLINE Result SwapChainD3D12::WaitForPresent() {
+ENGINE_FORCE_INLINE Result SwapChainD3D12::WaitForPresent() {
     if (m_FrameLatencyWaitableObject) {
         // Is device lost?
         HRESULT hr = m_Device->GetDeviceRemovedReason() == S_OK ? S_OK : DXGI_ERROR_DEVICE_REMOVED;
@@ -204,10 +204,10 @@ NRI_INLINE Result SwapChainD3D12::WaitForPresent() {
         return result == WAIT_OBJECT_0 ? Result::Success : Result::FAILURE;
     }
 
-    return Result::UNSUPPORTED;
+    return Result::Unsupported;
 }
 
-NRI_INLINE Result SwapChainD3D12::Present() {
+ENGINE_FORCE_INLINE Result SwapChainD3D12::Present() {
 #if NRI_ENABLE_NVAPI
     if (m_Flags & SwapChainBits::ALLOW_LOW_LATENCY)
         SetLatencyMarker((LatencyMarker)PRESENT_START);
@@ -229,7 +229,7 @@ NRI_INLINE Result SwapChainD3D12::Present() {
     return Result::Success;
 }
 
-NRI_INLINE Result SwapChainD3D12::SetLatencySleepMode(const LatencySleepMode& latencySleepMode) {
+ENGINE_FORCE_INLINE Result SwapChainD3D12::SetLatencySleepMode(const LatencySleepMode& latencySleepMode) {
 #if NRI_ENABLE_NVAPI
     NV_SET_SLEEP_MODE_PARAMS params = {NV_SET_SLEEP_MODE_PARAMS_VER};
     params.bLowLatencyMode = latencySleepMode.lowLatencyMode;
@@ -243,11 +243,11 @@ NRI_INLINE Result SwapChainD3D12::SetLatencySleepMode(const LatencySleepMode& la
 #else
     MaybeUnused(latencySleepMode);
 
-    return Result::UNSUPPORTED;
+    return Result::Unsupported;
 #endif
 }
 
-NRI_INLINE Result SwapChainD3D12::SetLatencyMarker(LatencyMarker latencyMarker) {
+ENGINE_FORCE_INLINE Result SwapChainD3D12::SetLatencyMarker(LatencyMarker latencyMarker) {
 #if NRI_ENABLE_NVAPI
     NV_LATENCY_MARKER_PARAMS params = {NV_LATENCY_MARKER_PARAMS_VER};
     params.frameID = m_PresentId;
@@ -259,21 +259,21 @@ NRI_INLINE Result SwapChainD3D12::SetLatencyMarker(LatencyMarker latencyMarker) 
 #else
     MaybeUnused(latencyMarker);
 
-    return Result::UNSUPPORTED;
+    return Result::Unsupported;
 #endif
 }
 
-NRI_INLINE Result SwapChainD3D12::LatencySleep() {
+ENGINE_FORCE_INLINE Result SwapChainD3D12::LatencySleep() {
 #if NRI_ENABLE_NVAPI
     NvAPI_Status status = NvAPI_D3D_Sleep(m_Device.GetNativeObject());
 
     return status == NVAPI_OK ? Result::Success : Result::FAILURE;
 #else
-    return Result::UNSUPPORTED;
+    return Result::Unsupported;
 #endif
 }
 
-NRI_INLINE Result SwapChainD3D12::GetLatencyReport(LatencyReport& latencyReport) {
+ENGINE_FORCE_INLINE Result SwapChainD3D12::GetLatencyReport(LatencyReport& latencyReport) {
     latencyReport = {};
 #if NRI_ENABLE_NVAPI
     NV_LATENCY_RESULT_PARAMS params = {NV_LATENCY_RESULT_PARAMS_VER};
@@ -300,6 +300,6 @@ NRI_INLINE Result SwapChainD3D12::GetLatencyReport(LatencyReport& latencyReport)
 
     return Result::FAILURE;
 #else
-    return Result::UNSUPPORTED;
+    return Result::Unsupported;
 #endif
 }

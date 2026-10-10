@@ -10,7 +10,7 @@
 //#define NRI_ZERO_BUFFER_SIZE         4194304u  // 4 Mb
 //#define NRI_MAX_STACK_ALLOC_SIZE     32768u    // 32 Kb
 //#define NRI_FILE_SEPARATOR           '\\'      // path separator used in messages
-//#define NRI_INLINE                   inline    // we want to inline all functions, which are actually wrappers for the interface functions
+//#define ENGINE_FORCE_INLINE                   inline    // we want to inline all functions, which are actually wrappers for the interface functions
 
 /*
 #ifdef NDEBUG

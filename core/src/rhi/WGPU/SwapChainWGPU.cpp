@@ -84,7 +84,7 @@ Result SwapChainWGPU::Create(const SwapChainDesc& swapChainDesc) {
 #endif
 
     if (!surfaceSource)
-        return Result::UNSUPPORTED;
+        return Result::Unsupported;
 
     WGPUSurfaceDescriptor surfaceDesc = WGPU_SURFACE_DESCRIPTOR_INIT;
     surfaceDesc.nextInChain = surfaceSource;
@@ -167,7 +167,7 @@ Result SwapChainWGPU::AcquireNextTexture(uint32_t& textureIndex) {
 
 Result SwapChainWGPU::WaitForPresent() {
     // TODO: WGPU has no waitable-swapchain equivalent. Keep "features.waitableSwapChain = false".
-    return Result::UNSUPPORTED;
+    return Result::Unsupported;
 }
 
 Result SwapChainWGPU::Present() {

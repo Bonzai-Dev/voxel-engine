@@ -26,9 +26,9 @@ Result DescriptorD3D11::Create(const TextureViewDesc& textureViewDesc) {
 
     HRESULT hr = E_INVALIDARG;
 
-    if (textureDesc.type == TextureType::TEXTURE_1D) {
+    if (textureDesc.type == TextureDimension::Texture1D) {
         switch (textureViewDesc.type) {
-            case TextureView::TEXTURE: {
+            case TextureView::Texture: {
                 D3D11_SHADER_RESOURCE_VIEW_DESC desc = {};
                 desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE1D;
                 desc.Texture1D.MostDetailedMip = textureViewDesc.mipOffset;
@@ -37,7 +37,7 @@ Result DescriptorD3D11::Create(const TextureViewDesc& textureViewDesc) {
 
                 hr = m_Device->CreateShaderResourceView(textureD3D11, &desc, (ID3D11ShaderResourceView**)&m_Descriptor);
             } break;
-            case TextureView::TEXTURE_ARRAY: {
+            case TextureView::TextureArray: {
                 D3D11_SHADER_RESOURCE_VIEW_DESC desc = {};
                 desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE1DARRAY;
                 desc.Texture1DArray.MostDetailedMip = textureViewDesc.mipOffset;
@@ -48,7 +48,7 @@ Result DescriptorD3D11::Create(const TextureViewDesc& textureViewDesc) {
 
                 hr = m_Device->CreateShaderResourceView(textureD3D11, &desc, (ID3D11ShaderResourceView**)&m_Descriptor);
             } break;
-            case TextureView::STORAGE_TEXTURE: {
+            case TextureView::StorageTexture: {
                 D3D11_UNORDERED_ACCESS_VIEW_DESC desc = {};
                 desc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE1D;
                 desc.Texture1D.MipSlice = textureViewDesc.mipOffset;
@@ -56,7 +56,7 @@ Result DescriptorD3D11::Create(const TextureViewDesc& textureViewDesc) {
 
                 hr = m_Device->CreateUnorderedAccessView(textureD3D11, &desc, (ID3D11UnorderedAccessView**)&m_Descriptor);
             } break;
-            case TextureView::STORAGE_TEXTURE_ARRAY: {
+            case TextureView::StorageTextureArray: {
                 D3D11_UNORDERED_ACCESS_VIEW_DESC desc = {};
                 desc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE1DARRAY;
                 desc.Texture1DArray.MipSlice = textureViewDesc.mipOffset;
@@ -66,7 +66,7 @@ Result DescriptorD3D11::Create(const TextureViewDesc& textureViewDesc) {
 
                 hr = m_Device->CreateUnorderedAccessView(textureD3D11, &desc, (ID3D11UnorderedAccessView**)&m_Descriptor);
             } break;
-            case TextureView::COLOR_ATTACHMENT: {
+            case TextureView::ColorAttachment: {
                 D3D11_RENDER_TARGET_VIEW_DESC desc = {};
                 desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE1DARRAY;
                 desc.Texture1DArray.MipSlice = textureViewDesc.mipOffset;
@@ -76,7 +76,7 @@ Result DescriptorD3D11::Create(const TextureViewDesc& textureViewDesc) {
 
                 hr = m_Device->CreateRenderTargetView(textureD3D11, &desc, (ID3D11RenderTargetView**)&m_Descriptor);
             } break;
-            case TextureView::DEPTH_STENCIL_ATTACHMENT: {
+            case TextureView::DepthStencilAttachment: {
                 D3D11_DEPTH_STENCIL_VIEW_DESC desc = {};
                 desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE1DARRAY;
                 desc.Texture1DArray.MipSlice = textureViewDesc.mipOffset;
@@ -95,12 +95,12 @@ Result DescriptorD3D11::Create(const TextureViewDesc& textureViewDesc) {
             } break;
             default:
                 NRI_CHECK(false, "Unexpected 'textureViewDesc.type'");
-                return Result::INVALID_ARGUMENT;
+                return Result::InvalidArgument;
         }
-    } else if (textureDesc.type == TextureType::TEXTURE_2D) {
+    } else if (textureDesc.type == TextureDimension::Texture2D) {
         switch (textureViewDesc.type) {
-            case TextureView::SUBPASS_INPUT:
-            case TextureView::TEXTURE: {
+            case TextureView::SubpassInput:
+            case TextureView::Texture: {
                 D3D11_SHADER_RESOURCE_VIEW_DESC desc = {};
                 if (textureDesc.sampleNum > 1)
                     desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DMS;
@@ -113,7 +113,7 @@ Result DescriptorD3D11::Create(const TextureViewDesc& textureViewDesc) {
 
                 hr = m_Device->CreateShaderResourceView(textureD3D11, &desc, (ID3D11ShaderResourceView**)&m_Descriptor);
             } break;
-            case TextureView::TEXTURE_ARRAY: {
+            case TextureView::TextureArray: {
                 D3D11_SHADER_RESOURCE_VIEW_DESC desc = {};
                 if (textureDesc.sampleNum > 1) {
                     desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DMSARRAY;
@@ -130,7 +130,7 @@ Result DescriptorD3D11::Create(const TextureViewDesc& textureViewDesc) {
 
                 hr = m_Device->CreateShaderResourceView(textureD3D11, &desc, (ID3D11ShaderResourceView**)&m_Descriptor);
             } break;
-            case TextureView::TEXTURE_CUBE: {
+            case TextureView::TextureCube: {
                 D3D11_SHADER_RESOURCE_VIEW_DESC desc = {};
                 desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
                 desc.TextureCube.MostDetailedMip = textureViewDesc.mipOffset;
@@ -139,7 +139,7 @@ Result DescriptorD3D11::Create(const TextureViewDesc& textureViewDesc) {
 
                 hr = m_Device->CreateShaderResourceView(textureD3D11, &desc, (ID3D11ShaderResourceView**)&m_Descriptor);
             } break;
-            case TextureView::TEXTURE_CUBE_ARRAY: {
+            case TextureView::TextureCubeArray: {
                 D3D11_SHADER_RESOURCE_VIEW_DESC desc = {};
                 desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBEARRAY;
                 desc.TextureCubeArray.MostDetailedMip = textureViewDesc.mipOffset;
@@ -150,7 +150,7 @@ Result DescriptorD3D11::Create(const TextureViewDesc& textureViewDesc) {
 
                 hr = m_Device->CreateShaderResourceView(textureD3D11, &desc, (ID3D11ShaderResourceView**)&m_Descriptor);
             } break;
-            case TextureView::STORAGE_TEXTURE: {
+            case TextureView::StorageTexture: {
                 D3D11_UNORDERED_ACCESS_VIEW_DESC desc = {};
                 desc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
                 desc.Texture2D.MipSlice = textureViewDesc.mipOffset;
@@ -158,7 +158,7 @@ Result DescriptorD3D11::Create(const TextureViewDesc& textureViewDesc) {
 
                 hr = m_Device->CreateUnorderedAccessView(textureD3D11, &desc, (ID3D11UnorderedAccessView**)&m_Descriptor);
             } break;
-            case TextureView::STORAGE_TEXTURE_ARRAY: {
+            case TextureView::StorageTextureArray: {
                 D3D11_UNORDERED_ACCESS_VIEW_DESC desc = {};
                 desc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2DARRAY;
                 desc.Texture2DArray.MipSlice = textureViewDesc.mipOffset;
@@ -168,7 +168,7 @@ Result DescriptorD3D11::Create(const TextureViewDesc& textureViewDesc) {
 
                 hr = m_Device->CreateUnorderedAccessView(textureD3D11, &desc, (ID3D11UnorderedAccessView**)&m_Descriptor);
             } break;
-            case TextureView::COLOR_ATTACHMENT: {
+            case TextureView::ColorAttachment: {
                 D3D11_RENDER_TARGET_VIEW_DESC desc = {};
                 if (textureDesc.sampleNum > 1) {
                     desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DMSARRAY;
@@ -184,7 +184,7 @@ Result DescriptorD3D11::Create(const TextureViewDesc& textureViewDesc) {
 
                 hr = m_Device->CreateRenderTargetView(textureD3D11, &desc, (ID3D11RenderTargetView**)&m_Descriptor);
             } break;
-            case TextureView::DEPTH_STENCIL_ATTACHMENT: {
+            case TextureView::DepthStencilAttachment: {
                 D3D11_DEPTH_STENCIL_VIEW_DESC desc = {};
                 if (textureDesc.sampleNum > 1) {
                     desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DMSARRAY;
@@ -207,7 +207,7 @@ Result DescriptorD3D11::Create(const TextureViewDesc& textureViewDesc) {
 
                 hr = m_Device->CreateDepthStencilView(textureD3D11, &desc, (ID3D11DepthStencilView**)&m_Descriptor);
             } break;
-            case TextureView::SHADING_RATE_ATTACHMENT: {
+            case TextureView::ShadingRateAttachment: {
 #if NRI_ENABLE_NVAPI
                 if (m_Device.HasNvExt()) {
                     NV_D3D11_SHADING_RATE_RESOURCE_VIEW_DESC desc = {NV_D3D11_SHADING_RATE_RESOURCE_VIEW_DESC_VER};
@@ -224,11 +224,11 @@ Result DescriptorD3D11::Create(const TextureViewDesc& textureViewDesc) {
             } break;
             default:
                 NRI_CHECK(false, "Unexpected 'textureViewDesc.type'");
-                return Result::INVALID_ARGUMENT;
+                return Result::InvalidArgument;
         }
     } else {
         switch (textureViewDesc.type) {
-            case TextureView::TEXTURE: {
+            case TextureView::Texture: {
                 D3D11_SHADER_RESOURCE_VIEW_DESC desc = {};
                 desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE3D;
                 desc.Texture3D.MostDetailedMip = textureViewDesc.mipOffset;
@@ -237,7 +237,7 @@ Result DescriptorD3D11::Create(const TextureViewDesc& textureViewDesc) {
 
                 hr = m_Device->CreateShaderResourceView(textureD3D11, &desc, (ID3D11ShaderResourceView**)&m_Descriptor);
             } break;
-            case TextureView::STORAGE_TEXTURE: {
+            case TextureView::StorageTexture: {
                 D3D11_UNORDERED_ACCESS_VIEW_DESC desc = {};
                 desc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE3D;
                 desc.Texture3D.MipSlice = textureViewDesc.mipOffset;
@@ -247,7 +247,7 @@ Result DescriptorD3D11::Create(const TextureViewDesc& textureViewDesc) {
 
                 hr = m_Device->CreateUnorderedAccessView(textureD3D11, &desc, (ID3D11UnorderedAccessView**)&m_Descriptor);
             } break;
-            case TextureView::COLOR_ATTACHMENT: {
+            case TextureView::ColorAttachment: {
                 D3D11_RENDER_TARGET_VIEW_DESC desc = {};
                 desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE3D;
                 desc.Texture3D.MipSlice = textureViewDesc.mipOffset;
@@ -259,7 +259,7 @@ Result DescriptorD3D11::Create(const TextureViewDesc& textureViewDesc) {
             } break;
             default:
                 NRI_CHECK(false, "Unexpected 'textureViewDesc.type'");
-                return Result::INVALID_ARGUMENT;
+                return Result::InvalidArgument;
         }
     }
 
@@ -276,7 +276,7 @@ Result DescriptorD3D11::Create(const BufferViewDesc& bufferViewDesc) {
     const BufferDesc& bufferDesc = bufferD3D11.GetDesc();
     uint64_t size = bufferViewDesc.size == WHOLE_SIZE ? bufferDesc.size : bufferViewDesc.size;
 
-    Format patchedFormat = Format::UNKNOWN;
+    Format patchedFormat = Format::Unknown;
     uint32_t structureStride = bufferViewDesc.structureStride ? bufferViewDesc.structureStride : bufferDesc.structureStride;
     bool isRaw = false;
 
@@ -335,7 +335,7 @@ Result DescriptorD3D11::Create(const BufferViewDesc& bufferViewDesc) {
         } break;
         default:
             NRI_CHECK(false, "Unexpected 'bufferViewDesc.type'");
-            return Result::INVALID_ARGUMENT;
+            return Result::InvalidArgument;
     };
 
     NRI_RETURN_ON_BAD_HRESULT(&m_Device, hr, "ID3D11Device::CreateXxxView");

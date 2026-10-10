@@ -43,12 +43,12 @@ enum OpCode : uint32_t {
     UNKNOWN
 };
 
-NRI_INLINE size_t GetElementNum(size_t dataSize) {
+ENGINE_FORCE_INLINE size_t GetElementNum(size_t dataSize) {
     return (dataSize + sizeof(uint32_t) - 1) / sizeof(uint32_t);
 }
 
 template <typename T>
-NRI_INLINE void Push(PushBuffer& pushBuffer, const T& data) {
+ENGINE_FORCE_INLINE void Push(PushBuffer& pushBuffer, const T& data) {
     const size_t bytes = sizeof(T);
     const size_t newElements = GetElementNum(bytes);
     const size_t curr = pushBuffer.size();
@@ -60,7 +60,7 @@ NRI_INLINE void Push(PushBuffer& pushBuffer, const T& data) {
 }
 
 template <typename T>
-NRI_INLINE void Push(PushBuffer& pushBuffer, const T* data, uint32_t num) {
+ENGINE_FORCE_INLINE void Push(PushBuffer& pushBuffer, const T* data, uint32_t num) {
     const size_t bytes = sizeof(T) * num;
     const size_t newElements = GetElementNum(sizeof(uint32_t) + bytes);
     const size_t curr = pushBuffer.size();
@@ -73,13 +73,13 @@ NRI_INLINE void Push(PushBuffer& pushBuffer, const T* data, uint32_t num) {
 }
 
 template <typename T>
-NRI_INLINE void Read(PushBuffer& pushBuffer, size_t& i, T& data) {
+ENGINE_FORCE_INLINE void Read(PushBuffer& pushBuffer, size_t& i, T& data) {
     data = *(T*)&pushBuffer[i];
     i += GetElementNum(sizeof(T));
 }
 
 template <typename T>
-NRI_INLINE void Read(PushBuffer& pushBuffer, size_t& i, T*& data, uint32_t& num) {
+ENGINE_FORCE_INLINE void Read(PushBuffer& pushBuffer, size_t& i, T*& data, uint32_t& num) {
     num = pushBuffer[i++];
     data = (T*)&pushBuffer[i];
     i += GetElementNum(sizeof(T) * num);
@@ -480,7 +480,7 @@ void CommandBufferEmuD3D11::Submit() {
     }
 }
 
-NRI_INLINE Result CommandBufferEmuD3D11::Begin(const DescriptorPool* descriptorPool) {
+ENGINE_FORCE_INLINE Result CommandBufferEmuD3D11::Begin(const DescriptorPool* descriptorPool) {
     m_PushBuffer.clear();
     Push(m_PushBuffer, BEGIN);
     Push(m_PushBuffer, descriptorPool);
@@ -488,117 +488,117 @@ NRI_INLINE Result CommandBufferEmuD3D11::Begin(const DescriptorPool* descriptorP
     return Result::Success;
 }
 
-NRI_INLINE Result CommandBufferEmuD3D11::End() {
+ENGINE_FORCE_INLINE Result CommandBufferEmuD3D11::End() {
     Push(m_PushBuffer, END);
 
     return Result::Success;
 }
 
-NRI_INLINE void CommandBufferEmuD3D11::SetViewports(const Viewport* viewports, uint32_t viewportNum) {
+ENGINE_FORCE_INLINE void CommandBufferEmuD3D11::SetViewports(const Viewport* viewports, uint32_t viewportNum) {
     Push(m_PushBuffer, SET_VIEWPORTS);
     Push(m_PushBuffer, viewports, viewportNum);
 }
 
-NRI_INLINE void CommandBufferEmuD3D11::SetScissors(const Rect* rects, uint32_t rectNum) {
+ENGINE_FORCE_INLINE void CommandBufferEmuD3D11::SetScissors(const Rect* rects, uint32_t rectNum) {
     Push(m_PushBuffer, SET_SCISSORS);
     Push(m_PushBuffer, rects, rectNum);
 }
 
-NRI_INLINE void CommandBufferEmuD3D11::SetDepthBounds(float boundsMin, float boundsMax) {
+ENGINE_FORCE_INLINE void CommandBufferEmuD3D11::SetDepthBounds(float boundsMin, float boundsMax) {
     Push(m_PushBuffer, SET_DEPTH_BOUNDS);
     Push(m_PushBuffer, boundsMin);
     Push(m_PushBuffer, boundsMax);
 }
 
-NRI_INLINE void CommandBufferEmuD3D11::SetStencilReference(uint8_t frontRef, uint8_t backRef) {
+ENGINE_FORCE_INLINE void CommandBufferEmuD3D11::SetStencilReference(uint8_t frontRef, uint8_t backRef) {
     Push(m_PushBuffer, SET_STENCIL_REFERENCE);
     Push(m_PushBuffer, frontRef);
     Push(m_PushBuffer, backRef);
 }
 
-NRI_INLINE void CommandBufferEmuD3D11::SetSampleLocations(const SampleLocation* locations, Sample_t locationNum, Sample_t sampleNum) {
+ENGINE_FORCE_INLINE void CommandBufferEmuD3D11::SetSampleLocations(const SampleLocation* locations, Sample_t locationNum, Sample_t sampleNum) {
     Push(m_PushBuffer, SET_SAMPLE_LOCATIONS);
     Push(m_PushBuffer, locations, (uint32_t)locationNum);
     Push(m_PushBuffer, sampleNum);
 }
 
-NRI_INLINE void CommandBufferEmuD3D11::SetBlendConstants(const Color32f& color) {
+ENGINE_FORCE_INLINE void CommandBufferEmuD3D11::SetBlendConstants(const Color32f& color) {
     Push(m_PushBuffer, SET_BLEND_CONSTANTS);
     Push(m_PushBuffer, color);
 }
 
-NRI_INLINE void CommandBufferEmuD3D11::ClearAttachments(const ClearAttachmentDesc* clearAttachmentDescs, uint32_t clearAttachmentDescNum, const Rect* rects, uint32_t rectNum) {
+ENGINE_FORCE_INLINE void CommandBufferEmuD3D11::ClearAttachments(const ClearAttachmentDesc* clearAttachmentDescs, uint32_t clearAttachmentDescNum, const Rect* rects, uint32_t rectNum) {
     Push(m_PushBuffer, CLEAR_ATTACHMENTS);
     Push(m_PushBuffer, clearAttachmentDescs, clearAttachmentDescNum);
     Push(m_PushBuffer, rects, rectNum);
 }
 
-NRI_INLINE void CommandBufferEmuD3D11::ClearStorage(const ClearStorageDesc& clearStorageDesc) {
+ENGINE_FORCE_INLINE void CommandBufferEmuD3D11::ClearStorage(const ClearStorageDesc& clearStorageDesc) {
     Push(m_PushBuffer, CLEAR_STORAGE);
     Push(m_PushBuffer, clearStorageDesc);
 }
 
-NRI_INLINE void CommandBufferEmuD3D11::BeginRendering(const RenderingDesc& renderingDesc) {
+ENGINE_FORCE_INLINE void CommandBufferEmuD3D11::BeginRendering(const RenderingDesc& renderingDesc) {
     Push(m_PushBuffer, BEGIN_RENDERING);
     Push(m_PushBuffer, renderingDesc);
     Push(m_PushBuffer, renderingDesc.colors, renderingDesc.colorNum);
 }
 
-NRI_INLINE void CommandBufferEmuD3D11::EndRendering() {
+ENGINE_FORCE_INLINE void CommandBufferEmuD3D11::EndRendering() {
     Push(m_PushBuffer, END_RENDERING);
 }
 
-NRI_INLINE void CommandBufferEmuD3D11::SetVertexBuffers(uint32_t baseSlot, const VertexBufferDesc* vertexBufferDescs, uint32_t vertexBufferNum) {
+ENGINE_FORCE_INLINE void CommandBufferEmuD3D11::SetVertexBuffers(uint32_t baseSlot, const VertexBufferDesc* vertexBufferDescs, uint32_t vertexBufferNum) {
     Push(m_PushBuffer, SET_VERTEX_BUFFERS);
     Push(m_PushBuffer, baseSlot);
     Push(m_PushBuffer, vertexBufferDescs, vertexBufferNum);
 }
 
-NRI_INLINE void CommandBufferEmuD3D11::SetIndexBuffer(const Buffer& buffer, uint64_t offset, IndexType indexType) {
+ENGINE_FORCE_INLINE void CommandBufferEmuD3D11::SetIndexBuffer(const Buffer& buffer, uint64_t offset, IndexType indexType) {
     Push(m_PushBuffer, SET_INDEX_BUFFER);
     Push(m_PushBuffer, &buffer);
     Push(m_PushBuffer, offset);
     Push(m_PushBuffer, indexType);
 }
 
-NRI_INLINE void CommandBufferEmuD3D11::SetPipelineLayout(BindPoint bindPoint, const PipelineLayout& pipelineLayout) {
+ENGINE_FORCE_INLINE void CommandBufferEmuD3D11::SetPipelineLayout(BindPoint bindPoint, const PipelineLayout& pipelineLayout) {
     Push(m_PushBuffer, SET_PIPELINE_LAYOUT);
     Push(m_PushBuffer, bindPoint);
     Push(m_PushBuffer, &pipelineLayout);
 }
 
-NRI_INLINE void CommandBufferEmuD3D11::SetPipeline(const Pipeline& pipeline) {
+ENGINE_FORCE_INLINE void CommandBufferEmuD3D11::SetPipeline(const Pipeline& pipeline) {
     Push(m_PushBuffer, SET_PIPELINE);
     Push(m_PushBuffer, &pipeline);
 }
 
-NRI_INLINE void CommandBufferEmuD3D11::SetDescriptorSet(const SetDescriptorSetDesc& setDescriptorSetDesc) {
+ENGINE_FORCE_INLINE void CommandBufferEmuD3D11::SetDescriptorSet(const SetDescriptorSetDesc& setDescriptorSetDesc) {
     Push(m_PushBuffer, SET_DESCRIPTOR_SET);
     Push(m_PushBuffer, setDescriptorSetDesc);
 }
 
-NRI_INLINE void CommandBufferEmuD3D11::SetRootConstants(const SetRootConstantsDesc& setRootConstantsDesc) {
+ENGINE_FORCE_INLINE void CommandBufferEmuD3D11::SetRootConstants(const SetRootConstantsDesc& setRootConstantsDesc) {
     Push(m_PushBuffer, SET_ROOT_CONSTANTS);
     Push(m_PushBuffer, setRootConstantsDesc);
     Push(m_PushBuffer, (uint8_t*)setRootConstantsDesc.data, setRootConstantsDesc.size);
 }
 
-NRI_INLINE void CommandBufferEmuD3D11::SetRootDescriptor(const SetRootDescriptorDesc& setRootDescriptorDesc) {
+ENGINE_FORCE_INLINE void CommandBufferEmuD3D11::SetRootDescriptor(const SetRootDescriptorDesc& setRootDescriptorDesc) {
     Push(m_PushBuffer, SET_ROOT_DESCRIPTOR);
     Push(m_PushBuffer, setRootDescriptorDesc);
 }
 
-NRI_INLINE void CommandBufferEmuD3D11::Draw(const DrawDesc& drawDesc) {
+ENGINE_FORCE_INLINE void CommandBufferEmuD3D11::Draw(const DrawDesc& drawDesc) {
     Push(m_PushBuffer, DRAW);
     Push(m_PushBuffer, drawDesc);
 }
 
-NRI_INLINE void CommandBufferEmuD3D11::DrawIndexed(const DrawIndexedDesc& drawIndexedDesc) {
+ENGINE_FORCE_INLINE void CommandBufferEmuD3D11::DrawIndexed(const DrawIndexedDesc& drawIndexedDesc) {
     Push(m_PushBuffer, DRAW_INDEXED);
     Push(m_PushBuffer, drawIndexedDesc);
 }
 
-NRI_INLINE void CommandBufferEmuD3D11::DrawIndirect(const Buffer& buffer, uint64_t offset, uint32_t drawNum, uint32_t stride, const Buffer* countBuffer, uint64_t countBufferOffset) {
+ENGINE_FORCE_INLINE void CommandBufferEmuD3D11::DrawIndirect(const Buffer& buffer, uint64_t offset, uint32_t drawNum, uint32_t stride, const Buffer* countBuffer, uint64_t countBufferOffset) {
     Push(m_PushBuffer, DRAW_INDIRECT);
     Push(m_PushBuffer, &buffer);
     Push(m_PushBuffer, offset);
@@ -608,7 +608,7 @@ NRI_INLINE void CommandBufferEmuD3D11::DrawIndirect(const Buffer& buffer, uint64
     Push(m_PushBuffer, countBufferOffset);
 }
 
-NRI_INLINE void CommandBufferEmuD3D11::DrawIndexedIndirect(const Buffer& buffer, uint64_t offset, uint32_t drawNum, uint32_t stride, const Buffer* countBuffer, uint64_t countBufferOffset) {
+ENGINE_FORCE_INLINE void CommandBufferEmuD3D11::DrawIndexedIndirect(const Buffer& buffer, uint64_t offset, uint32_t drawNum, uint32_t stride, const Buffer* countBuffer, uint64_t countBufferOffset) {
     Push(m_PushBuffer, DRAW_INDEXED_INDIRECT);
     Push(m_PushBuffer, &buffer);
     Push(m_PushBuffer, offset);
@@ -618,7 +618,7 @@ NRI_INLINE void CommandBufferEmuD3D11::DrawIndexedIndirect(const Buffer& buffer,
     Push(m_PushBuffer, countBufferOffset);
 }
 
-NRI_INLINE void CommandBufferEmuD3D11::CopyBuffer(Buffer& dstBuffer, uint64_t dstOffset, const Buffer& srcBuffer, uint64_t srcOffset, uint64_t size) {
+ENGINE_FORCE_INLINE void CommandBufferEmuD3D11::CopyBuffer(Buffer& dstBuffer, uint64_t dstOffset, const Buffer& srcBuffer, uint64_t srcOffset, uint64_t size) {
     Push(m_PushBuffer, COPY_BUFFER);
     Push(m_PushBuffer, &dstBuffer);
     Push(m_PushBuffer, dstOffset);
@@ -627,7 +627,7 @@ NRI_INLINE void CommandBufferEmuD3D11::CopyBuffer(Buffer& dstBuffer, uint64_t ds
     Push(m_PushBuffer, size);
 }
 
-NRI_INLINE void CommandBufferEmuD3D11::CopyTexture(Texture& dstTexture, const TextureRegionDesc* dstRegion, const Texture& srcTexture, const TextureRegionDesc* srcRegion) {
+ENGINE_FORCE_INLINE void CommandBufferEmuD3D11::CopyTexture(Texture& dstTexture, const TextureRegionDesc* dstRegion, const Texture& srcTexture, const TextureRegionDesc* srcRegion) {
     TextureRegionDesc wholeResource = {};
     wholeResource.mipOffset = NULL_TEXTURE_REGION_DESC;
 
@@ -643,7 +643,7 @@ NRI_INLINE void CommandBufferEmuD3D11::CopyTexture(Texture& dstTexture, const Te
     Push(m_PushBuffer, *srcRegion);
 }
 
-NRI_INLINE void CommandBufferEmuD3D11::UploadBufferToTexture(Texture& dstTexture, const TextureRegionDesc& dstRegion, const Buffer& srcBuffer, const TextureDataLayoutDesc& srcDataLayout) {
+ENGINE_FORCE_INLINE void CommandBufferEmuD3D11::UploadBufferToTexture(Texture& dstTexture, const TextureRegionDesc& dstRegion, const Buffer& srcBuffer, const TextureDataLayoutDesc& srcDataLayout) {
     Push(m_PushBuffer, UPLOAD_BUFFER_TO_TEXTURE);
     Push(m_PushBuffer, &dstTexture);
     Push(m_PushBuffer, dstRegion);
@@ -651,7 +651,7 @@ NRI_INLINE void CommandBufferEmuD3D11::UploadBufferToTexture(Texture& dstTexture
     Push(m_PushBuffer, srcDataLayout);
 }
 
-NRI_INLINE void CommandBufferEmuD3D11::ReadbackTextureToBuffer(Buffer& dstBuffer, const TextureDataLayoutDesc& dstDataLayout, const Texture& srcTexture, const TextureRegionDesc& srcRegion) {
+ENGINE_FORCE_INLINE void CommandBufferEmuD3D11::ReadbackTextureToBuffer(Buffer& dstBuffer, const TextureDataLayoutDesc& dstDataLayout, const Texture& srcTexture, const TextureRegionDesc& srcRegion) {
     Push(m_PushBuffer, READBACK_TEXTURE_TO_BUFFER);
     Push(m_PushBuffer, &dstBuffer);
     Push(m_PushBuffer, dstDataLayout);
@@ -659,14 +659,14 @@ NRI_INLINE void CommandBufferEmuD3D11::ReadbackTextureToBuffer(Buffer& dstBuffer
     Push(m_PushBuffer, srcRegion);
 }
 
-NRI_INLINE void CommandBufferEmuD3D11::ZeroBuffer(Buffer& buffer, uint64_t offset, uint64_t size) {
+ENGINE_FORCE_INLINE void CommandBufferEmuD3D11::ZeroBuffer(Buffer& buffer, uint64_t offset, uint64_t size) {
     Push(m_PushBuffer, ZERO_BUFFER);
     Push(m_PushBuffer, &buffer);
     Push(m_PushBuffer, offset);
     Push(m_PushBuffer, size);
 }
 
-NRI_INLINE void CommandBufferEmuD3D11::ResolveTexture(Texture& dstTexture, const TextureRegionDesc* dstRegion, const Texture& srcTexture, const TextureRegionDesc* srcRegion) {
+ENGINE_FORCE_INLINE void CommandBufferEmuD3D11::ResolveTexture(Texture& dstTexture, const TextureRegionDesc* dstRegion, const Texture& srcTexture, const TextureRegionDesc* srcRegion) {
     TextureRegionDesc wholeResource = {};
     wholeResource.mipOffset = NULL_TEXTURE_REGION_DESC;
 
@@ -682,37 +682,37 @@ NRI_INLINE void CommandBufferEmuD3D11::ResolveTexture(Texture& dstTexture, const
     Push(m_PushBuffer, *srcRegion);
 }
 
-NRI_INLINE void CommandBufferEmuD3D11::Dispatch(const DispatchDesc& dispatchDesc) {
+ENGINE_FORCE_INLINE void CommandBufferEmuD3D11::Dispatch(const DispatchDesc& dispatchDesc) {
     Push(m_PushBuffer, DISPATCH);
     Push(m_PushBuffer, dispatchDesc);
 }
 
-NRI_INLINE void CommandBufferEmuD3D11::DispatchIndirect(const Buffer& buffer, uint64_t offset) {
+ENGINE_FORCE_INLINE void CommandBufferEmuD3D11::DispatchIndirect(const Buffer& buffer, uint64_t offset) {
     Push(m_PushBuffer, DISPATCH_INDIRECT);
     Push(m_PushBuffer, &buffer);
     Push(m_PushBuffer, offset);
 }
 
-NRI_INLINE void CommandBufferEmuD3D11::Barrier(const BarrierDesc& barrierDesc) {
+ENGINE_FORCE_INLINE void CommandBufferEmuD3D11::Barrier(const BarrierDesc& barrierDesc) {
     Push(m_PushBuffer, BARRIER);
     Push(m_PushBuffer, barrierDesc.globals, barrierDesc.globalNum);
     Push(m_PushBuffer, barrierDesc.buffers, barrierDesc.bufferNum);
     Push(m_PushBuffer, barrierDesc.textures, barrierDesc.textureNum);
 }
 
-NRI_INLINE void CommandBufferEmuD3D11::BeginQuery(QueryPool& queryPool, uint32_t offset) {
+ENGINE_FORCE_INLINE void CommandBufferEmuD3D11::BeginQuery(QueryPool& queryPool, uint32_t offset) {
     Push(m_PushBuffer, BEGIN_QUERY);
     Push(m_PushBuffer, &queryPool);
     Push(m_PushBuffer, offset);
 }
 
-NRI_INLINE void CommandBufferEmuD3D11::EndQuery(QueryPool& queryPool, uint32_t offset) {
+ENGINE_FORCE_INLINE void CommandBufferEmuD3D11::EndQuery(QueryPool& queryPool, uint32_t offset) {
     Push(m_PushBuffer, END_QUERY);
     Push(m_PushBuffer, &queryPool);
     Push(m_PushBuffer, offset);
 }
 
-NRI_INLINE void CommandBufferEmuD3D11::CopyQueries(const QueryPool& queryPool, uint32_t offset, uint32_t num, Buffer& dstBuffer, uint64_t dstOffset) {
+ENGINE_FORCE_INLINE void CommandBufferEmuD3D11::CopyQueries(const QueryPool& queryPool, uint32_t offset, uint32_t num, Buffer& dstBuffer, uint64_t dstOffset) {
     Push(m_PushBuffer, COPY_QUERIES);
     Push(m_PushBuffer, &queryPool);
     Push(m_PushBuffer, offset);
@@ -721,7 +721,7 @@ NRI_INLINE void CommandBufferEmuD3D11::CopyQueries(const QueryPool& queryPool, u
     Push(m_PushBuffer, dstOffset);
 }
 
-NRI_INLINE void CommandBufferEmuD3D11::BeginAnnotation(const char* name, uint32_t bgra) {
+ENGINE_FORCE_INLINE void CommandBufferEmuD3D11::BeginAnnotation(const char* name, uint32_t bgra) {
     uint32_t len = (uint32_t)std::strlen(name) + 1;
 
     Push(m_PushBuffer, BEGIN_ANNOTATION);
@@ -729,11 +729,11 @@ NRI_INLINE void CommandBufferEmuD3D11::BeginAnnotation(const char* name, uint32_
     Push(m_PushBuffer, bgra);
 }
 
-NRI_INLINE void CommandBufferEmuD3D11::EndAnnotation() {
+ENGINE_FORCE_INLINE void CommandBufferEmuD3D11::EndAnnotation() {
     Push(m_PushBuffer, END_ANNOTATION);
 }
 
-NRI_INLINE void CommandBufferEmuD3D11::Annotation(const char* name, uint32_t bgra) {
+ENGINE_FORCE_INLINE void CommandBufferEmuD3D11::Annotation(const char* name, uint32_t bgra) {
     uint32_t len = (uint32_t)std::strlen(name) + 1;
 
     Push(m_PushBuffer, ANNOTATION);

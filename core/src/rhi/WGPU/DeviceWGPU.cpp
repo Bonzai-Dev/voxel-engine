@@ -203,11 +203,11 @@ Result DeviceWGPU::CreateInstanceAndDevice(const DeviceCreationDesc& desc) {
     WGPUDeviceExtras deviceExtras = {};
     deviceExtras.chain.sType = (WGPUSType)WGPUSType_DeviceExtras;
 
-    WGPUDeviceInforiptor DeviceInfo = WGPU_DEVICE_DESCRIPTOR_INIT;
-    DeviceInfo.nextInChain = &deviceExtras.chain;
-    DeviceInfo.requiredFeatureCount = requiredFeatureNum;
-    DeviceInfo.requiredFeatures = requiredFeatures.data();
-    DeviceInfo.requiredLimits = &requiredLimits;
+    WGPUDeviceDescriptor deviceDesc = WGPU_DEVICE_DESCRIPTOR_INIT;
+    deviceDesc.nextInChain = &deviceExtras.chain;
+    deviceDesc.requiredFeatureCount = requiredFeatureNum;
+    deviceDesc.requiredFeatures = requiredFeatures.data();
+    deviceDesc.requiredLimits = &requiredLimits;
 
     RequestDeviceContext deviceContext = {};
     WGPURequestDeviceCallbackInfo deviceCallbackInfo = WGPU_REQUEST_DEVICE_CALLBACK_INFO_INIT;
@@ -215,7 +215,7 @@ Result DeviceWGPU::CreateInstanceAndDevice(const DeviceCreationDesc& desc) {
     deviceCallbackInfo.callback = OnDeviceRequested;
     deviceCallbackInfo.userdata1 = &deviceContext;
 
-    wgpuAdapterRequestDevice(m_Adapter, &DeviceInfo, deviceCallbackInfo);
+    wgpuAdapterRequestDevice(m_Adapter, &deviceDesc, deviceCallbackInfo);
     WaitForAsyncRequest(m_Instance, deviceContext.done);
 
     if (deviceContext.status != WGPURequestDeviceStatus_Success || !deviceContext.device)
@@ -485,14 +485,14 @@ FormatSupportBits DeviceWGPU::GetFormatSupport(Format format) const {
 Result DeviceWGPU::GetQueue(QueueType queueType, uint32_t queueIndex, Queue*& queue) {
     const Vector<QueueWGPU*>& queueFamily = m_QueueFamilies[(uint32_t)queueType];
     if (queueFamily.empty())
-        return Result::UNSUPPORTED;
+        return Result::Unsupported;
 
     if (queueIndex < queueFamily.size()) {
         queue = (Queue*)queueFamily[queueIndex];
         return Result::Success;
     }
 
-    return Result::INVALID_ARGUMENT;
+    return Result::InvalidArgument;
 }
 
 Result DeviceWGPU::WaitIdle() {

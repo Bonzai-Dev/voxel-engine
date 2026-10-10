@@ -1,25 +1,25 @@
 // © 2021 NVIDIA Corporation
 
-NRI_INLINE void QueueVal::BeginAnnotation(const char* name, uint32_t bgra) {
+ENGINE_FORCE_INLINE void QueueVal::BeginAnnotation(const char* name, uint32_t bgra) {
     GetCoreInterfaceImpl().QueueBeginAnnotation(*GetImpl(), name, bgra);
 }
 
-NRI_INLINE void QueueVal::EndAnnotation() {
+ENGINE_FORCE_INLINE void QueueVal::EndAnnotation() {
     GetCoreInterfaceImpl().QueueEndAnnotation(*GetImpl());
 }
 
-NRI_INLINE void QueueVal::Annotation(const char* name, uint32_t bgra) {
+ENGINE_FORCE_INLINE void QueueVal::Annotation(const char* name, uint32_t bgra) {
     GetCoreInterfaceImpl().QueueAnnotation(*GetImpl(), name, bgra);
 }
 
-NRI_INLINE void QueueVal::GetCalibratedTimestamps(uint64_t& timestampGPU, uint64_t& timestampCPU) {
-    const DeviceInfo& DeviceInfo = m_Device.GetDesc();
-    NRI_RETURN_ON_FAILURE(&m_Device, DeviceInfo.features.calibratedTimestamps, ReturnVoid(), "'features.calibratedTimestamps' is false");
+ENGINE_FORCE_INLINE void QueueVal::GetCalibratedTimestamps(uint64_t& timestampGPU, uint64_t& timestampCPU) {
+    const DeviceDesc& deviceDesc = m_Device.GetDesc();
+    NRI_RETURN_ON_FAILURE(&m_Device, deviceDesc.features.calibratedTimestamps, ReturnVoid(), "'features.calibratedTimestamps' is false");
 
     GetCoreInterfaceImpl().GetCalibratedTimestamps(*GetImpl(), timestampGPU, timestampCPU);
 }
 
-NRI_INLINE Result QueueVal::Submit(const QueueSubmitDesc& queueSubmitDesc) {
+ENGINE_FORCE_INLINE Result QueueVal::Submit(const QueueSubmitDesc& queueSubmitDesc) {
     auto queueSubmitDescImpl = queueSubmitDesc;
 
     Scratch<FenceSubmitDesc> waitFences = NRI_ALLOCATE_SCRATCH(m_Device, FenceSubmitDesc, queueSubmitDesc.waitFenceNum);
@@ -46,6 +46,6 @@ NRI_INLINE Result QueueVal::Submit(const QueueSubmitDesc& queueSubmitDesc) {
     return GetCoreInterfaceImpl().QueueSubmit(*GetImpl(), queueSubmitDescImpl);
 }
 
-NRI_INLINE Result QueueVal::WaitIdle() {
+ENGINE_FORCE_INLINE Result QueueVal::WaitIdle() {
     return GetCoreInterfaceImpl().QueueWaitIdle(GetImpl());
 }

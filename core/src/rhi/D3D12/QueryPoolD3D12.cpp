@@ -36,7 +36,7 @@ Result QueryPoolD3D12::Create(const QueryPoolDesc& queryPoolDesc) {
         m_QuerySize = sizeof(uint64_t);
         m_QueryType = QUERY_TYPE_ACCELERATION_STRUCTURE_COMPACTED_SIZE;
     } else
-        return Result::INVALID_ARGUMENT;
+        return Result::InvalidArgument;
 
     if (m_QueryType >= QUERY_TYPE_ACCELERATION_STRUCTURE_SIZE)
         return CreateBufferForAccelerationStructuresSizes(queryPoolDesc);

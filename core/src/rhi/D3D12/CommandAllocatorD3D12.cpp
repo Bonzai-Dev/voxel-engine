@@ -9,7 +9,7 @@ Result CommandAllocatorD3D12::Create(const Queue& queue) {
     return Result::Success;
 }
 
-NRI_INLINE Result CommandAllocatorD3D12::CreateCommandBuffer(CommandBuffer*& commandBuffer) {
+ENGINE_FORCE_INLINE Result CommandAllocatorD3D12::CreateCommandBuffer(CommandBuffer*& commandBuffer) {
     ExclusiveScope lock(m_Lock);
 
     CommandBufferD3D12* commandBufferD3D12 = Allocate<CommandBufferD3D12>(m_Device.GetAllocationCallbacks(), m_Device);
@@ -25,7 +25,7 @@ NRI_INLINE Result CommandAllocatorD3D12::CreateCommandBuffer(CommandBuffer*& com
     return result;
 }
 
-NRI_INLINE void CommandAllocatorD3D12::Reset() {
+ENGINE_FORCE_INLINE void CommandAllocatorD3D12::Reset() {
     ExclusiveScope lock(m_Lock);
 
     m_CommandAllocator->Reset();

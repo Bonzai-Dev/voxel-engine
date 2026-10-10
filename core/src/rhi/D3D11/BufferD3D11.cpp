@@ -36,7 +36,7 @@ Result BufferD3D11::Allocate(MemoryLocation memoryLocation, float priority) {
     if (m_Desc.usage & BufferUsageBits::ARGUMENT_BUFFER)
         desc.MiscFlags |= D3D11_RESOURCE_MISC_DRAWINDIRECT_ARGS;
 
-    if (memoryLocation == MemoryLocation::HOST_UPLOAD || memoryLocation == MemoryLocation::DEVICE_UPLOAD) {
+    if (memoryLocation == MemoryLocation::HostUpload || memoryLocation == MemoryLocation::DeviceUpload) {
         if (m_Desc.usage == BufferUsageBits::NONE) { // special case for "UploadBufferToTexture"
             desc.Usage = D3D11_USAGE_STAGING;
             desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE; // TODO: not the best solution, but currently needed for "UploadBufferToTexture"
@@ -58,7 +58,7 @@ Result BufferD3D11::Allocate(MemoryLocation memoryLocation, float priority) {
     if (m_Desc.usage & BufferUsageBits::INDEX_BUFFER)
         desc.BindFlags |= D3D11_BIND_INDEX_BUFFER;
 
-    if (m_Desc.usage & BufferUsageBits::CONSTANT_BUFFER)
+    if (m_Desc.usage & BufferUsageBits::ConstantBuffer)
         desc.BindFlags |= D3D11_BIND_CONSTANT_BUFFER;
 
     if (m_Desc.usage & BufferUsageBits::SHADER_RESOURCE)
@@ -88,7 +88,7 @@ Result BufferD3D11::Create(const BufferD3D11Desc& bufferD3D11Desc) {
     if (bufferD3D11Desc.desc)
         m_Desc = *bufferD3D11Desc.desc;
     else if (!GetBufferDesc(bufferD3D11Desc, m_Desc))
-        return Result::INVALID_ARGUMENT;
+        return Result::InvalidArgument;
 
     m_Buffer = (ID3D11Buffer*)bufferD3D11Desc.d3d11Resource;
 
@@ -113,11 +113,11 @@ TextureD3D11& BufferD3D11::RecreateReadbackTexture(const TextureD3D11& srcTextur
         textureDesc.height = srcRegion.height;
         textureDesc.depth = srcRegion.depth;
 
-        textureDesc.type = TextureType::TEXTURE_2D;
+        textureDesc.type = TextureDimension::Texture2D;
         if (srcRegion.depth > 1)
             textureDesc.type = TextureType::TEXTURE_3D;
         else if (srcRegion.height == 1)
-            textureDesc.type = TextureType::TEXTURE_1D;
+            textureDesc.type = TextureDimension::Texture1D;
 
         Destroy(m_ReadbackTexture);
 
@@ -135,7 +135,7 @@ TextureD3D11& BufferD3D11::RecreateReadbackTexture(const TextureD3D11& srcTextur
     return *m_ReadbackTexture;
 }
 
-NRI_INLINE void* BufferD3D11::Map(uint64_t offset) {
+ENGINE_FORCE_INLINE void* BufferD3D11::Map(uint64_t offset) {
     MultiThreadProtection mutiThreadProtection(m_Device);
 
     // Map
@@ -202,7 +202,7 @@ NRI_INLINE void* BufferD3D11::Map(uint64_t offset) {
     return ptr + offset;
 }
 
-NRI_INLINE void BufferD3D11::Unmap() {
+ENGINE_FORCE_INLINE void BufferD3D11::Unmap() {
     MultiThreadProtection mutiThreadProtection(m_Device);
 
     m_Device.GetImmediateContext()->Unmap(m_Buffer, 0);

@@ -7,39 +7,38 @@
 #define NRI_UPSCALER_H 1
 
 namespace Core::RHI {
-
   struct Upscaler;
-
-  enum class UpscalerType : uint8_t {
-    // Name                                     // Notes
-    NIS,                        // NVIDIA Image Scaling                     sharpener-upscaler, cross vendor
-    FSR,                        // AMD FidelityFX Super Resolution          upscaler, cross vendor
-    XESS,                       // INTEL XeSS Super Resolution              upscaler, cross vendor
-    DLSR,                       // NVIDIA Deep Learning Super Resolution    upscaler, NVIDIA only
-    DLRR                        // NVIDIA Deep Learning Ray Reconstruction  upscaler-denoiser, NVIDIA only
+  /*clang-format off*/
+  enum class UpscalerType: uint8_t {// Name                                     // Notes
+    NIS,                            // NVIDIA Image Scaling                     sharpener-upscaler, cross vendor
+    FSR,                            // AMD FidelityFX Super Resolution          upscaler, cross vendor
+    XESS,                           // INTEL XeSS Super Resolution              upscaler, cross vendor
+    DLSR,                           // NVIDIA Deep Learning Super Resolution    upscaler, NVIDIA only
+    DLRR,                           // NVIDIA Deep Learning Ray Reconstruction  upscaler-denoiser, NVIDIA only
+    Count
   };
 
-  enum class UpscalerMode : uint8_t {
-    // Scaling factor       // Min jitter phases (or just use unclamped Halton2D)
-    Native,                     // 1.0x                 8
-    UltraQuality,              // 1.3x                 14
-    Quality,                    // 1.5x                 18
-    Balanced,                   // 1.7x                 23
-    Performance,                // 2.0x                 32
-    UltraPerformance           // 3.0x                 72
+  enum class UpscalerMode: uint8_t {  // Scaling factor       // Min jitter phases (or just use unclamped Halton2D)
+    Native,                         // 1.0x                 8
+    UltraQuality,                   // 1.3x                 14
+    Quality,                        // 1.5x                 18
+    Balanced,                       // 1.7x                 23
+    Performance,                    // 2.0x                 32
+    UltraPerformance,               // 3.0x                 72
+    Count
   };
 
   ENGINE_BITS(UpscalerBits, uint16_t,
     None                        = 0,
     HDR                         = ENGINE_BIT(0),            // "input" uses colors in High-Dynamic Range (HDR)
     SRGB                        = ENGINE_BIT(1),            // "input" uses Low-Dynamic Range (LDR) colors in sRGB space
-    UseExposure                = ENGINE_BIT(2),            // "exposure" texture is provided (automatic exposure otherwise)
-    UseReactive                = ENGINE_BIT(3),            // "reactive" texture is provided
-    DepthInverted              = ENGINE_BIT(4),            // "depth" is inverted, i.e. the near plane is mapped to 1
-    DepthInfinite              = ENGINE_BIT(5),            // "depth" uses INF far plane
-    DepthLinear                = ENGINE_BIT(6),            // "depth" is linear viewZ (HW otherwise)
-    MvUpscaled                 = ENGINE_BIT(7),            // "mv" are rendered at upscale resolution
-    MvJittered                 = ENGINE_BIT(8)             // "mv" include jitter
+    UseExposure                 = ENGINE_BIT(2),            // "exposure" texture is provided (automatic exposure otherwise)
+    UseReactive                 = ENGINE_BIT(3),            // "reactive" texture is provided
+    DepthInverted               = ENGINE_BIT(4),            // "depth" is inverted, i.e. the near plane is mapped to 1
+    DepthInfinite               = ENGINE_BIT(5),            // "depth" uses INF far plane
+    DepthLinear                 = ENGINE_BIT(6),            // "depth" is linear viewZ (HW otherwise)
+    MvUpscaled                  = ENGINE_BIT(7),            // "mv" are rendered at upscale resolution
+    MvJittered                  = ENGINE_BIT(8)             // "mv" include jitter
   );
 
   ENGINE_BITS(DispatchUpscaleBits, uint8_t,
@@ -53,8 +52,8 @@ namespace Core::RHI {
     UpscalerType type;
     UpscalerMode mode;                             // not needed for NIS
     UpscalerBits flags;
-    uint8_t preset;                         // preset for DLSR or XESS (0 default, >1 presets A, B, C...)
-    CommandBuffer* commandBuffer;    // a non-copy-only command buffer in opened state, submission must be done manually ("wait for idle" executed, if not provided)
+    RHI_OPTIONAL uint8_t preset;                         // preset for DLSR or XESS (0 default, >1 presets A, B, C...)
+    RHI_OPTIONAL CommandBuffer *CommandBuffer;    // a non-copy-only command buffer in opened state, submission must be done manually ("wait for idle" executed, if not provided)
   };
 
   struct UpscalerProps {
@@ -67,16 +66,16 @@ namespace Core::RHI {
   };
 
   struct UpscalerResource {
-    Texture* texture;
-    Descriptor* descriptor;                      // "SHADER_RESOURCE" or "SHADER_RESOURCE_STORAGE", see comments below
+    Texture *texture;
+    Descriptor *descriptor;                      // "SHADER_RESOURCE" or "SHADER_RESOURCE_STORAGE", see comments below
   };
 
   // Guide buffers
   struct UpscalerGuides {                             // For FSR, XESS, DLSR
     UpscalerResource mv;                           // .xy - surface motion
     UpscalerResource depth;                        // .x - HW depth
-    UpscalerResource exposure;         // .x - 1x1 exposure
-    UpscalerResource reactive;         // .x - bias towards "input"
+    RHI_OPTIONAL UpscalerResource exposure;         // .x - 1x1 exposure
+    RHI_OPTIONAL UpscalerResource reactive;         // .x - bias towards "input"
   };
 
   struct DenoiserGuides {                             // For DLRR
@@ -86,9 +85,9 @@ namespace Core::RHI {
     UpscalerResource diffuseAlbedo;                // .xyz - diffuse albedo (LDR sky color for sky)
     UpscalerResource specularAlbedo;               // .xyz - specular albedo (environment BRDF)
     UpscalerResource specularMvOrHitT;             // .xy - specular virtual motion of the reflected world, or .x - specular hit distance otherwise
-    UpscalerResource exposure;         // .x - 1x1 exposure
-    UpscalerResource reactive;         // .x - bias towards "input"
-    UpscalerResource sss;              // .x - subsurface scattering, computed as "Luminance(colorAfterSSS - colorBeforeSSS)"
+    RHI_OPTIONAL UpscalerResource exposure;         // .x - 1x1 exposure
+    RHI_OPTIONAL UpscalerResource reactive;         // .x - bias towards "input"
+    RHI_OPTIONAL UpscalerResource sss;              // .x - subsurface scattering, computed as "Luminance(colorAfterSSS - colorBeforeSSS)"
   };
 
   // Settings
@@ -138,16 +137,17 @@ namespace Core::RHI {
 
   // Threadsafe: yes
   struct UpscalerInterface {
-    Result     (*createUpscaler)          (Device& device, const UpscalerDesc& upscalerDesc, Upscaler*& upscaler);
-    void            (*destroyUpscaler)         (Upscaler* upscaler);
+    Result     (*CreateUpscaler)          (Device &Device, const UpscalerDesc &UpscalerDesc, RHI_OUT Upscaler* &upscaler);
+    void            (*DestroyUpscaler)         (Upscaler *Upscaler);
 
-    bool            (*isUpscalerSupported)     (const Device& device, UpscalerType type);
-    void            (*getUpscalerProps)        (const Upscaler& upscaler, UpscalerProps& upscalerProps);
+    bool            (*IsUpscalerSupported)     (const Device &Device, UpscalerType type);
+    void            (*GetUpscalerProps)        (const Upscaler &Upscaler, RHI_OUT UpscalerProps &UpscalerProps);
 
     // Command buffer
     // {
     // Dispatch (changes descriptor pool, pipeline layout and pipeline, barriers are externally controlled)
-    void        (*cmdDispatchUpscale)      (CommandBuffer& commandBuffer, Upscaler& upscaler, const DispatchUpscaleDesc& dispatchUpscaleDesc);
+    void        (*CmdDispatchUpscale)      (CommandBuffer &CommandBuffer, Upscaler &Upscaler, const DispatchUpscaleDesc &DispatchUpscaleDesc);
     // }
   };
+  /*clang-format on*/
 }

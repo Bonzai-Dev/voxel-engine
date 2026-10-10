@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "DescriptorSetVal.h"
+#include "descriptor_set_validation.hpp"
 
 namespace Core::RHI {
 

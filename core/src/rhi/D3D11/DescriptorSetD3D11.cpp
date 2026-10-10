@@ -6,7 +6,7 @@ void DescriptorSetD3D11::Create(const PipelineLayoutD3D11* pipelineLayout, const
     m_Descriptors = descriptors;
 }
 
-NRI_INLINE void DescriptorSetD3D11::UpdateDescriptorRanges(const UpdateDescriptorRangeDesc* updateDescriptorRangeDescs, uint32_t updateDescriptorRangeDescNum) {
+ENGINE_FORCE_INLINE void DescriptorSetD3D11::UpdateDescriptorRanges(const UpdateDescriptorRangeDesc* updateDescriptorRangeDescs, uint32_t updateDescriptorRangeDescNum) {
     for (uint32_t i = 0; i < updateDescriptorRangeDescNum; i++) {
         const UpdateDescriptorRangeDesc& updateDescriptorRangeDesc = updateDescriptorRangeDescs[i];
         const DescriptorSetD3D11& dst = *(DescriptorSetD3D11*)updateDescriptorRangeDesc.descriptorSet;
@@ -23,7 +23,7 @@ NRI_INLINE void DescriptorSetD3D11::UpdateDescriptorRanges(const UpdateDescripto
     }
 }
 
-NRI_INLINE void DescriptorSetD3D11::Copy(const CopyDescriptorRangeDesc* copyDescriptorRangeDescs, uint32_t copyDescriptorRangeDescNum) {
+ENGINE_FORCE_INLINE void DescriptorSetD3D11::Copy(const CopyDescriptorRangeDesc* copyDescriptorRangeDescs, uint32_t copyDescriptorRangeDescNum) {
     for (uint32_t i = 0; i < copyDescriptorRangeDescNum; i++) {
         const CopyDescriptorRangeDesc& copyDescriptorSetDesc = copyDescriptorRangeDescs[i];
 

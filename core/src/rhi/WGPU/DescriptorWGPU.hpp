@@ -76,8 +76,8 @@ private:
     uint64_t m_TextureVersion = 0;
     uint64_t m_Offset = 0;
     uint64_t m_Size = WGPU_WHOLE_SIZE;
-    Format m_BufferFormat = Format::UNKNOWN;
-    DescriptorType m_DescriptorType = DescriptorType::TEXTURE;
+    Format m_BufferFormat = Format::Unknown;
+    DescriptorType m_DescriptorType = DescriptorType::Texture;
 };
 
 } // namespace Core::RHI

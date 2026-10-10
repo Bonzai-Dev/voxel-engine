@@ -4,11 +4,15 @@
 #include <cstdint>
 #include <core/core.hpp>
 
+// Readability
+#define RHI_OPTIONAL // i.e. can be 0 (keep an eye on comments)
+#define RHI_OUT      // highlights an output argument
+
 // #include "NRIMacro.h"
 
 // Tips:
 // - designated initializers are highly recommended!
-// - always zero initialize structs via "{}" if designated initializers are not used (at least to honor "NriOptional")
+// - always zero initialize structs via "{}" if designated initializers are not used (at least to honor "RHI_OPTIONAL")
 // - documentation is embedded (more details can be requested by creating a GitHub issue)
 // - data types are grouped into collapsible logical blocks via "#pragma region"
 // - in function declarations "NriRef" implies a valid object, "NriPtr" means "NULL" is allowed
@@ -76,13 +80,13 @@ namespace Core::RHI {
     None = ENGINE_BIT(0),
     // Supports everything, does nothing, returns dummy non-NULL objects and ~0-filled descs, available if "ENGINE_RHI_ENABLE_NONE = ON" in CMake
     D3D11 = ENGINE_BIT(1),
-    // Direct3D 11 (feature set 11.1), available if "ENGINE_RHI_ENABLE_D3D11 = ON" in CMake (https://microsoft.github.io/DirectX-Specs/d3d/archive/D3D11_3_FunctionalSpec.htm)
+    // Direct3D 11 (feature set 11.1), available if "ENGINE_RHI_ENABLE_D3D11 = ON" in cMake(https://microsoft.github.io/DirectX-Specs/d3d/archive/D3D11_3_FunctionalSpec.htm)
     D3D12 = ENGINE_BIT(2),
-    // Direct3D 12 (D3D12_SDK_VERSION 4 or 619+), available if "ENGINE_RHI_ENABLE_D3D12 = ON" in CMake (https://microsoft.github.io/DirectX-Specs/)
+    // Direct3D 12 (D3D12_SDK_VERSION 4 or 619+), available if "ENGINE_RHI_ENABLE_D3D12 = ON" in cMake(https://microsoft.github.io/DirectX-Specs/)
     Vulkan = ENGINE_BIT(3),
-    // Vulkan 1.4+, 1.3++ or 1.2+++ (can be used on MacOS via MoltenVK), available if "ENGINE_RHI_ENABLE_VULKAN = ON" in CMake (https://registry.khronos.org/vulkan/specs/latest/html/vkspec.html)
+    // Vulkan 1.4+, 1.3++ or 1.2+++ (can be used on MacOS via MoltenVK), available if "ENGINE_RHI_ENABLE_VULKAN = ON" in cMake(https://registry.khronos.org/vulkan/specs/latest/html/vkspec.html)
     WGPU = ENGINE_BIT(4)
-    // WebGPU via "wgpu-native", available if "NRI_ENABLE_WGPU_SUPPORT = ON" in CMake (https://github.com/gfx-rs/wgpu-native). Has limitations similar to D3D11
+    // WebGPU via "wgpu-native", available if "ENGINE_RHI_ENABLE_WGPU = ON" in cMake(https://github.com/gfx-rs/wgpu-native). Has limitations similar to D3D11
   );
 
   enum class Result: int8_t {
@@ -153,17 +157,6 @@ namespace Core::RHI {
   struct SampleLocation {
     int8_t x, y; // [-8; 7]
   };
-
-  struct BufferOffset {
-    Buffer* buffer;
-    uint64_t offset;
-  };
-
-  struct DataSize {
-    const void *data;
-    uint64_t size;
-  };
-
 #pragma endregion
 
   //============================================================================================================================================================================================
@@ -172,7 +165,7 @@ namespace Core::RHI {
   // https://docs.vulkan.org/refpages/latest/refpages/source/VkFormat.html
   // https://learn.microsoft.com/en-us/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format
   // left -> right : low -> high bits
-  // Expected (but not guaranteed) "FormatSupportBits" are provided, but "GetFormatSupport" should be used for querying real HW support
+  // expected(but not guaranteed) "FormatSupportBits" are provided, but "GetFormatSupport" should be used for querying real HW support
   // To demote sRGB use the previous format, i.e. "format - 1"
   //                                            STORAGE_WRITE_WITHOUT_FORMAT
   //                                           STORAGE_READ_WITHOUT_FORMAT |
@@ -191,7 +184,7 @@ namespace Core::RHI {
   //                             STORAGE_TEXTURE | | | | | | | | | | | | | |
   //                                   TEXTURE | | | | | | | | | | | | | | |
   //                                         | | | | | | | | | | | | | | | |
-  enum class DataFormat: uint8_t {
+  enum class Format: uint8_t {
     // |      FormatSupportBits      |
     Unknown,                            // . . . . . . . . . . . . . . . .
 
@@ -264,9 +257,9 @@ namespace Core::RHI {
 
     // Block-compressed (requires "features.textureCompressionBC")
     // https://learn.microsoft.com/en-us/windows/win32/direct3d11/texture-block-compression-in-direct3d-11?source=recommendations
-    // https://registry.khronos.org/DataFormat/specs/1.4/dataformat.1.4.html#S3TC
-    // https://registry.khronos.org/DataFormat/specs/1.4/dataformat.1.4.html#RGTC
-    // https://registry.khronos.org/DataFormat/specs/1.4/dataformat.1.4.html#BPTC
+    // https://registry.khronos.org/Format/specs/1.4/dataformat.1.4.html#S3TC
+    // https://registry.khronos.org/Format/specs/1.4/dataformat.1.4.html#RGTC
+    // https://registry.khronos.org/Format/specs/1.4/dataformat.1.4.html#BPTC
     BC1_RGBA_UNORM,                     // + . . . . . . . . . . . . . . .
     BC1_RGBA_SRGB,                      // + . . . . . . . . . . . . . . .
     BC2_RGBA_UNORM,                     // + . . . . . . . . . . . . . . .
@@ -282,8 +275,8 @@ namespace Core::RHI {
     BC7_RGBA_UNORM,                     // + . . . . . . . . . . . . . . .
     BC7_RGBA_SRGB,                      // + . . . . . . . . . . . . . . .
 
-    // Block-compressed: Ericsson Texture Compression (requires "features.textureCompressionETC2")
-    // https://registry.khronos.org/DataFormat/specs/1.4/dataformat.1.4.html#ETC2
+    // Block-compressed: Ericsson Texture compression(requires "features.textureCompressionETC2")
+    // https://registry.khronos.org/Format/specs/1.4/dataformat.1.4.html#ETC2
     ETC2_RGB8_UNORM,                    // + . . . . . . . . . . . . . . .
     ETC2_RGB8_SRGB,                     // + . . . . . . . . . . . . . . .
     ETC2_RGB8_A1_UNORM,                 // + . . . . . . . . . . . . . . .
@@ -295,8 +288,8 @@ namespace Core::RHI {
     ETC2_R11_G11_UNORM,                 // + . . . . . . . . . . . . . . .
     ETC2_R11_G11_SNORM,                 // + . . . . . . . . . . . . . . .
 
-    // Block-compressed: Adaptive Scalable Texture Compression (requires "features.textureCompressionASTC")
-    // https://registry.khronos.org/DataFormat/specs/1.4/dataformat.1.4.html#ASTC
+    // Block-compressed: Adaptive Scalable Texture compression(requires "features.textureCompressionASTC")
+    // https://registry.khronos.org/Format/specs/1.4/dataformat.1.4.html#ASTC
     ASTC_4X4_UNORM,                     // + . . . . . . . . . . . . . . .
     ASTC_4X4_SRGB,                      // + . . . . . . . . . . . . . . .
     ASTC_5X4_UNORM,                     // + . . . . . . . . . . . . . . .
@@ -333,7 +326,7 @@ namespace Core::RHI {
     // Depth-stencil
     D24_UNORM_S8_UINT,                  // + . . . + . + + + . . . . . . .
     D32_SFLOAT_S8_UINT,                 // + . . . + . + + + . . . . . . .
-    Count                               // DataFormat count
+    Count                               // Format count
   };
 
   // https://learn.microsoft.com/en-us/windows/win32/direct3d12/subresources#plane-slice
@@ -387,7 +380,7 @@ namespace Core::RHI {
     StorageReadWithoutFormat = ENGINE_BIT(14), // storage read with unknown format
     StorageWriteWithoutFormat = ENGINE_BIT(15), // storage write with unknown format
 
-    // Host (generally supported for non-depth/stencil formats with "TEXTURE" bit support)
+    // host(generally supported for non-depth/stencil formats with "TEXTURE" bit support)
     HostCopy = ENGINE_BIT(16) // synchronous host copies are supported
   );
 
@@ -423,25 +416,25 @@ namespace Core::RHI {
     // Graphics                                     // Invoked by "CmdDraw*"
     IndexInput = ENGINE_BIT(0), //    Index buffer consumption
     VertexShader = ENGINE_BIT(1),
-    //    Vertex shader                                   X (required within GRAPHICS bind point)
+    //    Vertex shader                                   x(required within GRAPHICS bind point)
     TessellationControlShader = ENGINE_BIT(2), //    Tessellation control (hull) shader              X
     TessellationEvaluationShader = ENGINE_BIT(3), //    Tessellation evaluation (domain) shader         X
     GeometryShader = ENGINE_BIT(4), //    Geometry shader                                 X
-    TaskShader = ENGINE_BIT(5), //    Task (amplification) shader                     X
+    TaskShader = ENGINE_BIT(5), //    task(amplification) shader                     X
     MeshShader = ENGINE_BIT(6),
-    //    Mesh shader                                     X (or required within GRAPHICS bind point)
-    FragmentShader = ENGINE_BIT(7), //    Fragment (pixel) shader                         X
+    //    Mesh shader                                     x(or required within GRAPHICS bind point)
+    FragmentShader = ENGINE_BIT(7), //    fragment(pixel) shader                         X
     DepthStencilAttachment = ENGINE_BIT(8), //    Depth-stencil R/W operations
     ColorAttachment = ENGINE_BIT(9), //    Color R/W operations
     ShadingRateAttachment = ENGINE_BIT(10), //    Shading rate attachment R
 
     // Compute                                      // Invoked by "CmdDispatch*" (not Rays)
     ComputeShader = ENGINE_BIT(11),
-    //    Compute shader                                  X (required within COMPUTE bind point)
+    //    Compute shader                                  x(required within COMPUTE bind point)
 
     // Ray tracing                                  // Invoked by "CmdDispatchRays*"
     RayGenShader = ENGINE_BIT(12),
-    //    Ray generation shader                           X (required within RAY_TRACING bind point)
+    //    Ray generation shader                           x(required within RAY_TRACING bind point)
     MissShader = ENGINE_BIT(13), //    Miss shader                                     X
     IntersectionShader = ENGINE_BIT(14), //    Intersection shader                             X
     ClosestHitShader = ENGINE_BIT(15), //    Closest hit shader                              X
@@ -559,15 +552,15 @@ namespace Core::RHI {
     // https://microsoft.github.io/DirectX-Specs/d3d/D3D12EnhancedBarriers.html#d3d12_barrier_layout_undefined
     General,
     // ALL access, required for "SharingMode::SIMULTANEOUS" (but may be suboptimal if "features.unifiedTextureLayouts" is not supported)
-    Present, // NONE (use "after.stages = StageBits::NONE")
+    Present, // nONE(use "after.stages = StageBits::NONE")
 
     // Attachment
     ColorAttachment, // COLOR_ATTACHMENT_READ/WRITE
     DepthStencilAttachment, // DEPTH_STENCIL_ATTACHMENT_READ/WRITE
     DepthReadOnlyStencilAttachment,
-    // DEPTH_STENCIL_ATTACHMENT_READ/WRITE (accessible "planes" = "STENCIL"), SHADER_RESOURCE (accessible "planes" = "DEPTH")
+    // DEPTH_STENCIL_ATTACHMENT_READ/wRITE(accessible "planes" = "STENCIL"), SHADER_RESOURCE (accessible "planes" = "DEPTH")
     DepthAttachmentStencilReadOnly,
-    // DEPTH_STENCIL_ATTACHMENT_READ/WRITE (accessible "planes" = "DEPTH"), SHADER_RESOURCE (accessible "planes" = "STENCIL")
+    // DEPTH_STENCIL_ATTACHMENT_READ/wRITE(accessible "planes" = "DEPTH"), SHADER_RESOURCE (accessible "planes" = "STENCIL")
     DepthStencilReadOnly, // DEPTH_STENCIL_ATTACHMENT_READ  (accessible "planes" = "NONE")
     ShadingRateAttachment, // SHADING_RATE_ATTACHMENT
     InputAttachment, // COLOR_ATTACHMENT, INPUT_ATTACHMENT
@@ -588,7 +581,8 @@ namespace Core::RHI {
     VideoDecodeDst, // VIDEO_DECODE_WRITE
     VideoDecodeDpb, // VIDEO_DECODE_READ/WRITE
     VideoEncodeSrc, // VIDEO_ENCODE_READ
-    VideoEncodeDpb // VIDEO_ENCODE_READ/WRITE
+    VideoEncodeDpb, // VIDEO_ENCODE_READ/WRITE
+    Count
 };
 
   struct AccessStage {
@@ -656,7 +650,7 @@ namespace Core::RHI {
 
   // NRI tries to ease your life and avoid using "queue ownership transfers" (see "TextureBarrierDesc").
   // In most of cases "SharingMode" can be ignored. Where is it needed?
-  // - VK: use "EXCLUSIVE" for attachments participating into multi-queue activities to preserve DCC (Delta Color Compression) on some HW
+  // - VK: use "EXCLUSIVE" for attachments participating into multi-queue activities to preserve dCC(Delta Color Compression) on some HW
   // - D3D12: use "SIMULTANEOUS" to concurrently use a texture as a "SHADER_RESOURCE" (or "SHADER_RESOURCE_STORAGE") and as a "COPY_DESTINATION" for non overlapping texture regions
   // https://docs.vulkan.org/refpages/latest/refpages/source/VkSharingMode.html
   enum class SharingMode: uint8_t {
@@ -668,7 +662,7 @@ namespace Core::RHI {
     // https://microsoft.github.io/DirectX-Specs/d3d/D3D12EnhancedBarriers.html#single-queue-simultaneous-access
     // https://learn.microsoft.com/en-us/windows/win32/api/d3d12/ne-d3d12-d3d12_resource_flags
     Simultaneous
-    // D3D12: strengthened variant of "CONCURRENT", allowing simultaneous multiple readers and one writer for a texture (requires "Layout::GENERAL")
+    // D3D12: strengthened variant of "CONCURRENT", allowing simultaneous multiple readers and one writer for a Texture(requires "Layout::GENERAL")
   };
 
   // https://docs.vulkan.org/refpages/latest/refpages/source/VkImageUsageFlagBits.html
@@ -699,21 +693,16 @@ namespace Core::RHI {
     ShaderResource = ENGINE_BIT(0), // SHADER_RESOURCE                          Read-only shader resource view (SRV)
     ShaderResourceStorage = ENGINE_BIT(1),
     // SHADER_RESOURCE_STORAGE                  Read/write shader resource view (UAV)
-    Vertex = ENGINE_BIT(2), // VERTEX_BUFFER                            Vertex buffer
-    Index = ENGINE_BIT(3), // INDEX_BUFFER                             Index buffer
-    Constant = ENGINE_BIT(4),
-    // CONSTANT_BUFFER                          Constant buffer (D3D11: can't be combined with other usages)
-    Argument = ENGINE_BIT(5), // ARGUMENT_BUFFER                          Argument buffer in "Indirect" commands
-    Scratch = ENGINE_BIT(6), // SCRATCH_BUFFER                           Scratch buffer in "CmdBuild*" commands
-    ShaderBindingTable = ENGINE_BIT(7),
-    // SHADER_BINDING_TABLE                     Shader binding table (SBT) in "CmdDispatchRays*" commands
-    AccelerationStructureBuildInput = ENGINE_BIT(8),
-    // SHADER_RESOURCE                          Read-only input in "CmdBuildAccelerationStructures" command
-    AccelerationStructureStorage = ENGINE_BIT(9),
-    // ACCELERATION_STRUCTURE_READ/WRITE        (INTERNAL) acceleration structure storage
-    MicromapBuildInput = ENGINE_BIT(10),
-    // SHADER_RESOURCE                          Read-only input in "CmdBuildMicromaps" command
-    MicroMapStorage = ENGINE_BIT(11), // MICROMAP_READ/WRITE                      (INTERNAL) micromap storage
+    VertexBuffer = ENGINE_BIT(2), // VERTEX_BUFFER                            Vertex buffer
+    IndexBuffer = ENGINE_BIT(3), // INDEX_BUFFER                             Index buffer
+    ConstantBuffer = ENGINE_BIT(4), // CONSTANT_BUFFER                          Constant Buffer(D3D11: can't be combined with other usages)
+    ArgumentBuffer = ENGINE_BIT(5), // ARGUMENT_BUFFER                          Argument buffer in "Indirect" commands
+    ScratchBuffer = ENGINE_BIT(6), // SCRATCH_BUFFER                           Scratch buffer in "CmdBuild*" commands
+    ShaderBindingTable = ENGINE_BIT(7),// SHADER_BINDING_TABLE                     Shader binding table (SBT) in "CmdDispatchRays*" commands
+    AccelerationStructureBuildInput = ENGINE_BIT(8), // SHADER_RESOURCE                          Read-only input in "CmdBuildAccelerationStructures" command
+    AccelerationStructureStorage = ENGINE_BIT(9), // ACCELERATION_STRUCTURE_READ/wRITE(INTERNAL) acceleration structure storage
+    MicromapBuildInput = ENGINE_BIT(10), // SHADER_RESOURCE                          Read-only input in "CmdBuildMicromaps" command
+    MicroMapStorage = ENGINE_BIT(11), // MICROMAP_READ/wRITE(INTERNAL) micromap storage
     VideoDecode = ENGINE_BIT(12), // VIDEO_DECODE                             Video decode bitstream input
     VideoEncode = ENGINE_BIT(13) // VIDEO_ENCODE                             Video encode bitstream output
   );
@@ -728,7 +717,7 @@ namespace Core::RHI {
   struct TextureDesc {
     TextureDimension type;
     TextureUsageBits usage;
-    DataFormat format;
+    Format format;
     Dim_t width;
     Dim_t height;
     Dim_t depth;
@@ -766,7 +755,8 @@ namespace Core::RHI {
     Device,
     DeviceUpload, // soft fallback to "HOST_UPLOAD" if "deviceUploadHeapSize = 0"
     HostUpload,
-    HostReadBack
+    HostReadBack,
+    Count
   };
 
   // Memory requirements for a resource (buffer or texture)
@@ -801,7 +791,7 @@ namespace Core::RHI {
     bool allowMultisampleTextures;
   };
 
-  // Binding resources to a memory (resources can overlap, i.e. alias)
+  // Binding resources to a Memory(resources can overlap, i.e. alias)
   struct BindBufferMemoryDesc {
     Buffer *buffer;
     Memory *memory;
@@ -830,7 +820,7 @@ namespace Core::RHI {
     TextureCubeArray, // TextureCubeArray                 TEXTURE                             2D
     StorageTexture, // RWTexture[1D/2D/3D](MS)          STORAGE_TEXTURE                 1D, 2D, 3D
     StorageTextureArray, // RWTexture[1D/2D](MS)Array        STORAGE_TEXTURE                 1D, 2D
-    SubpassInput, // SubpassInput(MS) (non-array)     INPUT_ATTACHMENT                    2D
+    SubpassInput, // subpassInput(MS) (non-array)     INPUT_ATTACHMENT                    2D
 
     // Host-only
     ColorAttachment, //                                                                  1D, 2D, 3D
@@ -920,7 +910,7 @@ namespace Core::RHI {
   struct TextureViewDesc {
     const Texture *texture;
     TextureView type;
-    DataFormat format;
+    Format format;
     Dim_t mipOffset;
     Dim_t mipNum; // can be "REMAINING"
     Dim_t layerOffset;
@@ -937,7 +927,7 @@ namespace Core::RHI {
     BufferView type;
     uint64_t offset; // expects "memoryAlignment.bufferShaderResourceOffset" for shader resources
     uint64_t size; // can be "WHOLE_SIZE"
-    DataFormat format; // needed for typed views, i.e. "BUFFER" and "STORAGE_BUFFER"
+    Format format; // needed for typed views, i.e. "BUFFER" and "STORAGE_BUFFER"
     uint32_t structureStride;
     // needed for structured views, i.e. "STRUCTURED_BUFFER" and "STORAGE_STRUCTURED_BUFFER" (= "BufferDesc::structureStride", if not provided)
   };
@@ -1056,7 +1046,8 @@ namespace Core::RHI {
     StorageStructuredBuffer,
     // -        u           BufferView: STORAGE_STRUCTURED_BUFFER, STORAGE_BYTE_ADDRESS_BUFFER
 
-    AccelerationStructure // -        t           acceleration structure, requires "features.rayTracing"
+    AccelerationStructure, // -        t           acceleration structure, requires "features.rayTracing"
+    Count
   };
 
   // "DescriptorRange" consists of "Descriptor" entities
@@ -1115,7 +1106,7 @@ namespace Core::RHI {
 
       Descriptor set                  #0          // "setIndex" - a descriptor set index in the pipeline layout, provided as an argument or bound to the pipeline
           Descriptor range                #0      // "rangeIndex" - a descriptor range index in the descriptor set
-              Descriptor num                  N   // "descriptorIndex" and "baseDescriptor" - a descriptor (base) index in the descriptor range, i.e. sub-range start
+              Descriptor num                  N   // "descriptorIndex" and "baseDescriptor" - a Descriptor(base) index in the descriptor range, i.e. sub-range start
           ...
       ...
   */
@@ -1223,7 +1214,8 @@ namespace Core::RHI {
 
   enum class IndexType: uint8_t {
     Uint16,
-    Uint32
+    Uint32,
+    Count
   };
 
   enum class PrimitiveRestart: uint8_t {
@@ -1275,7 +1267,7 @@ namespace Core::RHI {
     VertexAttributeD3D d3d;
     VertexAttributeVK vk;
     uint32_t offset;
-    DataFormat format;
+    Format format;
     uint16_t streamIndex;
   };
 
@@ -1546,7 +1538,7 @@ namespace Core::RHI {
   };
 
   struct ColorAttachmentDesc {
-    DataFormat format;
+    Format format;
     BlendDesc colorBlend;
     BlendDesc alphaBlend;
     ColorWriteBits colorWriteMask;
@@ -1558,7 +1550,7 @@ namespace Core::RHI {
     uint32_t colorNum;
     DepthAttachmentDesc depth;
     StencilAttachmentDesc stencil;
-    DataFormat depthStencilFormat;
+    Format depthStencilFormat;
     LogicOp logicOp; // requires "features.logicOp"
     uint32_t viewMask; // if non-0, requires "viewMaxNum > 1"
     Multiview multiview; // if "viewMask != 0", requires "features.(xxx)Multiview"
@@ -1595,7 +1587,7 @@ namespace Core::RHI {
   };
 
   // It's recommended to use "NRI.hlsl" in the shader code
-  struct ShaderInfo {
+  struct ShaderInfo { // AKA ShaderDesc in NRI
     StageBits stage;
     const void* bytecode; // see "features.shaderBytecodeXXX"
     uint64_t size;
@@ -1627,7 +1619,7 @@ namespace Core::RHI {
 #pragma endregion
 
   //============================================================================================================================================================================================
-#pragma region [ Rendering (render pass) ]
+#pragma region [ rendering(render pass) ]
   //============================================================================================================================================================================================
 
   // https://docs.vulkan.org/refpages/latest/refpages/source/VK_KHR_dynamic_rendering.html
@@ -1894,7 +1886,8 @@ namespace Core::RHI {
     Software, // CPU
     Virtual, // remote desktop?
     Integrated, // UMA
-    Discrete // yes, please!
+    Discrete, // yes, please!
+    Count
   };
 
   // https://docs.vulkan.org/refpages/latest/refpages/source/VkQueueFlagBits.html
@@ -1922,13 +1915,13 @@ namespace Core::RHI {
     GraphicsBackend supportedGraphicsAPIs;
   };
 
-#define NriShaderModel(major, minor) (major * 100 + minor)
+#define nriShaderModel(major, minor) (major * 100 + minor)
 
   // Feature support coverage: https://vulkan.gpuinfo.org/ and https://d3d12infodb.boolka.dev/
-  struct DeviceInfo {
+  struct DeviceInfo { // AKA DeviceInfo in NRI
     // Common
     AdapterDesc adapterDesc; // "queueNum" reflects available number of queues per "QueueType"
-    GraphicsBackend graphicsAPI;
+    GraphicsBackend graphicsBackend;
     uint16_t nriVersion;
     uint16_t shaderModel; // see "NriShaderModel"
 
@@ -1987,7 +1980,7 @@ namespace Core::RHI {
       uint32_t micromapOffset;
     } memoryAlignment;
 
-    // Pipeline layout (see "nriFitPipelineLayoutSettingsIntoDeviceLimits")
+    // Pipeline Layout(see "nriFitPipelineLayoutSettingsIntoDeviceLimits")
     // D3D12 only: "rootConstantSize" + "descriptorSetNum" * 4 + "rootDescriptorNum" * 8 + "reservedSize" <= 256, where
     // "reservedSize" is 8 bytes for "ENABLE_DRAW_PARAMETERS_EMULATION" and 4 bytes for "ENABLE_DRAW_INDEX_EMULATION"
     struct {
@@ -2136,7 +2129,7 @@ namespace Core::RHI {
       uint32_t micromapSubdivisionMaxLevel;
     } accelerationStructure;
 
-    // Wave (subgroup)
+    // wave(subgroup)
     // https://github.com/microsoft/directxshadercompiler/wiki/wave-intrinsics
     // https://microsoft.github.io/DirectX-Specs/d3d/HLSL_SM_6_6_Derivatives.html
     struct {
@@ -2167,7 +2160,7 @@ namespace Core::RHI {
       // if "true", "CmdCopyQueries" for "TIMESTAMP_COPY_QUEUE" requires a COPY queue, otherwise "GRAPHICS" or "COMPUTE"
     } other;
 
-    // Tiers (0 - unsupported)
+    // tiers(0 - unsupported)
     struct {
       // https://microsoft.github.io/DirectX-Specs/d3d/ConservativeRasterization.html#tiered-support
       // 1 - 1/2 pixel uncertainty region and does not support post-snap degenerates
@@ -2184,7 +2177,7 @@ namespace Core::RHI {
 
       // https://microsoft.github.io/DirectX-Specs/d3d/Raytracing.html#checkfeaturesupport-structures
       // 1 - DXR 1.0: full raytracing functionality, except features below
-      // 2 - DXR 1.1: adds - ray query, "CmdDispatchRaysIndirect", "GeometryIndex()" intrinsic, additional ray flags & vertex formats
+      // 2 - DXR 1.1: adds - ray query, "CmdDispatchRaysIndirect", "geometryIndex()" intrinsic, additional ray flags & vertex formats
       // 3 - DXR 1.2: adds - micromap, shader execution reordering
       uint8_t rayTracing;
 
@@ -2372,8 +2365,8 @@ namespace Core::RHI {
   Result getInterface(Device &device, CoreInterface &coreInterface);
 
   // Annotations for profiling tools: host
-  // - Host annotations currently use NVTX (NVIDIA Nsight Systems)
-  // - Device (command buffer and queue) annotations use GAPI or PIX (if "WinPixEventRuntime.dll" is nearby)
+  // - Host annotations currently use nVTX(NVIDIA Nsight Systems)
+  // - Device(command buffer and queue) annotations use GAPI or pIX(if "WinPixEventRuntime.dll" is nearby)
   // - Colorization requires PIX or NVTX
   void beginAnnotation(const char* name, uint32_t bgra);  // start a named range
   void endAnnotation();                                   // end the last opened range
@@ -2386,16 +2379,16 @@ namespace Core::RHI {
     const DeviceInfo       &(*getDeviceDesc)           (const Device &device);
     const BufferDesc       &(*getBufferDesc)           (const Buffer &buffer);
     const TextureDesc      &(*getTextureDesc)          (const Texture &texture);
-    FormatSupportBits      (*getFormatSupport)        (const Device &device, DataFormat format);
+    FormatSupportBits      (*getFormatSupport)         (const Device &device, Format format);
 
     // Returns one of the pre-created queues (see "DeviceCreationDesc" or wrapper extensions)
     // Return codes: "UNSUPPORTED" (no queues of "queueType") or "INVALID_ARGUMENT" (if "queueIndex" is out of bounds).
     // Getting "COMPUTE" and/or "COPY" queues switches VK sharing mode to "VK_SHARING_MODE_CONCURRENT" for resources created without "queueExclusive" flag.
     // This approach is used to minimize number of "queue ownership transfers", but also adds a requirement to "get" all async queues BEFORE creation of
     // resources participating into multi-queue activities. Explicit use of "queueExclusive" removes any restrictions.
-    Result         (*getQueue)                        (const Device &device, QueueType queueType, uint32_t queueIndex, Queue *queue);
+    Result         (*getQueue)                        (Device &device, QueueType queueType, uint32_t queueIndex, Queue *&queue);
 
-    // Create (doesn't assume allocation of big chunks of memory on the device, but it happens for some entities implicitly)
+    // create(doesn't assume allocation of big chunks of memory on the device, but it happens for some entities implicitly)
     Result         (*createCommandAllocator)          (Queue &queue, CommandAllocator *&commandAllocator);
     Result         (*createCommandBuffer)             (CommandAllocator &commandAllocator, CommandBuffer *&commandBuffer);
     Result         (*createFence)                     (Device &device, uint64_t initialValue, Fence *&fence);
@@ -2426,7 +2419,7 @@ namespace Core::RHI {
     Result         (*allocateMemory)                  (Device &device, const AllocateMemoryDesc &allocateMemoryDesc, Memory *&memory);
     void           (*freeMemory)                      (Memory *memory);
 
-    // Resources and memory (VK style)
+    // Resources and Memory(VK style)
     // - create a resource (buffer or texture)
     // - use "Get[Resource]MemoryDesc" to get "MemoryDesc" ("usageBits" and "MemoryLocation" affect returned "MemoryType")
     // - (optional) group returned "MemoryDesc"s by "MemoryType", but don't group if "mustBeDedicated = true"
@@ -2441,9 +2434,9 @@ namespace Core::RHI {
     Result         (*bindBufferMemory)                (const BindBufferMemoryDesc *bindBufferMemoryDescs, uint32_t bindBufferMemoryDescNum);
     Result         (*bindTextureMemory)               (const BindTextureMemoryDesc *bindTextureMemoryDescs, uint32_t bindTextureMemoryDescNum);
 
-    // Resources and memory (D3D12 style)
+    // Resources and Memory(D3D12 style)
     // - "Get[Resource]MemoryDesc2" requires "maintenance4" support on Vulkan
-    // - "memory, offset" pair can be replaced with a "Nri[Device/DeviceUpload/HostUpload/HostReadback]Heap" macro to create a placed resource in the corresponding memory using VMA (AMD Virtual Memory Allocator) implicitly
+    // - "memory, offset" pair can be replaced with a "Nri[Device/DeviceUpload/HostUpload/HostReadback]Heap" macro to create a placed resource in the corresponding memory using vMA(AMD Virtual Memory Allocator) implicitly
     void           (*getBufferMemoryDesc2)            (const Device &device, const BufferDesc &bufferDesc, MemoryLocation memoryLocation, MemoryDesc &memoryDesc); // requires "features.getMemoryDesc2"
     void           (*getTextureMemoryDesc2)           (const Device &device, const TextureDesc &textureDesc, MemoryLocation memoryLocation, MemoryDesc &memoryDesc); // requires "features.getMemoryDesc2"
     Result         (*createCommittedBuffer)           (Device &device, MemoryLocation memoryLocation, float priority, const BufferDesc &bufferDesc, Buffer*& buffer);
@@ -2460,14 +2453,14 @@ namespace Core::RHI {
     //     - these offsets are needed in shaders, if the corresponding descriptor set is not the first allocated from the descriptor pool
     //   - VK: "GetDescriptorSetOffsets" returns "0"
     //     - use "-fvk-bind-resource-heap" and "-fvk-bind-sampler-heap" DXC options to define bindings mimicking corresponding heaps
-    Result              (*allocateDescriptorSets)          (DescriptorPool &descriptorPool, const PipelineLayout &pipelineLayout, uint32_t setIndex, DescriptorSet** descriptorSets, uint32_t instanceNum, uint32_t variableDescriptorNum);
+    Result(*allocateDescriptorSets)          (DescriptorPool &descriptorPool, const PipelineLayout &pipelineLayout, uint32_t setIndex, DescriptorSet** descriptorSets, uint32_t instanceNum, uint32_t variableDescriptorNum);
     void                (*updateDescriptorRanges)          (const UpdateDescriptorRangeDesc *updateDescriptorRangeDescs, uint32_t updateDescriptorRangeDescNum);
     void                (*copyDescriptorRanges)            (const CopyDescriptorRangeDesc *copyDescriptorRangeDescs, uint32_t copyDescriptorRangeDescNum);
     void                (*resetDescriptorPool)             (DescriptorPool &descriptorPool);
     void                (*getDescriptorSetOffsets)         (const DescriptorSet &descriptorSet, uint32_t &resourceHeapOffset, uint32_t &samplerHeapOffset);
 
-    // Command buffer (one time submit)
-    Result              (*beginCommandBuffer)              (CommandBuffer &commandBuffer, const DescriptorPool *descriptorPool);
+    // Command Buffer(one time submit)
+    Result(*beginCommandBuffer)              (CommandBuffer &commandBuffer, const DescriptorPool *descriptorPool);
     // {                {
         // Set descriptor pool (initially can be set via "BeginCommandBuffer")
         void                (*cmdSetDescriptorPool)        (CommandBuffer &commandBuffer, const DescriptorPool &descriptorPool);
@@ -2481,7 +2474,7 @@ namespace Core::RHI {
         // Pipeline
         void                (*cmdSetPipeline)              (CommandBuffer &commandBuffer, const Pipeline &pipeline);
 
-        // Barrier (outside of rendering)
+        // barrier(outside of rendering)
         void                (*cmdBarrier)                  (CommandBuffer &commandBuffer, const BarrierDesc &barrierDesc);
 
         // Input assembly
@@ -2513,29 +2506,29 @@ namespace Core::RHI {
             // Draw indirect:
             // - drawNum = min(drawNum, countBuffer ? countBuffer[countBufferOffset] : INF)
             // - see "Modified draw command signatures"
-            void                (*cmdDrawIndirect)         (CommandBuffer &commandBuffer, const Buffer &buffer, uint64_t offset, uint32_t drawNum, uint32_t stride, const Buffer *countBuffer, uint64_t countBufferOffset); // "buffer" contains "Draw(Base)Desc" commands
-            void                (*cmdDrawIndexedIndirect)  (CommandBuffer &commandBuffer, const Buffer &buffer, uint64_t offset, uint32_t drawNum, uint32_t stride, const Buffer *countBuffer, uint64_t countBufferOffset); // "buffer" contains "DrawIndexed(Base)Desc" commands
+            void                (*cmdDrawIndirect)         (CommandBuffer &commandBuffer, const Buffer &buffer, uint64_t offset, uint32_t drawNum, uint32_t stride, const Buffer *countBuffer, uint64_t countBufferOffset); // "buffer" contains "draw(Base)Desc" commands
+            void                (*cmdDrawIndexedIndirect)  (CommandBuffer &commandBuffer, const Buffer &buffer, uint64_t offset, uint32_t drawNum, uint32_t stride, const Buffer *countBuffer, uint64_t countBufferOffset); // "buffer" contains "drawIndexed(Base)Desc" commands
         // }                }
         void                (*cmdEndRendering)             (CommandBuffer &commandBuffer);
 
-        // Compute (outside of rendering)
+        // compute(outside of rendering)
         void                (*cmdDispatch)                 (CommandBuffer &commandBuffer, const DispatchDesc &dispatchDesc);
         void                (*cmdDispatchIndirect)         (CommandBuffer &commandBuffer, const Buffer &buffer, uint64_t offset); // buffer contains "DispatchDesc" commands
 
-        // Copy (outside of rendering)
+        // copy(outside of rendering)
         void                (*cmdCopyBuffer)               (CommandBuffer &commandBuffer, Buffer &dstBuffer, uint64_t dstOffset, const Buffer &srcBuffer, uint64_t srcOffset, uint64_t size);
         void                (*cmdCopyTexture)              (CommandBuffer &commandBuffer, Texture &dstTexture, const TextureRegionDesc *dstRegion, const Texture &srcTexture, const TextureRegionDesc *srcRegion);
         void                (*cmdUploadBufferToTexture)    (CommandBuffer &commandBuffer, Texture &dstTexture, const TextureRegionDesc &dstRegion, const Buffer &srcBuffer, const TextureDataLayoutDesc &srcDataLayout);
         void                (*cmdReadbackTextureToBuffer)  (CommandBuffer &commandBuffer, Buffer &dstBuffer, const TextureDataLayoutDesc &dstDataLayout, const Texture &srcTexture, const TextureRegionDesc &srcRegion);
         void                (*cmdZeroBuffer)               (CommandBuffer &commandBuffer, Buffer &buffer, uint64_t offset, uint64_t size);
 
-        // Resolve (outside of rendering)
+        // resolve(outside of rendering)
         void                (*cmdResolveTexture)           (CommandBuffer &commandBuffer, Texture &dstTexture, const TextureRegionDesc *dstRegion, const Texture &srcTexture, const TextureRegionDesc *srcRegion, ResolveOp resolveOp); // "features.regionResolve" is needed for region specification
 
-        // Clear (outside of rendering)
+        // clear(outside of rendering)
         void                (*cmdClearStorage)             (CommandBuffer &commandBuffer, const ClearStorageDesc &clearStorageDesc);
 
-        // Query (outside of rendering, except Begin/End query)
+        // query(outside of rendering, except Begin/End query)
         void                (*cmdResetQueries)             (CommandBuffer &commandBuffer, QueryPool &queryPool, uint32_t offset, uint32_t num);
         void                (*cmdBeginQuery)               (CommandBuffer &commandBuffer, QueryPool &queryPool, uint32_t offset);
         void                (*cmdEndQuery)                 (CommandBuffer &commandBuffer, QueryPool &queryPool, uint32_t offset);
@@ -2546,7 +2539,7 @@ namespace Core::RHI {
         void                (*cmdEndAnnotation)            (CommandBuffer &commandBuffer);
         void                (*cmdAnnotation)               (CommandBuffer &commandBuffer, const char* name, uint32_t bgra);
     // }                }
-    Result         (*endCommandBuffer)                     (CommandBuffer &commandBuffer); // D3D11 performs state tracking and resets it there
+    Result              (*endCommandBuffer)                (CommandBuffer &commandBuffer); // D3D11 performs state tracking and resets it there
 
     // Annotations for profiling tools: command queue - D3D11: NOP
     void                (*queueBeginAnnotation)            (Queue &queue, const char* name, uint32_t bgra);
@@ -2559,9 +2552,9 @@ namespace Core::RHI {
     void                (*getCalibratedTimestamps)         (Queue &queue, uint64_t &timestampGPU, uint64_t &timestampCPU);
 
     // Work submission and synchronization
-    Result         (*queueSubmit)                          (Queue &queue, const QueueSubmitDesc &queueSubmitDesc); // to device
-    Result         (*queueWaitIdle)                        (Queue &queue);
-    Result         (*deviceWaitIdle)                       (Device &device);
+    Result              (*queueSubmit)                     (Queue &queue, const QueueSubmitDesc &queueSubmitDesc); // to device
+    Result              (*queueWaitIdle)                   (Queue *queue);
+    Result              (*deviceWaitIdle)                  (Device *device);
     void                (*wait)                            (Fence &fence, uint64_t value); // on host
     uint64_t            (*getFenceValue)                   (Fence &fence);
 
@@ -2582,7 +2575,7 @@ namespace Core::RHI {
     // Pipeline cache (PSO blob storage, persisted across runs)
     // - Threadsafe: no, external synchronization required, call after all pipeline creations using this cache have completed
     // - 2-call pattern: pass "dst = NULL" to query required "size", then call again with allocated "dst"
-    Result         (*getPipelineCacheData)                 (PipelineCache &pipelineCache, void* dst, uint64_t &size);
+    Result(*getPipelineCacheData)                 (PipelineCache &pipelineCache, void* dst, uint64_t &size);
 
     // Debug name for any object declared as "NriForwardStruct" (skipped for buffers & textures in D3D if they are not bound to a memory)
     void                (*setDebugName)                    (Object *object, const char* name);

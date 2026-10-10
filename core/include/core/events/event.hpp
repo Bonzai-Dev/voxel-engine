@@ -8,7 +8,7 @@
 #include <map>
 #include <queue>
 #include <typeindex>
-#include <../application/logger.hpp>
+#include <core/application/logger.hpp>
 
 namespace Core::Events {
   enum class EventType {

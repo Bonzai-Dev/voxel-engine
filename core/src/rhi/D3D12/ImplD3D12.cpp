@@ -65,7 +65,7 @@ Result CreateDeviceD3D12(const DeviceCreationDesc& desc, const DeviceCreationD3D
 //============================================================================================================================================================================================
 #pragma region[  Core  ]
 
-static const DeviceInfo& GetDeviceInfo(const Device& device) {
+static const DeviceInfo& GetDeviceDesc(const Device& device) {
     return ((DeviceD3D12&)device).GetDesc();
 }
 
@@ -625,7 +625,7 @@ static uint64_t GetDescriptorNativeObject(const Descriptor* descriptor) {
 }
 
 Result DeviceD3D12::FillFunctionTable(CoreInterface& table) const {
-    table.GetDeviceInfo = ::GetDeviceInfo;
+    table.GetDeviceDesc = ::GetDeviceDesc;
     table.GetBufferDesc = ::GetBufferDesc;
     table.GetTextureDesc = ::GetTextureDesc;
     table.GetFormatSupport = ::GetFormatSupport;
@@ -854,7 +854,7 @@ static Result GetLatencyReport(const SwapChain& swapChain, LatencyReport& latenc
 
 Result DeviceD3D12::FillFunctionTable(LowLatencyInterface& table) const {
     if (!m_Desc.features.lowLatency)
-        return Result::UNSUPPORTED;
+        return Result::Unsupported;
 
     table.SetLatencySleepMode = ::SetLatencySleepMode;
     table.SetLatencyMarker = ::SetLatencyMarker;
@@ -879,7 +879,7 @@ static void CmdDrawMeshTasksIndirect(CommandBuffer& commandBuffer, const Buffer&
 
 Result DeviceD3D12::FillFunctionTable(MeshShaderInterface& table) const {
     if (!m_Desc.features.meshShader)
-        return Result::UNSUPPORTED;
+        return Result::Unsupported;
 
     table.CmdDrawMeshTasks = ::CmdDrawMeshTasks;
     table.CmdDrawMeshTasksIndirect = ::CmdDrawMeshTasksIndirect;
@@ -1100,7 +1100,7 @@ static uint64_t GetMicromapNativeObject(const Micromap* micromap) {
 
 Result DeviceD3D12::FillFunctionTable(RayTracingInterface& table) const {
     if (m_Desc.tiers.rayTracing == 0)
-        return Result::UNSUPPORTED;
+        return Result::Unsupported;
 
     table.CreateAccelerationStructureDescriptor = ::CreateAccelerationStructureDescriptor;
     table.CreateRayTracingPipeline = ::CreateRayTracingPipeline;
@@ -1235,7 +1235,7 @@ static Result QueuePresent(SwapChain& swapChain, Fence&) {
 
 Result DeviceD3D12::FillFunctionTable(SwapChainInterface& table) const {
     if (!m_Desc.features.swapChain)
-        return Result::UNSUPPORTED;
+        return Result::Unsupported;
 
     table.CreateSwapChain = ::CreateSwapChain;
     table.DestroySwapChain = ::DestroySwapChain;

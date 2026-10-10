@@ -1,6 +1,6 @@
 // © 2021 NVIDIA Corporation
 
-NRI_INLINE Result QueueD3D11::Submit(const QueueSubmitDesc& queueSubmitDesc) {
+ENGINE_FORCE_INLINE Result QueueD3D11::Submit(const QueueSubmitDesc& queueSubmitDesc) {
     for (uint32_t i = 0; i < queueSubmitDesc.waitFenceNum; i++) {
         const FenceSubmitDesc& fenceSubmitDesc = queueSubmitDesc.waitFences[i];
         FenceD3D11* fence = (FenceD3D11*)fenceSubmitDesc.fence;
@@ -21,7 +21,7 @@ NRI_INLINE Result QueueD3D11::Submit(const QueueSubmitDesc& queueSubmitDesc) {
     return Result::Success;
 }
 
-NRI_INLINE Result QueueD3D11::WaitIdle() {
+ENGINE_FORCE_INLINE Result QueueD3D11::WaitIdle() {
     FenceD3D11* fence = nullptr;
     Result result = m_Device.CreateImplementation<FenceD3D11>(fence, 0);
     if (result == Result::Success) {

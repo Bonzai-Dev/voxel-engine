@@ -38,7 +38,7 @@
 	path = core/thirdparty/spdlog
 	url = https://github.com/gabime/spdlog.git
 [submodule "core/thirdparty/VulkanMemoryAllocator"]
-	path = core/thirdparty/VulkanMemoryAllocator
+	path = core/thirdparty/vma
 	url = https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
 [submodule "core/thirdparty/Vulkan-Headers"]
 	path = core/thirdparty/Vulkan-Headers

@@ -67,16 +67,16 @@ Result DescriptorWGPU::Create(const TextureViewDesc& textureViewDesc) {
     m_TextureViewDesc = textureViewDesc;
 
     switch (textureViewDesc.type) {
-        case TextureView::STORAGE_TEXTURE:
-        case TextureView::STORAGE_TEXTURE_ARRAY:
+        case TextureView::StorageTexture:
+        case TextureView::StorageTextureArray:
             m_DescriptorType = DescriptorType::STORAGE_TEXTURE;
             break;
-        case TextureView::COLOR_ATTACHMENT:
-        case TextureView::DEPTH_STENCIL_ATTACHMENT:
+        case TextureView::ColorAttachment:
+        case TextureView::DepthStencilAttachment:
             m_DescriptorType = DescriptorType::MUTABLE;
             break;
         default:
-            m_DescriptorType = DescriptorType::TEXTURE;
+            m_DescriptorType = DescriptorType::Texture;
             break;
     }
 
@@ -95,7 +95,7 @@ WGPUTextureView DescriptorWGPU::GetTextureView() {
     const TextureDesc& textureDesc = m_Texture->GetDesc();
 
     WGPUTextureViewDescriptor desc = WGPU_TEXTURE_VIEW_DESCRIPTOR_INIT;
-    desc.format = GetTextureFormat(m_TextureViewDesc.format == Format::UNKNOWN ? textureDesc.format : m_TextureViewDesc.format);
+    desc.format = GetTextureFormat(m_TextureViewDesc.format == Format::Unknown ? textureDesc.format : m_TextureViewDesc.format);
     desc.dimension = GetTextureViewDimension(m_TextureViewDesc.type, textureDesc);
     desc.baseMipLevel = m_TextureViewDesc.mipOffset;
     desc.mipLevelCount = m_TextureViewDesc.mipNum == REMAINING ? WGPU_MIP_LEVEL_COUNT_UNDEFINED : m_TextureViewDesc.mipNum;
@@ -120,10 +120,10 @@ WGPUTextureView DescriptorWGPU::GetTextureView() {
 }
 
 Format DescriptorWGPU::GetFormat() const {
-    if (m_TextureViewDesc.format != Format::UNKNOWN)
+    if (m_TextureViewDesc.format != Format::Unknown)
         return m_TextureViewDesc.format;
 
-    return m_Texture ? m_Texture->GetDesc().format : Format::UNKNOWN;
+    return m_Texture ? m_Texture->GetDesc().format : Format::Unknown;
 }
 
 const TextureDesc* DescriptorWGPU::GetTextureDesc() const {

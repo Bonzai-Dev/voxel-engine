@@ -19,8 +19,17 @@ add_subdirectory(spdlog EXCLUDE_FROM_ALL)
 target_link_libraries(engine-core PRIVATE spdlog::spdlog)
 
 # Vulkan
+add_subdirectory(vma EXCLUDE_FROM_ALL)
 add_subdirectory(vulkan EXCLUDE_FROM_ALL)
-target_link_libraries(engine-core PUBLIC vulkan)
+
+# We are making sure that volk uses the bundled Vulkan headers instead of the system ones
+set(VOLK_PULL_IN_VULKAN OFF CACHE BOOL "" FORCE)
+add_subdirectory(volk EXCLUDE_FROM_ALL)
+target_link_libraries(volk PRIVATE Vulkan-Headers)
+
+add_library(VulkanHeaders INTERFACE)
+target_link_libraries(VulkanHeaders INTERFACE Vulkan-Headers volk GPUOpen::VulkanMemoryAllocator)
+target_link_libraries(engine-core PUBLIC VulkanHeaders)
 
 # Slang
 set(SLANG_ENABLE_PCH OFF CACHE BOOL "" FORCE)

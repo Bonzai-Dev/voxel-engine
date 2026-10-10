@@ -14,19 +14,19 @@ Result QueryPoolWGPU::Create(const QueryPoolDesc& queryPoolDesc) {
     switch (queryPoolDesc.queryType) {
         case QueryType::TIMESTAMP:
             if (!m_Device.GetDesc().features.timestamp)
-                return Result::UNSUPPORTED;
+                return Result::Unsupported;
             desc.type = WGPUQueryType_Timestamp;
             m_QuerySize = sizeof(uint64_t);
             break;
         case QueryType::OCCLUSION:
             // TODO: WebGPU supports occlusion query sets, but WGPU render-pass creation does not pass "occlusionQuerySet" yet.
             if (!m_Device.GetDesc().features.occlusion)
-                return Result::UNSUPPORTED;
+                return Result::Unsupported;
             desc.type = WGPUQueryType_Occlusion;
             m_QuerySize = sizeof(uint64_t);
             break;
         default:
-            return Result::UNSUPPORTED;
+            return Result::Unsupported;
     }
 
     m_QuerySet = wgpuDeviceCreateQuerySet(m_Device, &desc);

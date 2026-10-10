@@ -9,11 +9,10 @@
 #define NRI_RAY_TRACING_H 1
 
 namespace Core::RHI {
-  /*clang-format off*/
   struct AccelerationStructure; // bottom- or top- level acceleration structure (aka BLAS or TLAS respectively)
   struct Micromap;              // a micromap that encodes sub-triangle opacity (aka OMM, can be attached to a triangle BLAS)
 
-  // static const Buffer *NriConstant(HAS_BUFFER) = (Buffer*)1; // only to indicate buffer presence in "AccelerationStructureDesc"
+  static const Buffer *HAS_BUFFER = (Buffer *)1; // only to indicate buffer presence in "AccelerationStructureDesc"
 
   //============================================================================================================================================================================================
   #pragma region [ Pipeline ]
@@ -50,7 +49,7 @@ namespace Core::RHI {
     uint32_t rayHitAttributeMaxSize;
     RayTracingPipelineBits flags;
     Robustness robustness;
-    const PipelineCache *cache; // if non-NULL, pipeline creation can be served from a cached blob and the result will be added to the cache on a miss
+    RHI_OPTIONAL const PipelineCache *cache; // if non-NULL, pipeline creation can be served from a cached blob and the result will be added to the cache on a miss
   };
 
   #pragma endregion
@@ -88,7 +87,7 @@ namespace Core::RHI {
   };
 
   struct MicromapDesc {
-    uint64_t optimizedSize;         // can be retrieved by "CmdWriteMicromapsSizes" and used for compaction via "CmdCopyMicromap"
+    RHI_OPTIONAL uint64_t optimizedSize;         // can be retrieved by "CmdWriteMicromapsSizes" and used for compaction via "CmdCopyMicromap"
     const MicromapUsageDesc *usages;
     uint32_t usageNum;
     MicromapBits flags;
@@ -111,13 +110,13 @@ namespace Core::RHI {
   };
 
   struct BottomLevelMicromapDesc {
-  // For each triangle in the geometry, the acceleration structure build fetches an index from "indexBuffer".
+    // For each triangle in the geometry, the acceleration structure build fetches an index from "indexBuffer".
     // If an index is the unsigned cast of one of the values from "MicromapSpecialIndex" then that triangle behaves as described for that special value.
     // Otherwise that triangle uses the micromap information from "micromap" at that index plus "baseTriangle".
     // If an index buffer is not provided, "1:1" mapping between geometry triangles and micromap triangles is assumed.
 
-    Micromap *micromap;
-    const Buffer *indexBuffer;
+    RHI_OPTIONAL Micromap *micromap;
+    RHI_OPTIONAL const Buffer *indexBuffer;
     uint64_t indexOffset;
     uint32_t baseTriangle;
     IndexType indexType;
@@ -136,9 +135,10 @@ namespace Core::RHI {
   #pragma region [ Acceleration Structure: Bottom Level (BLAS) ]
   //============================================================================================================================================================================================
 
-  enum class BottomLevelGeometryType : uint8_t {
+  enum class BottomLevelGeometryType: uint8_t {
     Triangles,
-    AABBs
+    AABBs,
+    Count
   };
 
   ENGINE_BITS(BottomLevelGeometryBits, uint8_t,
@@ -153,20 +153,20 @@ namespace Core::RHI {
     uint64_t vertexOffset;
     uint32_t vertexNum;
     uint16_t vertexStride;
-    DataFormat vertexFormat;
+    Format vertexFormat;
 
     // Indices
-    const Buffer *indexBuffer;
-    uint64_t indexOffset;
-    uint32_t indexNum;
-    IndexType indexType;
+    RHI_OPTIONAL const Buffer *indexBuffer;
+    RHI_OPTIONAL uint64_t indexOffset;
+    RHI_OPTIONAL uint32_t indexNum;
+    RHI_OPTIONAL IndexType indexType;
 
     // Transform
-    const Buffer *transformBuffer;   // contains "TransformMatrix" entries
-    uint64_t transformOffset;
+    RHI_OPTIONAL const Buffer *transformBuffer;   // contains "TransformMatrix" entries
+    RHI_OPTIONAL uint64_t transformOffset;
 
     // Micromap
-    const BottomLevelMicromapDesc *micromap;
+    RHI_OPTIONAL BottomLevelMicromapDesc *micromap;
   };
 
   struct BottomLevelAabbsDesc {
@@ -206,13 +206,13 @@ namespace Core::RHI {
   //============================================================================================================================================================================================
 
   ENGINE_BITS(TopLevelInstanceBits, uint32_t,
-    NONE                        = 0,
-    TRIANGLE_CULL_DISABLE       = ENGINE_BIT(0), // disables face culling for this instance
-    TRIANGLE_FLIP_FACING        = ENGINE_BIT(1), // inverts the facing determination for geometry in this instance (since the facing is determined in object space, an instance transform does not change the winding, but a geometry transform does)
-    FORCE_OPAQUE                = ENGINE_BIT(2), // force enable "OPAQUE_GEOMETRY" bit on all geometries referenced by this instance
-    FORCE_NON_OPAQUE            = ENGINE_BIT(3), // force disable "OPAQUE_GEOMETRY" bit on all geometries referenced by this instance
-    FORCE_OPACITY_2_STATE       = ENGINE_BIT(4), // ignore the "unknown" state and only consider the "transparent" or "opaque" bit for all 4-state micromaps encountered during traversal
-    DISABLE_MICROMAPS           = ENGINE_BIT(5)  // disable micromap test for all triangles and revert to using geometry opaque/non-opaque state instead
+    None                        = 0,
+    TriangleCullDisable       = ENGINE_BIT(0), // disables face culling for this instance
+    TriangleFlipFacing        = ENGINE_BIT(1), // inverts the facing determination for geometry in this instance (since the facing is determined in object space, an instance transform does not change the winding, but a geometry transform does)
+    ForceOpaque                = ENGINE_BIT(2), // force enable "OPAQUE_GEOMETRY" bit on all geometries referenced by this instance
+    ForceNonOpaque            = ENGINE_BIT(3), // force disable "OPAQUE_GEOMETRY" bit on all geometries referenced by this instance
+    ForceOpacity2State       = ENGINE_BIT(4), // ignore the "unknown" state and only consider the "transparent" or "opaque" bit for all 4-state micromaps encountered during traversal
+    DisableMicromaps           = ENGINE_BIT(5)  // disable micromap test for all triangles and revert to using geometry opaque/non-opaque state instead
   );
 
   struct TopLevelInstance {
@@ -230,7 +230,7 @@ namespace Core::RHI {
   #pragma region [ Acceleration structure (AS) ]
   //============================================================================================================================================================================================
 
-  enum class AccelerationStructureType : uint8_t {
+  enum class AccelerationStructureType: uint8_t {
     TopLevel,
     BottomLevel
   };
@@ -248,7 +248,7 @@ namespace Core::RHI {
   );
 
   struct AccelerationStructureDesc {
-    uint64_t optimizedSize;                     // can be retrieved by "CmdWriteAccelerationStructuresSizes" and used for compaction via "CmdCopyAccelerationStructure"
+    RHI_OPTIONAL uint64_t optimizedSize;                     // can be retrieved by "CmdWriteAccelerationStructuresSizes" and used for compaction via "CmdCopyAccelerationStructure"
     const BottomLevelGeometryDesc *geometries;       // needed only for "BOTTOM_LEVEL", "HAS_BUFFER" can be used to indicate a buffer presence (no real entities needed at initialization time)
     uint32_t geometryOrInstanceNum;
     AccelerationStructureBits flags;
@@ -263,7 +263,7 @@ namespace Core::RHI {
 
   struct BuildTopLevelAccelerationStructureDesc {
     AccelerationStructure *dst;
-    const AccelerationStructure *src;    // implies "update" instead of "build" if provided (requires "ALLOW_UPDATE")
+    RHI_OPTIONAL const AccelerationStructure *src;    // implies "update" instead of "build" if provided (requires "ALLOW_UPDATE")
     uint32_t instanceNum;
     const Buffer *instanceBuffer;                    // contains "TopLevelInstance" entries
     uint64_t instanceOffset;
@@ -273,7 +273,7 @@ namespace Core::RHI {
 
   struct BuildBottomLevelAccelerationStructureDesc {
     AccelerationStructure *dst;
-    const AccelerationStructure *src;    // implies "update" instead of "build" if provided (requires "ALLOW_UPDATE")
+    RHI_OPTIONAL const AccelerationStructure *src;    // implies "update" instead of "build" if provided (requires "ALLOW_UPDATE")
     const BottomLevelGeometryDesc *geometries;
     uint32_t geometryNum;
     Buffer *scratchBuffer;
@@ -286,9 +286,9 @@ namespace Core::RHI {
   #pragma region [ Other ]
   //============================================================================================================================================================================================
 
-  enum class CopyMode : uint8_t {
+  enum class CopyMode: uint8_t {
     Clone,
-    Compact,
+    Compact
   };
 
   struct StridedBufferRegion {
@@ -328,68 +328,69 @@ namespace Core::RHI {
 
   #pragma endregion
 
+  /*clang-format off*/
   // Threadsafe: yes
   struct RayTracingInterface {
     // Create
-    Result     (*createRayTracingPipeline)                        (Device &device, const RayTracingPipelineDesc &rayTracingPipelineDesc, Pipeline *&pipeline);
-    Result     (*createAccelerationStructureDescriptor)           (const AccelerationStructure &accelerationStructure, Descriptor *&descriptor);
+    Result          (*CreateRayTracingPipeline)                        (Device &Device, const RayTracingPipelineDesc &RayTracingPipelineDesc, RHI_OUT Pipeline *&pipeline);
+    Result          (*CreateAccelerationStructureDescriptor)           (const AccelerationStructure &AccelerationStructure, RHI_OUT Descriptor *&descriptor);
 
     // Get
-    uint64_t        (*getAccelerationStructureHandle)                  (const AccelerationStructure &accelerationStructure);
-    uint64_t        (*getAccelerationStructureUpdateScratchBufferSize) (const AccelerationStructure &accelerationStructure);
-    uint64_t        (*getAccelerationStructureBuildScratchBufferSize)  (const AccelerationStructure &accelerationStructure);
-    uint64_t        (*getMicromapBuildScratchBufferSize)               (const Micromap &micromap);
+    uint64_t        (*GetAccelerationStructureHandle)                  (const AccelerationStructure &AccelerationStructure);
+    uint64_t        (*GetAccelerationStructureUpdateScratchBufferSize) (const AccelerationStructure &AccelerationStructure);
+    uint64_t        (*GetAccelerationStructureBuildScratchBufferSize)  (const AccelerationStructure &AccelerationStructure);
+    uint64_t        (*GetMicromapBuildScratchBufferSize)               (const Micromap &Micromap);
 
     // For barriers
-    Buffer*  (*getAccelerationStructureBuffer)                  (const AccelerationStructure &accelerationStructure);
-    Buffer*  (*getMicromapBuffer)                               (const Micromap &micromap);
+    Buffer          *(*GetAccelerationStructureBuffer)                  (const AccelerationStructure &AccelerationStructure);
+    Buffer          *(*GetMicromapBuffer)                               (const Micromap &Micromap);
 
     // Destroy
-    void            (*destroyAccelerationStructure)                    (AccelerationStructure *accelerationStructure);
-    void            (*destroyMicromap)                                 (Micromap *micromap);
+    void            (*DestroyAccelerationStructure)                    (AccelerationStructure *AccelerationStructure);
+    void            (*DestroyMicromap)                                 (Micromap *Micromap);
 
     // Resources and memory (VK style)
-    Result     (*createAccelerationStructure)                     (Device &device, const AccelerationStructureDesc &accelerationStructureDesc, AccelerationStructure *&accelerationStructure);
-    Result     (*createMicromap)                                  (Device &device, const MicromapDesc &micromapDesc, Micromap *&micromap);
-    void            (*getAccelerationStructureMemoryDesc)              (const AccelerationStructure &accelerationStructure, MemoryLocation memoryLocation, MemoryDesc &memoryDesc);
-    void            (*getMicromapMemoryDesc)                           (const Micromap &micromap, MemoryLocation memoryLocation, MemoryDesc &memoryDesc);
-    Result     (*bindAccelerationStructureMemory)                 (const BindAccelerationStructureMemoryDesc *bindAccelerationStructureMemoryDescs, uint32_t bindAccelerationStructureMemoryDescNum);
-    Result     (*bindMicromapMemory)                              (const BindMicromapMemoryDesc *bindMicromapMemoryDescs, uint32_t bindMicromapMemoryDescNum);
+    Result          (*CreateAccelerationStructure)                     (Device &Device, const AccelerationStructureDesc &AccelerationStructureDesc, RHI_OUT AccelerationStructure *&accelerationStructure);
+    Result          (*CreateMicromap)                                  (Device &Device, const MicromapDesc &MicromapDesc, RHI_OUT Micromap *&micromap);
+    void            (*GetAccelerationStructureMemoryDesc)              (const AccelerationStructure &AccelerationStructure, MemoryLocation memoryLocation, RHI_OUT MemoryDesc &MemoryDesc);
+    void            (*GetMicromapMemoryDesc)                           (const Micromap &Micromap, MemoryLocation memoryLocation, RHI_OUT MemoryDesc &MemoryDesc);
+    Result          (*BindAccelerationStructureMemory)                 (const BindAccelerationStructureMemoryDesc *BindAccelerationStructureMemoryDescs, uint32_t bindAccelerationStructureMemoryDescNum);
+    Result          (*BindMicromapMemory)                              (const BindMicromapMemoryDesc *BindMicromapMemoryDescs, uint32_t bindMicromapMemoryDescNum);
 
     // Resources and memory (D3D12 style)
-    void            (*getAccelerationStructureMemoryDesc2)             (const Device &device, const AccelerationStructureDesc &accelerationStructureDesc, MemoryLocation memoryLocation, MemoryDesc &memoryDesc); // requires "features.getMemoryDesc2"
-    void            (*getMicromapMemoryDesc2)                          (const Device &device, const MicromapDesc &micromapDesc, MemoryLocation memoryLocation, MemoryDesc &memoryDesc); // requires "features.getMemoryDesc2"
-    Result     (*createCommittedAccelerationStructure)            (Device &device, MemoryLocation memoryLocation, float priority, const AccelerationStructureDesc &accelerationStructureDesc, AccelerationStructure *&accelerationStructure);
-    Result     (*createCommittedMicromap)                         (Device &device, MemoryLocation memoryLocation, float priority, const MicromapDesc &micromapDesc, Micromap *&micromap);
-    Result     (*createPlacedAccelerationStructure)               (Device &device, Memory *memory, uint64_t offset, const AccelerationStructureDesc &accelerationStructureDesc, AccelerationStructure *&accelerationStructure);
-    Result     (*createPlacedMicromap)                            (Device &device, Memory *memory, uint64_t offset, const MicromapDesc &micromapDesc, Micromap *&micromap);
+    void            (*GetAccelerationStructureMemoryDesc2)             (const Device &Device, const AccelerationStructureDesc &AccelerationStructureDesc, MemoryLocation memoryLocation, RHI_OUT MemoryDesc &MemoryDesc); // requires "features.getMemoryDesc2"
+    void            (*GetMicromapMemoryDesc2)                          (const Device &Device, const MicromapDesc &MicromapDesc, MemoryLocation memoryLocation, RHI_OUT MemoryDesc &MemoryDesc); // requires "features.getMemoryDesc2"
+    Result          (*CreateCommittedAccelerationStructure)            (Device &Device, MemoryLocation memoryLocation, float priority, const AccelerationStructureDesc &AccelerationStructureDesc, RHI_OUT AccelerationStructure *&accelerationStructure);
+    Result          (*CreateCommittedMicromap)                         (Device &Device, MemoryLocation memoryLocation, float priority, const MicromapDesc &MicromapDesc, RHI_OUT Micromap *&micromap);
+    Result          (*CreatePlacedAccelerationStructure)               (Device &Device, RHI_OPTIONAL Memory *Memory, uint64_t offset, const AccelerationStructureDesc &AccelerationStructureDesc, RHI_OUT AccelerationStructure *&accelerationStructure);
+    Result          (*CreatePlacedMicromap)                            (Device &Device, RHI_OPTIONAL Memory *Memory, uint64_t offset, const MicromapDesc &MicromapDesc, RHI_OUT Micromap *&micromap);
 
     // Shader table
     // "dst" size must be >= "shaderGroupNum * rayTracingShaderGroupIdentifierSize" bytes
     // VK doesn't have a "local root signature" analog, thus stride = "rayTracingShaderGroupIdentifierSize", i.e. tight packing
-    Result     (*writeShaderGroupIdentifiers)                     (const Pipeline &pipeline, uint32_t baseShaderGroupIndex, uint32_t shaderGroupNum, void* dst);
+    Result          (*WriteShaderGroupIdentifiers)                     (const Pipeline &Pipeline, uint32_t baseShaderGroupIndex, uint32_t shaderGroupNum, RHI_OUT void* dst);
 
     // Command buffer
     // {
-    // Micromap
-    void        (*cmdBuildMicromaps)                               (CommandBuffer &commandBuffer, const BuildMicromapDesc *buildMicromapDescs, uint32_t buildMicromapDescNum);
-    void        (*cmdWriteMicromapsSizes)                          (CommandBuffer &commandBuffer, const Micromap *const* micromaps, uint32_t micromapNum, QueryPool &queryPool, uint32_t queryPoolOffset);
-    void        (*cmdCopyMicromap)                                 (CommandBuffer &commandBuffer, Micromap &dst, const Micromap &src, CopyMode copyMode);
+        // Micromap
+        void        (*CmdBuildMicromaps)                               (CommandBuffer &CommandBuffer, const BuildMicromapDesc *BuildMicromapDescs, uint32_t buildMicromapDescNum);
+        void        (*CmdWriteMicromapsSizes)                          (CommandBuffer &CommandBuffer, const Micromap *const* micromaps, uint32_t micromapNum, QueryPool &QueryPool, uint32_t queryPoolOffset);
+        void        (*CmdCopyMicromap)                                 (CommandBuffer &CommandBuffer, Micromap &dst, const Micromap &src, CopyMode copyMode);
 
-    // Acceleration structure
-    void        (*cmdBuildTopLevelAccelerationStructures)          (CommandBuffer &commandBuffer, const BuildTopLevelAccelerationStructureDesc *buildTopLevelAccelerationStructureDescs, uint32_t buildTopLevelAccelerationStructureDescNum);
-    void        (*cmdBuildBottomLevelAccelerationStructures)       (CommandBuffer &commandBuffer, const BuildBottomLevelAccelerationStructureDesc *buildBottomLevelAccelerationStructureDescs, uint32_t buildBottomLevelAccelerationStructureDescNum);
-    void        (*cmdWriteAccelerationStructuresSizes)             (CommandBuffer &commandBuffer, const AccelerationStructure *const* accelerationStructures, uint32_t accelerationStructureNum, QueryPool &queryPool, uint32_t queryPoolOffset);
-    void        (*cmdCopyAccelerationStructure)                    (CommandBuffer &commandBuffer, AccelerationStructure &dst, const AccelerationStructure &src, CopyMode copyMode);
+        // Acceleration structure
+        void        (*CmdBuildTopLevelAccelerationStructures)          (CommandBuffer &CommandBuffer, const BuildTopLevelAccelerationStructureDesc *BuildTopLevelAccelerationStructureDescs, uint32_t buildTopLevelAccelerationStructureDescNum);
+        void        (*CmdBuildBottomLevelAccelerationStructures)       (CommandBuffer &CommandBuffer, const BuildBottomLevelAccelerationStructureDesc *buildBotomLevelAccelerationStructureDescs, uint32_t buildBotomLevelAccelerationStructureDescNum);
+        void        (*CmdWriteAccelerationStructuresSizes)             (CommandBuffer &CommandBuffer, const AccelerationStructure *const* accelerationStructures, uint32_t accelerationStructureNum, QueryPool &QueryPool, uint32_t queryPoolOffset);
+        void        (*CmdCopyAccelerationStructure)                    (CommandBuffer &CommandBuffer, AccelerationStructure &dst, const AccelerationStructure &src, CopyMode copyMode);
 
-    // Ray tracing
-    void        (*cmdDispatchRays)                                 (CommandBuffer &commandBuffer, const DispatchRaysDesc &dispatchRaysDesc);
-    void        (*cmdDispatchRaysIndirect)                         (CommandBuffer &commandBuffer, const Buffer &buffer, uint64_t offset); // buffer contains "DispatchRaysIndirectDesc" commands
+        // Ray tracing
+        void        (*CmdDispatchRays)                                 (CommandBuffer &CommandBuffer, const DispatchRaysDesc &DispatchRaysDesc);
+        void        (*CmdDispatchRaysIndirect)                         (CommandBuffer &CommandBuffer, const Buffer &Buffer, uint64_t offset); // buffer contains "DispatchRaysIndirectDesc" commands
     // }
 
     // Native object
-    uint64_t        (*getAccelerationStructureNativeObject)            (const AccelerationStructure &accelerationStructure); // ID3D12Resource* or VkAccelerationStructureKHR
-    uint64_t        (*getMicromapNativeObject)                         (const Micromap &micromap);                           // ID3D12Resource* or VkMicromapEXT
+    uint64_t        (*GetAccelerationStructureNativeObject)            (const AccelerationStructure *AccelerationStructure); // ID3D12Resource* or VkAccelerationStructureKHR
+    uint64_t        (*GetMicromapNativeObject)                         (const Micromap *Micromap);                           // ID3D12Resource* or VkMicromapEXT
   };
   /*clang-format on*/
 }

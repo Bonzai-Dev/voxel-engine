@@ -1,3 +1,5 @@
+// © 2021 NVIDIA Corporation
+
 #pragma once
 
 namespace Core::RHI {
@@ -38,4 +40,4 @@ namespace Core::RHI {
       BufferVal *m_Buffer = nullptr;
       bool m_IsBoundToMemory = false;
   };
-}
+} // namespace Core::RHI

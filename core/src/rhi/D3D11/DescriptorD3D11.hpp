@@ -62,7 +62,7 @@ private:
     DeviceD3D11& m_Device;
     ComPtr<ID3D11DeviceChild> m_Descriptor;
     SubresourceInfo m_SubresourceInfo = {};
-    Format m_Format = Format::UNKNOWN;
+    Format m_Format = Format::Unknown;
 };
 
 } // namespace Core::RHI

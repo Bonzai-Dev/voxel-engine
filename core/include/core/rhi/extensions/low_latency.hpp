@@ -1,3 +1,5 @@
+// © 2024 NVIDIA Corporation
+
 // Goal: minimizing latency between input sampling and frame presentation
 
 #pragma once
@@ -5,18 +7,17 @@
 #define NRI_LOW_LATENCY_H 1
 
 namespace Core::RHI {
-  /*clang-format off*/
   class SwapChain;
   class Queue;
 
   // us = microseconds
 
-  enum class LatencyMarker: uint8_t {     // Should be called:
-    SimulationStart    = 0,             // at the start of the simulation execution each frame, but after the call to "LatencySleep"
-    SimulationEnd      = 1,             // at the end of the simulation execution each frame
-    RenderSubmitStart  = 2,             // at the beginning of the render submission execution each frame (must not span into asynchronous rendering)
-    RenderSubmitEnd    = 3,             // at the end of the render submission execution each frame
-    InputSample        = 6              // just before the application gathers input data, but between "SIMULATION_START" and "SIMULATION_END" (yes, 6!)
+  enum class LatencyMarker: uint8_t {   // Should be called:
+    SimulationStart     = 0,            // at the start of the simulation execution each frame, but after the call to "LatencySleep"
+    SimulationEnd       = 1,            // at the end of the simulation execution each frame
+    RenderSubmitStart   = 2,            // at the beginning of the render submission execution each frame (must not span into asynchronous rendering)
+    RenderSubmitEnd     = 3,            // at the end of the render submission execution each frame
+    InputSample         = 6             // just before the application gathers input data, but between "SIMULATION_START" and "SIMULATION_END" (yes, 6!)
   };
 
   struct LatencySleepMode {
@@ -25,7 +26,7 @@ namespace Core::RHI {
     bool lowLatencyBoost;               // hint to increase performance to provide additional latency savings at a cost of increased power consumption
   };
 
-  struct LatencyReport {                  // The time stamp written:
+  struct LatencyReport {          // The time stamp written:
     uint64_t inputSampleTimeUs;         // when "INPUT_SAMPLE" marker is set
     uint64_t simulationStartTimeUs;     // when "SIMULATION_START" marker is set
     uint64_t simulationEndTimeUs;       // when "SIMULATION_END" marker is set
@@ -45,10 +46,9 @@ namespace Core::RHI {
   // "QueueSubmitDesc::swapChain" must be used to associate work submission with a low latency swap chain
   // Threadsafe: no
   struct LowLatencyInterface {
-    Result     (*setLatencySleepMode)   (SwapChain &swapChain, const LatencySleepMode &latencySleepMode);
-    Result     (*setLatencyMarker)      (SwapChain &swapChain, LatencyMarker latencyMarker);
-    Result     (*latencySleep)          (SwapChain &swapChain); // call once before "INPUT_SAMPLE"
-    Result     (*getLatencyReport)      (const SwapChain &swapChain, LatencyReport &latencyReport);
+    Result     (*SetLatencySleepMode)   (SwapChain &swapChain, const LatencySleepMode &latencySleepMode);
+    Result     (*SetLatencyMarker)      (SwapChain &swapChain, LatencyMarker latencyMarker);
+    Result     (*LatencySleep)          (SwapChain &swapChain); // call once before "INPUT_SAMPLE"
+    Result     (*GetLatencyReport)      (const SwapChain &swapChain, RHI_OUT LatencyReport &latencyReport);
   };
-  /*clang-format on*/
 }

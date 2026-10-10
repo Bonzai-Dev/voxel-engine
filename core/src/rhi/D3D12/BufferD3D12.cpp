@@ -10,7 +10,7 @@ Result BufferD3D12::Create(const BufferD3D12Desc& bufferD3D12Desc) {
     if (bufferD3D12Desc.desc)
         m_Desc = *bufferD3D12Desc.desc;
     else if (!GetBufferDesc(bufferD3D12Desc, m_Desc))
-        return Result::INVALID_ARGUMENT;
+        return Result::InvalidArgument;
 
     m_Buffer = (ID3D12ResourceBest*)bufferD3D12Desc.d3d12Resource;
 
@@ -23,9 +23,9 @@ Result BufferD3D12::Allocate(MemoryLocation memoryLocation, float priority, bool
     uint32_t flags = D3D12MA::ALLOCATION_FLAG_STRATEGY_MIN_MEMORY;
     flags |= committed ? D3D12MA::ALLOCATION_FLAG_COMMITTED : D3D12MA::ALLOCATION_FLAG_CAN_ALIAS;
 
-    const DeviceInfo& DeviceInfo = m_Device.GetDesc();
+    const DeviceInfo& deviceDesc = m_Device.GetDesc();
     D3D12_HEAP_FLAGS heapFlags = D3D12_HEAP_FLAG_ALLOW_ALL_BUFFERS_AND_TEXTURES;
-    if (DeviceInfo.tiers.memory == 0)
+    if (deviceDesc.tiers.memory == 0)
         heapFlags = D3D12_HEAP_FLAG_ALLOW_ONLY_BUFFERS;
 
     D3D12MA::ALLOCATION_DESC allocationDesc = {};
@@ -46,7 +46,7 @@ Result BufferD3D12::Allocate(MemoryLocation memoryLocation, float priority, bool
 #endif
     {
         D3D12_RESOURCE_STATES initialState = D3D12_RESOURCE_STATE_COMMON;
-        if (memoryLocation == MemoryLocation::HOST_UPLOAD || memoryLocation == MemoryLocation::DEVICE_UPLOAD)
+        if (memoryLocation == MemoryLocation::HostUpload || memoryLocation == MemoryLocation::DeviceUpload)
             initialState |= D3D12_RESOURCE_STATE_GENERIC_READ;
         else if (memoryLocation == MemoryLocation::HOST_READBACK)
             initialState |= D3D12_RESOURCE_STATE_COPY_DEST;
@@ -126,7 +126,7 @@ Result BufferD3D12::BindMemory(const MemoryD3D12& memory, uint64_t offset) {
     return SetPriorityAndPersistentlyMap(memory.GetPriority(), isCommitted, heapDesc.Properties);
 }
 
-NRI_INLINE Result BufferD3D12::SetPriorityAndPersistentlyMap(float priority, bool committed, const D3D12_HEAP_PROPERTIES& heapProps) {
+ENGINE_FORCE_INLINE Result BufferD3D12::SetPriorityAndPersistentlyMap(float priority, bool committed, const D3D12_HEAP_PROPERTIES& heapProps) {
     // Priority
     D3D12_RESIDENCY_PRIORITY residencyPriority = (D3D12_RESIDENCY_PRIORITY)ConvertPriority(priority);
     if (residencyPriority != 0 && committed) {
@@ -157,7 +157,7 @@ NRI_INLINE Result BufferD3D12::SetPriorityAndPersistentlyMap(float priority, boo
     return Result::Success;
 }
 
-NRI_INLINE void* BufferD3D12::Map(uint64_t offset) {
+ENGINE_FORCE_INLINE void* BufferD3D12::Map(uint64_t offset) {
     NRI_CHECK(m_MappedMemory, "No CPU access");
 
     return m_MappedMemory + offset;

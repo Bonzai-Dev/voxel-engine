@@ -22,13 +22,13 @@ DescriptorSetWGPU::~DescriptorSetWGPU() {
 static bool IsDescriptorCompatibleWithRange(const DescriptorRangeMappingWGPU& range, const DescriptorWGPU& descriptor) {
     const TextureDesc* textureDesc = descriptor.GetTextureDesc();
     if (!textureDesc) {
-        return range.type != DescriptorType::TEXTURE
+        return range.type != DescriptorType::Texture
             && range.type != DescriptorType::INPUT_ATTACHMENT
             && range.type != DescriptorType::STORAGE_TEXTURE;
     }
 
     WGPUTextureViewDimension viewDimension = GetTextureViewDimension(descriptor.GetTextureViewDesc().type, *textureDesc);
-    if (range.type == DescriptorType::TEXTURE || range.type == DescriptorType::INPUT_ATTACHMENT) {
+    if (range.type == DescriptorType::Texture || range.type == DescriptorType::INPUT_ATTACHMENT) {
         WGPUTextureSampleType sampleType = GetTextureSampleType(descriptor.GetFormat());
         bool isSampleTypeCompatible = sampleType == range.textureSampleType || (sampleType == WGPUTextureSampleType_Float && range.textureSampleType == WGPUTextureSampleType_UnfilterableFloat);
 
@@ -149,7 +149,7 @@ bool DescriptorSetWGPU::RecreateBindGroup(const DescriptorSetMappingWGPU& mappin
                     for (uint32_t i = 0; i < range.descriptorNum; i++)
                         samplers[resourceOffset + i] = m_Descriptors[range.descriptorOffset + i]->GetSampler();
                     break;
-                case DescriptorType::TEXTURE:
+                case DescriptorType::Texture:
                 case DescriptorType::STORAGE_TEXTURE:
                 case DescriptorType::INPUT_ATTACHMENT:
                     extras.textureViews = textureViews + resourceOffset;
@@ -179,7 +179,7 @@ bool DescriptorSetWGPU::RecreateBindGroup(const DescriptorSetMappingWGPU& mappin
                 case DescriptorType::SAMPLER:
                     entry.sampler = descriptor->GetSampler();
                     break;
-                case DescriptorType::TEXTURE:
+                case DescriptorType::Texture:
                 case DescriptorType::STORAGE_TEXTURE:
                     entry.textureView = descriptor->GetTextureView();
                     break;

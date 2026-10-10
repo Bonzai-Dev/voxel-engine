@@ -1,3 +1,5 @@
+// © 2025 NVIDIA Corporation
+
 // Goal: ImGui rendering
 
 #pragma once
@@ -28,45 +30,44 @@ namespace Core::RHI {
   struct Streamer;
 
   struct ImguiDesc {
-    uint32_t descriptorPoolSize;
-    // upper bound of textures used by Imgui for drawing: {number of queued frames} * {number of "CmdDrawImgui" calls} * (1 + {"drawList->AddImage*" calls})
+    RHI_OPTIONAL uint32_t descriptorPoolSize;    // upper bound of textures used by Imgui for drawing: {number of queued frames} * {number of "CmdDrawImgui" calls} * (1 + {"drawList->AddImage*" calls})
   };
 
   struct CopyImguiDataDesc {
-    const ImDrawList *const*drawLists; // ImDrawData::CmdLists.Data
-    uint32_t drawListNum; // ImDrawData::CmdLists.Size
-    ImTextureData *const*textures; // ImDrawData::Textures->Data (same as "ImGui::GetPlatformIO().Textures.Data")
-    uint32_t textureNum; // ImDrawData::Textures->Size (same as "ImGui::GetPlatformIO().Textures.Size")
+    const ImDrawList* const* drawLists;         // ImDrawData::CmdLists.Data
+    uint32_t drawListNum;                       // ImDrawData::CmdLists.Size
+    ImTextureData* const* textures;             // ImDrawData::Textures->Data (same as "ImGui::GetPlatformIO().Textures.Data")
+    uint32_t textureNum;                        // ImDrawData::Textures->Size (same as "ImGui::GetPlatformIO().Textures.Size")
   };
 
   struct DrawImguiDesc {
-    const ImDrawList *const*drawLists; // ImDrawData::CmdLists.Data (same as for "CopyImguiDataDesc")
-    uint32_t drawListNum; // ImDrawData::CmdLists.Size (same as for "CopyImguiDataDesc")
-    Dim2_t displaySize; // ImDrawData::DisplaySize
-    float hdrScale; // SDR intensity in HDR mode (1 by default)
-    DataFormat attachmentFormat; // destination attachment (render target) format
-    bool linearColor; // apply de-gamma to vertex colors (needed for sRGB attachments and HDR)
+    const ImDrawList* const* drawLists;         // ImDrawData::CmdLists.Data (same as for "CopyImguiDataDesc")
+    uint32_t drawListNum;                       // ImDrawData::CmdLists.Size (same as for "CopyImguiDataDesc")
+    Dim2_t displaySize;                    // ImDrawData::DisplaySize
+    float hdrScale;                             // SDR intensity in HDR mode (1 by default)
+    Format attachmentFormat;               // destination attachment (render target) format
+    bool linearColor;                           // apply de-gamma to vertex colors (needed for sRGB attachments and HDR)
   };
 
   // Threadsafe: yes
   struct ImguiInterface {
-    Result (*CreateImgui)(Device &device, const ImguiDesc &imguiDesc, Imgui *&imgui);
-    void (*DestroyImgui)(Imgui *imgui);
+    Result (*CreateImgui)         (Device &device, const ImguiDesc &imguiDesc, RHI_OUT Imgui *&imgui);
+    void        (*DestroyImgui)        (Imgui *imgui);
 
     // Command buffer
     // {
     // Copy
-    void (*cmdCopyImguiData)(CommandBuffer &commandBuffer, Streamer &streamer, Imgui &imgui, const CopyImguiDataDesc &streamImguiDesc);
+    void    (*CmdCopyImguiData)    (CommandBuffer &commandBuffer, Streamer &streamer, Imgui &imgui, const CopyImguiDataDesc &streamImguiDesc);
 
     // Draw (changes descriptor pool, pipeline layout and pipeline, barriers are externally controlled)
-    void (*cmdDrawImgui)(CommandBuffer &commandBuffer, Imgui &imgui, const DrawImguiDesc &drawImguiDesc);
+    void    (*CmdDrawImgui)        (CommandBuffer &commandBuffer, Imgui &imgui, const DrawImguiDesc &drawImguiDesc);
     // }
   };
 }
 
 #define NRI_IMGUI_OVERRIDE_HDR_SCALE(hdrScale) (ImDrawCallback)1, _NriCastFloatToVoidPtr(hdrScale)
 
-inline void *_NriCastFloatToVoidPtr(float f) {
+inline void* _NriCastFloatToVoidPtr(float f) {
   // A strange cast is there to get a fast path in Imgui
   return *(void**)&f;
 }

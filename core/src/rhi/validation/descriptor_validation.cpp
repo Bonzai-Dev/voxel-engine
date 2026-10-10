@@ -36,28 +36,28 @@ DescriptorVal::DescriptorVal(DeviceVal& device, Descriptor* descriptor, const Te
     m_Format = textureViewDesc.format;
 
     switch (textureViewDesc.type) {
-        case TextureView::TEXTURE:
-        case TextureView::TEXTURE_ARRAY:
-        case TextureView::TEXTURE_CUBE:
-        case TextureView::TEXTURE_CUBE_ARRAY:
+        case TextureView::Texture:
+        case TextureView::TextureArray:
+        case TextureView::TextureCube:
+        case TextureView::TextureCubeArray:
             m_Type = DescriptorTypeExt::TEXTURE;
             break;
-        case TextureView::STORAGE_TEXTURE:
-        case TextureView::STORAGE_TEXTURE_ARRAY:
+        case TextureView::StorageTexture:
+        case TextureView::StorageTextureArray:
             m_Type = DescriptorTypeExt::STORAGE_TEXTURE;
             break;
-        case TextureView::SUBPASS_INPUT:
+        case TextureView::SubpassInput:
             m_Type = DescriptorTypeExt::INPUT_ATTACHMENT;
             break;
-        case TextureView::COLOR_ATTACHMENT:
+        case TextureView::ColorAttachment:
             m_Type = DescriptorTypeExt::COLOR_ATTACHMENT;
             break;
-        case TextureView::DEPTH_STENCIL_ATTACHMENT:
+        case TextureView::DepthStencilAttachment:
             m_Type = DescriptorTypeExt::DEPTH_STENCIL_ATTACHMENT;
             m_IsDepthReadonly = textureViewDesc.planes != PlaneBits::ALL && (textureViewDesc.planes & PlaneBits::DEPTH) == 0;
             m_IsStencilReadonly = textureViewDesc.planes != PlaneBits::ALL && (textureViewDesc.planes & PlaneBits::STENCIL) == 0;
             break;
-        case TextureView::SHADING_RATE_ATTACHMENT:
+        case TextureView::ShadingRateAttachment:
             m_Type = DescriptorTypeExt::SHADING_RATE_ATTACHMENT;
             break;
         default:

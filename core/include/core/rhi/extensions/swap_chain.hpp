@@ -9,7 +9,7 @@ namespace Core::RHI {
   class SwapChain;
 
   // Special "initialValue" for "CreateFence" needed to create swap chain related semaphores
-  static const uint64_t NriConstant(SWAPCHAIN_SEMAPHORE) = (uint64_t)(-1);
+  constexpr uint64_t swapChainSemaphore = static_cast<uint64_t>(-1);
 
   // Color space:
   //  - BT.709 - LDR https://en.wikipedia.org/wiki/Rec._709

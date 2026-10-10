@@ -1,5 +1,3 @@
-// © 2024 NVIDIA Corporation
-
 constexpr uint64_t CHUNK_SIZE = 65536;
 
 StreamerImpl::~StreamerImpl() {

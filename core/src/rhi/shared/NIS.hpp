@@ -1,4 +1,3 @@
-// © 2025 NVIDIA Corporation
 // Based on "NIS_Config.h" from https://github.com/NVIDIAGameWorks/NVIDIAImageScaling
 
 #pragma once

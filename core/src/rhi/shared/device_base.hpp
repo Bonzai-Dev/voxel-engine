@@ -1,7 +1,5 @@
-// © 2021 NVIDIA Corporation
-
 #pragma once
-#include "SharedExternal.hpp"
+#include "shared_external.hpp"
 
 namespace Core::RHI {
   /*
@@ -52,20 +50,21 @@ namespace Core::RHI {
 #endif
     }
 
-    inline StdAllocator<uint8_t> &GetStdAllocator() {
+    inline StdAllocator<uint8_t> &getStdAllocator() {
       return m_StdAllocator;
     }
 
-    inline const AllocationCallbacks &GetAllocationCallbacks() const {
+    inline const AllocationCallbacks &getAllocationCallbacks() const {
       return m_AllocationCallbacks;
     }
 
-    void ReportMessage(Message messageType, Result result, const char *file, uint32_t line, const char *format,
-                       ...) const;
+    void ReportMessage(
+      Message messageType, Result result, const char *file, uint32_t line, const char *format, ...
+    ) const;
 
     // Pure virtual
-    virtual const DeviceInfo &GetDesc() const = 0;
-    virtual void Destruct() = 0;
+    virtual const DeviceInfo &getDesc() const = 0;
+    virtual void destruct() = 0;
 
     // Virtual
     virtual ~DeviceBase() {
@@ -92,7 +91,7 @@ namespace Core::RHI {
     if (object) {
       object->~T();
 
-      const auto &allocationCallbacks = ((DeviceBase&)(object->GetDevice())).GetAllocationCallbacks();
+      const auto &allocationCallbacks = ((DeviceBase&)(object->getDevice())).getAllocationCallbacks();
       allocationCallbacks.Free(allocationCallbacks.userArg, object);
     }
   }

@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "DescriptorSetVK.h"
+#include "descriptor_set_vulkan.h"
 
 namespace Core::RHI {
 

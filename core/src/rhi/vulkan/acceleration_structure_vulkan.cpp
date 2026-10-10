@@ -1,5 +1,3 @@
-// © 2021 NVIDIA Corporation
-
 AccelerationStructureVK::~AccelerationStructureVK() {
     if (m_OwnsNativeObjects) {
         const auto& vk = m_Device.GetDispatchTable();

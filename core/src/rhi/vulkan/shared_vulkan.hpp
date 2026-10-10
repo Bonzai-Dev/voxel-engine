@@ -8,7 +8,7 @@
 #endif
 #undef CreateSemaphore
 
-#include "DispatchTable.h"
+#include "dispatch_table.h"
 #include "SharedExternal.h"
 
 typedef uint16_t MemoryTypeIndex;
@@ -101,4 +101,4 @@ inline bool HasRenderPassInputAttachmentIndex(const Vector<uint32_t>& inputAttac
 
 } // namespace Core::RHI
 
-#include "DeviceVK.h"
+#include "device_vulkan.h"

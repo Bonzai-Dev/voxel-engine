@@ -1,5 +1,3 @@
-// © 2021 NVIDIA Corporation
-
 #pragma once
 
 #include <cassert>   // assert
@@ -8,7 +6,6 @@
 #include <numeric>   // lcm
 #include <cstdint>
 #include <cstddef>
-
 #include <array>
 #include <map>
 #include <string>
@@ -21,7 +18,7 @@
 typedef uint32_t DXGI_FORMAT;
 #endif
 
-#ifndef _WIN32
+#ifndef ENGINE_PLATFORM_WINDOWS
 #    include <alloca.h>
 #endif
 
@@ -42,7 +39,7 @@ typedef uint32_t DXGI_FORMAT;
 #include <core/rhi/extensions/D3D12_wrapper.hxx>
 #include <core/rhi/extensions/vulkan_wrapper.hpp>
 
-#include "Lock.hpp"
+#include "lock.hpp"
 
 // NRI default settings (if not provided in "NRIConfig.h")
 // #include "../NRIConfig.h"
@@ -328,10 +325,10 @@ struct ComPtr {
 
 namespace Core::RHI {
   // Internal consts
-  constexpr uint32_t NODE_MASK = 0x1; // mGPU is not planned`
-  constexpr uint32_t ROOT_SIGNATURE_DWORD_NUM = 64;
+  constexpr uint32_t nodeMask = 0x1; // mGPU is not planned`
+  constexpr uint32_t rootSignatureDwordNumber = 64;
   // https://learn.microsoft.com/en-us/windows/win32/direct3d12/root-signature-limits
-  constexpr uint64_t PRESENT_INDEX_BIT_NUM = 56ull;
+  constexpr uint64_t presentIndexBitNumber = 56ull;
 
   // Scratch
   template <typename T>
@@ -364,13 +361,6 @@ namespace Core::RHI {
       size_t m_Num = 0;
       bool m_IsHeap = false;
   };
-
-  // Shared library
-  struct Library;
-
-  Library *LoadSharedLibrary(const char *path);
-  void *GetSharedLibraryFunction(Library &library, const char *name);
-  void UnloadSharedLibrary(Library &library);
 
   // Helpers
   template <typename T>
@@ -496,14 +486,14 @@ namespace Core::RHI {
     DXGI_FORMAT typed;
   };
 
-  const DxgiFormat &GetDxgiFormat(Format format);
-  const FormatProps &GetFormatProps(Format format);
+  const DxgiFormat &GetDxgiFormat(DataFormat format);
+  const FormatProps &GetFormatProps(DataFormat format);
 
-  Format DXGIFormatToNRIFormat(uint32_t dxgiFormat);
-  Format VKFormatToNRIFormat(uint32_t vkFormat);
+  DataFormat DXGIFormatToNRIFormat(uint32_t dxgiFormat);
+  DataFormat VKFormatToNRIFormat(uint32_t vkFormat);
 
-  uint32_t NRIFormatToDXGIFormat(Format format);
-  uint32_t NRIFormatToVKFormat(Format format);
+  uint32_t NRIFormatToDXGIFormat(DataFormat format);
+  uint32_t NRIFormatToVKFormat(DataFormat format);
 
   // Misc
   Result GetResultFromHRESULT(long result);
@@ -511,14 +501,14 @@ namespace Core::RHI {
   inline Vendor GetVendorFromID(uint32_t vendorID) {
     switch (vendorID) {
       case 0x10DE:
-        return Vendor::NVIDIA;
+        return Vendor::Nvidia;
       case 0x1002:
         return Vendor::AMD;
       case 0x8086:
-        return Vendor::INTEL;
+        return Vendor::Intel;
+      default:
+        return Vendor::Unknown;
     }
-
-    return Vendor::UNKNOWN;
   }
 
   inline Dim_t GetDimension(GraphicsBackend api, const TextureDesc &textureDesc, Dim_t dimensionIndex, Dim_t mip) {
@@ -566,7 +556,7 @@ namespace Core::RHI {
   uint64_t GetSwapChainId();
 
   inline uint64_t GetPresentIndex(uint64_t presentId) {
-    return presentId & ((1ull << PRESENT_INDEX_BIT_NUM) - 1ull);
+    return presentId & ((1ull << presentIndexBitNumber) - 1ull);
   }
 
   // Windows/D3D specific
@@ -613,8 +603,10 @@ namespace Core::RHI {
     bool opticalFlow;
   };
 
-  inline QueueType TrySelectPreferredQueueType(const QueueFamilyProps &props,
-                                               std::array<uint32_t, (size_t)QueueType::Count> &scores) {
+  inline QueueType TrySelectPreferredQueueType(
+    const QueueFamilyProps &props,
+    std::array<uint32_t, (size_t)QueueType::Count> &scores
+  ) {
     {
       // Prefer as much features as possible
       size_t index = (size_t)QueueType::Graphics;
@@ -672,6 +664,6 @@ namespace Core::RHI {
   }
 
 #endif
-} // namespace Core::RHI
+}
 
-#include "DeviceBase.hpp" // requires "StdAllocator"
+#include "device_base.hpp" // requires "StdAllocator"

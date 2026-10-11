@@ -1,11 +1,9 @@
 #pragma once
 #include <cstdint>
-#include <SDL3/SDL_video.h>
-#include <SDL3/SDL_mouse.h>
-#include <core/events/window_events.hpp>
-#include <core/memory/intrusive_ptr.hpp>
 
-namespace Core {
+struct SDL_Window;
+
+namespace Core::Application {
   struct WindowOptions {
     bool mouseLocked = false;
     bool fullScreen = false;
@@ -67,13 +65,13 @@ namespace Core {
 
       void restore() { minimized = false; }
 
-      void close() const { SDL_HideWindow(window); }
+      void close() const;
 
-      void lockMouse() const { SDL_SetWindowRelativeMouseMode(window, true); }
+      void lockMouse() const;
 
-      void unlockMouse() const { SDL_SetWindowRelativeMouseMode(window, false); }
+      void unlockMouse() const;
 
-      std::uint32_t getId() const { return SDL_GetWindowID(window); }
+      std::uint32_t getId() const;
 
       void *getWindowHandle() const { return window; }
 

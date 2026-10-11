@@ -1,9 +1,9 @@
-#include <core/application/application.hpp>
+#include <core/application/window.hpp>
+#include "application.hpp"
 #include "app_layer.hpp"
-#include <core/rhi/extensions/low_latency.hpp>
 
 int main() {
-  const Core::Application application("Vulkan Template");
+  const Application::Application application("Vulkan Template");
   application.createWindow({
     .mouseLocked = false,
     .fullScreen = false,
@@ -14,7 +14,7 @@ int main() {
     .windowName = "Game"
   });
 
-  application.addLayer<AppLayer>();
+  // application.addLayer<Application::AppLayer>();
   application.run();
 
   return 0;

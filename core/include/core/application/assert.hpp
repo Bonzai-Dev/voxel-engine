@@ -1,7 +1,5 @@
 #pragma once
 
-#include <application/logger.hpp>
-
 #ifdef ENGINE_PLATFORM_WINDOWS
   #define ENGINE_DEBUG_BREAK() __debugbreak()
 #elif ENGINE_COMPILER_CLANG

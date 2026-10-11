@@ -1,9 +1,11 @@
 #pragma once
 #include <core/application/layer.hpp>
 
-class AppLayer : public Core::Layer {
-  public:
-    explicit AppLayer(const Core::Application &application);
+namespace Application {
+  class AppLayer: public Core::Application::Layer {
+    public:
+      explicit AppLayer(const Core::Application::Application &application);
 
-    // void render() override;
-};
+      // void render() override;
+  };
+}

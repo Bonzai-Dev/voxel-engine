@@ -1,5 +1,4 @@
 #pragma once
-#include <core/events/event.hpp>
 
 // The application will have multiple render layers that can be rendered in a specific order.
 //
@@ -7,7 +6,7 @@
 // For example, one layer could be responsible for rendering the game world, while another layer could be
 // responsible for rendering the UI.
 
-namespace Core {
+namespace Core::Application {
   class Application;
 
   class Layer {

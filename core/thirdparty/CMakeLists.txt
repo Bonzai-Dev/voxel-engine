@@ -4,7 +4,7 @@ set(SDL_STATIC ON CACHE BOOL "" FORCE)
 set(SDL_DISABLE_INSTALL ON CACHE BOOL "" FORCE)
 set(SDL_TEST_LIBRARY OFF CACHE BOOL "" FORCE)
 add_subdirectory(SDL EXCLUDE_FROM_ALL)
-target_link_libraries(engine-core PRIVATE SDL3::SDL3)
+target_link_libraries(engine-core PUBLIC SDL3::SDL3)
 
 # glm
 #add_subdirectory(glm EXCLUDE_FROM_ALL)
@@ -16,7 +16,7 @@ target_link_libraries(engine-core PRIVATE SDL3::SDL3)
 
 # spdlog
 add_subdirectory(spdlog EXCLUDE_FROM_ALL)
-target_link_libraries(engine-core PRIVATE spdlog::spdlog)
+target_link_libraries(engine-core PUBLIC spdlog::spdlog)
 
 # Vulkan
 add_subdirectory(vma EXCLUDE_FROM_ALL)
@@ -45,3 +45,19 @@ set(SLANG_ENABLE_OPTIX OFF CACHE BOOL "" FORCE)
 set(SLANG_LIB_TYPE "SHARED" CACHE STRING "" FORCE)
 add_subdirectory(slang EXCLUDE_FROM_ALL)
 target_link_libraries(engine-core PRIVATE slang)
+
+# NRI
+set(NRI_STATIC_LIBRARY ON)
+set(NRI_ENABLE_NONE_SUPPORT ON)
+if (WIN32)
+    set(NRI_ENABLE_VK_SUPPORT ON)
+    set(NRI_ENABLE_D3D11_SUPPORT ON)
+    set(NRI_ENABLE_D3D12_SUPPORT ON)
+elseif (APPLE)
+    set(NRI_ENABLE_VK_SUPPORT ON)
+elseif (UNIX)
+    set(NRI_ENABLE_VK_SUPPORT ON)
+endif ()
+
+add_subdirectory(NRI EXCLUDE_FROM_ALL)
+target_link_libraries(engine-core PUBLIC NRI)

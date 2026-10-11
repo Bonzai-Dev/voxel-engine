@@ -52,3 +52,6 @@
 [submodule "core/thirdparty/slang"]
 	path = core/thirdparty/slang
 	url = https://github.com/shader-slang/slang.git
+[submodule "core/thirdparty/NRI"]
+	path = core/thirdparty/NRI
+	url = https://github.com/NVIDIA-RTX/NRI.git

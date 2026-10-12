@@ -1,6 +1,5 @@
 #pragma once
 #include <cstdint>
-
 struct SDL_Window;
 
 namespace Core::Application {
@@ -73,7 +72,7 @@ namespace Core::Application {
 
       std::uint32_t getId() const;
 
-      void *getWindowHandle() const { return window; }
+      void *getHandle() const { return window; }
 
     protected:
       bool minimized = false;

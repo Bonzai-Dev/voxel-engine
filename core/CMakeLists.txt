@@ -82,6 +82,11 @@ add_library(engine-core STATIC ${APPLICATION_SOURCES} ${EVENTS_SOURCES})
 add_library(voxel-engine::core ALIAS engine-core)
 target_include_directories(engine-core PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 target_compile_definitions(engine-core PRIVATE ${RHI_ENABLED_BACKENDS})
+target_compile_definitions(
+    engine-core PRIVATE
+    $<$<CONFIG:Debug>:ENGINE_DEBUG>
+    $<$<CONFIG:Release>:ENGINE_RELEASE>
+)
 
 add_subdirectory(thirdparty)
 

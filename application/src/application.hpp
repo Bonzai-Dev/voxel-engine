@@ -59,7 +59,9 @@ namespace Application {
       }
 
       void onWindowResize(const Core::Events::WindowResized &event) {
-        windows.at(event.windowId)->resize(event.width, event.height);
+        Core::Application::Window &window = *windows.at(event.windowId);
+        LOG_CORE_INFO("Window {} resized to {}x{}", event.windowId, event.width, event.height);
+        window.resize(event.width, event.height);
       }
 
       void onWindowMouseMotion(const Core::Events::WindowMouseMotion &event) {
@@ -81,9 +83,19 @@ namespace Application {
       }
 
       void onWindowMaximized(const Core::Events::WindowMaximized &event) {
+        Core::Application::Window &window = *windows.at(event.windowId);
+        window.maximize();
+        if (renderer) {
+          // renderer->recreateWindowSurface(window);
+        }
       }
 
       void onWindowRestored(const Core::Events::WindowRestored &event) {
+        Core::Application::Window &window = *windows.at(event.windowId);
+        window.restore();
+        if (renderer) {
+          // renderer->recreateWindowSurface(window);
+        }
       }
 
       void onWindowClose(const Core::Events::WindowClosed &event) {

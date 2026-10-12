@@ -12,12 +12,6 @@ add_subdirectory(core)
 add_subdirectory(application)
 
 # Macros
-target_compile_definitions(
-    ${CMAKE_PROJECT_NAME} PRIVATE
-    $<$<CONFIG:Debug>:ENGINE_DEBUG>
-    $<$<CONFIG:Release>:ENGINE_RELEASE>
-)
-
 if(WIN32)
     target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE ENGINE_PLATFORM_WINDOWS)
 elseif(UNIX)

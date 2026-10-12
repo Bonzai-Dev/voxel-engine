@@ -43,29 +43,12 @@ namespace Application {
     EventDispatcher::listen<KeyPressedEvent>([&](const KeyPressedEvent &event) { onKeyPressed(event); });
     EventDispatcher::listen<KeyReleasedEvent>([&](const KeyReleasedEvent &event) { onKeyReleased(event); });
 
-    // switch (graphicsBackend) {
-    //   case Graphics::Backend::Vulkan:
-    //     // renderingDevice = std::make_unique<Graphics::VulkanRenderingDevice>(graphicsBackend, name, displayInfo);
-    //     break;
-    //
-    //   case Graphics::Backend::None:
-    //     LOG_CORE_CRITICAL("No graphics backend selected. Select a backend to render graphics");
-    //     break;
-    //
-    //   default:
-    //     LOG_CORE_CRITICAL("Unsupported graphics backend selected");
-    //     break;
-    // }
+    renderer = std::make_unique<Core::Renderer::Renderer>();
   }
 
   Application::~Application() {
     quit();
   }
-
-  // Graphics::Backend Application::selectGraphicsBackend() const {
-  //   // TODO: Implement graphics backend selection based on platform and availability
-  //   return Graphics::Backend::Vulkan;
-  // }
 
   void Application::run() const {
     static std::uint64_t lastFrameTime = 0;
@@ -75,8 +58,8 @@ namespace Application {
       currentFrameTime = SDL_GetPerformanceCounter();
       deltaTime = currentFrameTime - lastFrameTime;
 
-      eventDispatcher.process();
       pollInputs();
+      eventDispatcher.process();
 
       if (running && renderer) {
         renderer->render();
@@ -89,8 +72,7 @@ namespace Application {
       displayInfo,
       options
     );
-    // renderer->createSwapChain(window.get(), window->options.width, window->options.height);
-    renderer = std::make_unique<Core::Renderer::Renderer>(*window);
+    renderer->createWindowSurface(*window.get());
     windows.emplace(window->getId(), std::move(window));
   }
 
@@ -101,9 +83,11 @@ namespace Application {
     // TODO: remove listeners?
     running = false;
 
+    renderer.reset();
     for (auto &[id, window] : windows) {
       window->close();
     }
+    windows.clear();
 
     SDL_free(displays);
     SDL_Quit();
@@ -123,11 +107,24 @@ namespace Application {
           EventDispatcher::queue(WindowHidden(event.window.windowID));
           break;
         case SDL_EVENT_WINDOW_RESIZED:
-          EventDispatcher::queue(WindowResized(
-            event.window.data1, event.window.data2,
-            event.window.windowID
-          ));
+          // EventDispatcher::queue(WindowResized(
+          //   event.window.data1, event.window.data2,
+          //   event.window.windowID
+          // ));
           break;
+        case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED: {
+          SDL_Window *window = SDL_GetWindowFromID(event.window.windowID);
+          int width = 0;
+          int height = 0;
+          if (window && SDL_GetWindowSizeInPixels(window, &width, &height)) {
+            EventDispatcher::queue(WindowResized(
+              static_cast<std::uint32_t>(width),
+              static_cast<std::uint32_t>(height),
+              event.window.windowID
+            ));
+          }
+          break;
+        }
         case SDL_EVENT_WINDOW_EXPOSED:
           EventDispatcher::queue(WindowExposed(event.window.windowID));
           break;

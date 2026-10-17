@@ -4,15 +4,15 @@
 
 int main() {
   const Application::Application application("Vulkan Template");
-  application.createWindow({
-    .mouseLocked = false,
-    .fullScreen = false,
-    .vsync = true,
-    .resizable = true,
-    .width = 1920,
-    .height = 1080,
-    .windowName = "Game"
-  });
+  // application.createWindow({
+  //   .mouseLocked = false,
+  //   .fullScreen = false,
+  //   .vsync = true,
+  //   .resizable = true,
+  //   .width = 1920,
+  //   .height = 1080,
+  //   .windowName = "Game"
+  // });
 
   // application.addLayer<Application::AppLayer>();
   application.run();

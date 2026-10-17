@@ -13,15 +13,19 @@ namespace Core::Application {
 namespace Core::Renderer {
   class Renderer {
     public:
-      explicit Renderer();
+      explicit Renderer(const Application::Window &window);
 
       ~Renderer();
 
-      void render();
+      void renderFrame();
 
-      bool recreateWindowSurface(const Application::Window &window);
+      void recreateWindowSurface(const Application::Window &window);
 
-      bool createWindowSurface(const Application::Window &window);
+      // void createWindowSurface(const Application::Window &window);
+
+      void updateSwapchain() {
+        swapChainResize = true;
+      }
 
     private:
       struct SwapChainTexture {
@@ -32,33 +36,32 @@ namespace Core::Renderer {
         nri::Format attachmentFormat;
       };
 
-      void destroySwapChain(uint32_t windowId);
+      struct FrameResources {
+        nri::CommandAllocator *commandAllocator;
+        nri::CommandBuffer *commandBuffer;
+      };
+
+      // void destroySwapChain(uint32_t windowId);
 
       void destroySwapChains();
+
+      const Application::Window &window;
 
       nri::CoreInterface coreInterface = {};
       nri::SwapChainInterface swapChainInterface = {};
 
-      std::unordered_map<uint32_t, nri::SwapChain*> swapChains;
-      std::unordered_map<uint32_t, std::vector<SwapChainTexture>> swapChainTextures;
-      std::unordered_map<uint32_t, const Application::Window*> windows;
-      std::unordered_map<uint32_t, std::pair<uint32_t, uint32_t>> windowSizes;
-
-      std::queue<uint32_t> windowResizeQueue;
-      std::unordered_map<uint32_t, std::pair<uint32_t, uint32_t>> swapChainDims;
+      std::vector<SwapChainTexture> swapChainTextures;
+      std::vector<FrameResources> frameResources;
+      bool swapChainResize = false;
+      int swapChainWidth = 0;
+      int swapChainHeight = 0;
+      nri::SwapChain *swapChain = nullptr;
 
       nri::Device *renderingDevice = nullptr;
       nri::Queue *presentQueue = nullptr;
 
-      nri::CommandAllocator *commandAllocator = nullptr;
-      nri::CommandBuffer *commandBuffer = nullptr;
-
       nri::Fence *frameFence = nullptr;
-      nri::Fence *acquireFence = nullptr;
 
-      nri::PipelineLayout *pipelineLayout = nullptr;
-      nri::Pipeline *pipeline = nullptr;
-      nri::Format swapChainFormat = nri::Format::UNKNOWN;
-      uint32_t frameIndex = 0;
+      uint32_t framesDrawn = 0;
   };
 }

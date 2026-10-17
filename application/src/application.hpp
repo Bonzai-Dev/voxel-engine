@@ -51,17 +51,17 @@ namespace Application {
 
     private:
       void onWindowShow(const Core::Events::WindowShown &event) {
-        windows.at(event.windowId)->show();
+        // windows.at(event.windowId)->show();
       }
 
       void onWindowHide(const Core::Events::WindowHidden &event) {
-        windows.at(event.windowId)->hide();
+        // windows.at(event.windowId)->hide();
       }
 
       void onWindowResize(const Core::Events::WindowResized &event) {
-        Core::Application::Window &window = *windows.at(event.windowId);
-        LOG_CORE_INFO("Window {} resized to {}x{}", event.windowId, event.width, event.height);
-        window.resize(event.width, event.height);
+        // Core::Application::Window &window = *windows.at(event.windowId);
+        // window.resize(event.width, event.height);
+        // LOG_CORE_INFO("Resize event processed and resized to {}x{}", event.width, event.height);
       }
 
       void onWindowMouseMotion(const Core::Events::WindowMouseMotion &event) {

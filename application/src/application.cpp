@@ -43,7 +43,21 @@ namespace Application {
     EventDispatcher::listen<KeyPressedEvent>([&](const KeyPressedEvent &event) { onKeyPressed(event); });
     EventDispatcher::listen<KeyReleasedEvent>([&](const KeyReleasedEvent &event) { onKeyReleased(event); });
 
-    renderer = std::make_unique<Core::Renderer::Renderer>();
+    Core::Application::WindowOptions op {
+      .mouseLocked = false,
+      .fullScreen = false,
+      .vsync = true,
+      .resizable = true,
+      .width = 1920,
+      .height = 1080,
+      .windowName = "Game"
+    };
+    std::unique_ptr<Core::Application::Window> window = std::make_unique<Core::Application::Window>(
+      displayInfo,
+      op
+    );
+    renderer = std::make_unique<Core::Renderer::Renderer>(*window);
+    windows.emplace(window->getId(), std::move(window));
   }
 
   Application::~Application() {
@@ -62,18 +76,18 @@ namespace Application {
       eventDispatcher.process();
 
       if (running && renderer) {
-        renderer->render();
+        renderer->renderFrame();
       }
     }
   }
 
   void Application::createWindow(const Core::Application::WindowOptions &options) const {
-    std::unique_ptr<Core::Application::Window> window = std::make_unique<Core::Application::Window>(
-      displayInfo,
-      options
-    );
-    renderer->createWindowSurface(*window.get());
-    windows.emplace(window->getId(), std::move(window));
+    // std::unique_ptr<Core::Application::Window> window = std::make_unique<Core::Application::Window>(
+    //   displayInfo,
+    //   options
+    // );
+    // renderer->createWindowSurface(*window.get());
+    // windows.emplace(window->getId(), std::move(window));
   }
 
   void Application::quit() const {
@@ -84,7 +98,7 @@ namespace Application {
     running = false;
 
     renderer.reset();
-    for (auto &[id, window] : windows) {
+    for (auto &[id, window]: windows) {
       window->close();
     }
     windows.clear();
@@ -111,18 +125,20 @@ namespace Application {
           //   event.window.data1, event.window.data2,
           //   event.window.windowID
           // ));
+          renderer->updateSwapchain();
           break;
         case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED: {
-          SDL_Window *window = SDL_GetWindowFromID(event.window.windowID);
-          int width = 0;
-          int height = 0;
-          if (window && SDL_GetWindowSizeInPixels(window, &width, &height)) {
-            EventDispatcher::queue(WindowResized(
-              static_cast<std::uint32_t>(width),
-              static_cast<std::uint32_t>(height),
-              event.window.windowID
-            ));
-          }
+          // SDL_Window *window = SDL_GetWindowFromID(event.window.windowID);
+          // int width = 0;
+          // int height = 0;
+          //
+          // if (window && SDL_GetWindowSize(window, &width, &height)) {
+          //   // EventDispatcher::queue(WindowResized(
+          //   //   static_cast<std::uint32_t>(width),
+          //   //   static_cast<std::uint32_t>(height),
+          //   //   event.window.windowID
+          //   // ));
+          // }
           break;
         }
         case SDL_EVENT_WINDOW_EXPOSED:

@@ -76,7 +76,7 @@ namespace Application {
       eventDispatcher.process();
 
       if (running && renderer) {
-        renderer->renderFrame();
+        renderer->render();
       }
     }
   }
@@ -125,7 +125,7 @@ namespace Application {
           //   event.window.data1, event.window.data2,
           //   event.window.windowID
           // ));
-          renderer->updateSwapchain();
+          // renderer->updateSwapchain();
           break;
         case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED: {
           // SDL_Window *window = SDL_GetWindowFromID(event.window.windowID);

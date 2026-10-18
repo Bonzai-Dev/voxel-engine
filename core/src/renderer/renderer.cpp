@@ -13,31 +13,21 @@
 
 #include "core/application/logger.hpp"
 
-#ifndef ENGINE_TRIANGLE_VERTEX_SHADER
-#error "The triangle vertex shader path must be configured by CMake"
-#endif
-
-#ifndef ENGINE_TRIANGLE_FRAGMENT_SHADER
-#error "The triangle fragment shader path must be configured by CMake"
-#endif
-
 using namespace Core::Application;
-
-inline uint8_t GetQueuedFrameNum() {
-  return 3;
-}
-
-inline uint8_t GetOptimalSwapChainTextureNum() {
-  return GetQueuedFrameNum() + 1;
-}
-
 namespace {
+  inline uint8_t GetQueuedFrameNum(bool vsync) {
+    return vsync ? 2 : 3;
+  }
+
+  inline uint8_t GetOptimalSwapChainTextureNum(bool vsync) {
+    return GetQueuedFrameNum(vsync) + 1;
+  }
+
   constexpr nri::VKBindingOffsets VK_BINDING_OFFSETS = {0, 128, 32, 64};
 
-  void checkNri(nri::Result result, const char *operation) {
+  void checkNri(nri::Result result) {
     if (result != nri::Result::SUCCESS) {
       throw std::runtime_error(
-        std::string(operation) + " failed with NRI result " +
         std::to_string(static_cast<int>(result))
       );
     }
@@ -115,10 +105,10 @@ namespace Core::Renderer {
   Renderer::Renderer(const Application::Window &window): window(window) {
     // Adapters
     std::uint32_t adapterCount = 0;
-    checkNri(nri::nriEnumerateAdapters(nullptr, adapterCount), "Enumerate NRI adapters");
+    checkNri(nri::nriEnumerateAdapters(nullptr, adapterCount));
 
     std::vector<nri::AdapterDesc> adapters(adapterCount);
-    checkNri(nri::nriEnumerateAdapters(adapters.data(), adapterCount), "Enumerate NRI adapters");
+    checkNri(nri::nriEnumerateAdapters(adapters.data(), adapterCount));
 
     // The RHI automatically sorts the best adapters first
     const nri::AdapterDesc &adapter = adapters.front();
@@ -130,47 +120,34 @@ namespace Core::Renderer {
     deviceDesc.enableNRIValidation = true;
     deviceDesc.enableGraphicsAPIValidation = true;
 #endif
-    checkNri(nri::nriCreateDevice(deviceDesc, renderingDevice), "Create NRI device");
+    checkNri(nri::nriCreateDevice(deviceDesc, renderingDevice));
 
     checkNri(
-      nri::nriGetInterface(*renderingDevice, NRI_INTERFACE(nri::CoreInterface), &coreInterface),
-      "Load NRI core interface"
+      nri::nriGetInterface(*renderingDevice, NRI_INTERFACE(nri::CoreInterface), &coreInterface)
     );
     checkNri(
-      nri::nriGetInterface(*renderingDevice, NRI_INTERFACE(nri::SwapChainInterface), &swapChainInterface),
-      "Load NRI swap-chain interface"
+      nri::nriGetInterface(*renderingDevice, NRI_INTERFACE(nri::SwapChainInterface), &swapChainInterface)
     );
 
-    checkNri(
-      coreInterface.GetQueue(*renderingDevice, nri::QueueType::GRAPHICS, 0, presentQueue),
-      "Get NRI graphics queue"
-    );
-
-    // Fences
-    checkNri(coreInterface.CreateFence(*renderingDevice, 0, frameFence), "Create NRI fence");
+    checkNri(coreInterface.GetQueue(*renderingDevice, nri::QueueType::GRAPHICS, 0, graphicsQueue));
 
     {
       // Swap chain
       nri::SwapChainDesc swapChainDesc = {};
       swapChainDesc.window = getNriWindow(window);
-      swapChainDesc.queue = presentQueue;
+      swapChainDesc.queue = graphicsQueue;
       swapChainDesc.format = nri::SwapChainFormat::BT709_G22_8BIT;
       swapChainDesc.flags = (window.options.vsync ? nri::SwapChainBits::VSYNC : nri::SwapChainBits::NONE) |
         nri::SwapChainBits::NONE;
-
-      int width, height;
-      SDL_GetWindowSizeInPixels(static_cast<SDL_Window*>(window.getHandle()), &width, &height);
-      swapChainDesc.width = width;
-      swapChainDesc.height = height;
-      swapChainDesc.textureNum = GetOptimalSwapChainTextureNum();
-      swapChainDesc.queuedFrameNum = GetQueuedFrameNum();
+      swapChainDesc.width = (uint16_t)window.options.width;
+      swapChainDesc.height = (uint16_t)window.options.height;
+      swapChainDesc.textureNum = GetOptimalSwapChainTextureNum(window.options.vsync);
+      swapChainDesc.queuedFrameNum = GetQueuedFrameNum(window.options.vsync);
       swapChainDesc.scaling = nri::Scaling::ONE_TO_ONE;
-      checkNri(swapChainInterface.CreateSwapChain(*renderingDevice, swapChainDesc, swapChain),
-               "Create NRI swap chain");
+      (swapChainInterface.CreateSwapChain(*renderingDevice, swapChainDesc, swapChain));
 
       uint32_t swapChainTextureNum;
-      nri::Texture *const*swapChainTextures = swapChainInterface.
-        GetSwapChainTextures(*swapChain, swapChainTextureNum);
+      nri::Texture *const*swapChainTextures = swapChainInterface.GetSwapChainTextures(*swapChain, swapChainTextureNum);
 
       nri::Format swapChainFormat = coreInterface.GetTextureDesc(*swapChainTextures[0]).format;
 
@@ -180,34 +157,24 @@ namespace Core::Renderer {
         };
 
         nri::Descriptor *colorAttachment = nullptr;
-        checkNri(coreInterface.CreateTextureView(textureViewDesc, colorAttachment), "Create color attachment");
+        (coreInterface.CreateTextureView(textureViewDesc, colorAttachment));
 
-        nri::Fence *acquireSemaphore = nullptr;
-        checkNri(coreInterface.CreateFence(*renderingDevice, nri::SWAPCHAIN_SEMAPHORE, acquireSemaphore),
-                 "Create acquire semaphore");
+        SwapChainImage &swapChainTexture = swapChainImages.emplace_back();
 
-        nri::Fence *releaseSemaphore = nullptr;
-        checkNri(coreInterface.CreateFence(*renderingDevice, nri::SWAPCHAIN_SEMAPHORE, releaseSemaphore),
-                 "Create release semaphore");
+        (coreInterface.CreateFence(*renderingDevice, nri::SWAPCHAIN_SEMAPHORE, swapChainTexture.releaseSemaphore));
 
-        SwapChainTexture &swapChainTexture = this->swapChainTextures.emplace_back();
-
-        swapChainTexture = {};
-        swapChainTexture.acquireSemaphore = acquireSemaphore;
-        swapChainTexture.releaseSemaphore = releaseSemaphore;
         swapChainTexture.texture = swapChainTextures[i];
         swapChainTexture.colorAttachment = colorAttachment;
         swapChainTexture.attachmentFormat = swapChainFormat;
       }
     }
 
-    // Queued frames
-    frameResources.resize(GetQueuedFrameNum());
-    for (FrameResources &queuedFrame: frameResources) {
-      checkNri(coreInterface.CreateCommandAllocator(*presentQueue, queuedFrame.commandAllocator),
-               "Create command allocator");
-      checkNri(coreInterface.CreateCommandBuffer(*queuedFrame.commandAllocator, queuedFrame.commandBuffer),
-               "Create command buffer");
+    queuedFrames.resize(GetQueuedFrameNum(window.options.vsync));
+    for (auto &queuedFrame: queuedFrames) {
+      coreInterface.CreateFence(*renderingDevice, 0, queuedFrame.frameFence);
+      coreInterface.CreateCommandAllocator(*graphicsQueue, queuedFrame.commandAllocator);
+      coreInterface.CreateCommandBuffer(*queuedFrame.commandAllocator, queuedFrame.commandBuffer);
+      (coreInterface.CreateFence(*renderingDevice, nri::SWAPCHAIN_SEMAPHORE, queuedFrame.acquireSemaphore));
     }
   }
 
@@ -215,105 +182,83 @@ namespace Core::Renderer {
   }
 
   void Renderer::recreateWindowSurface(const Application::Window &window) {
-     // Wait for idle
-    coreInterface.DeviceWaitIdle(renderingDevice);
+    {
+      coreInterface.QueueWaitIdle(graphicsQueue);
 
-    // Destroy old swapchain
-    for (SwapChainTexture& swapChainTexture: swapChainTextures) {
-      coreInterface.DestroyFence(swapChainTexture.acquireSemaphore);
-      coreInterface.DestroyFence(swapChainTexture.releaseSemaphore);
-      coreInterface.DestroyDescriptor(swapChainTexture.colorAttachment);
-    }
+      for (auto &swapChainImage: swapChainImages) {
+        coreInterface.DestroyDescriptor(swapChainImage.colorAttachment);
+        coreInterface.DestroyFence(swapChainImage.releaseSemaphore);
+      }
+      swapChainImages.clear();
 
-    swapChainInterface.DestroySwapChain(swapChain);
+      swapChainInterface.DestroySwapChain(swapChain);
 
-    // Create new swapchain
-    nri::SwapChainDesc swapChainDesc = {};
-    swapChainDesc.window = getNriWindow(window);
-    swapChainDesc.queue = presentQueue;
-    swapChainDesc.format = nri::SwapChainFormat::BT709_G22_8BIT;
-    swapChainDesc.flags = (window.options.vsync ? nri::SwapChainBits::VSYNC : nri::SwapChainBits::NONE) | nri::SwapChainBits::NONE;
+      // Swap chain
+      nri::SwapChainDesc swapChainDesc = {};
+      swapChainDesc.window = getNriWindow(window);
+      swapChainDesc.queue = graphicsQueue;
+      swapChainDesc.format = nri::SwapChainFormat::BT709_G22_8BIT;
+      swapChainDesc.flags = (window.options.vsync ? nri::SwapChainBits::VSYNC : nri::SwapChainBits::NONE) |
+        nri::SwapChainBits::NONE;
+      swapChainDesc.width = (uint16_t)window.options.width;
+      swapChainDesc.height = (uint16_t)window.options.height;
+      swapChainDesc.textureNum = GetOptimalSwapChainTextureNum(window.options.vsync);
+      swapChainDesc.queuedFrameNum = GetQueuedFrameNum(window.options.vsync);
+      swapChainDesc.scaling = nri::Scaling::ONE_TO_ONE;
+      (swapChainInterface.CreateSwapChain(*renderingDevice, swapChainDesc, swapChain));
 
-    int width, height;
-    SDL_GetWindowSizeInPixels(static_cast<SDL_Window*>(window.getHandle()), &width, &height);
-// LOG_CORE_INFO("Recreating swap chain with width: {}, height: {}", width, height);
-    swapChainDesc.width = (uint16_t)width;
-    swapChainDesc.height = (uint16_t)height;
-    swapChainDesc.textureNum = GetOptimalSwapChainTextureNum();
-    swapChainDesc.queuedFrameNum = GetQueuedFrameNum();
-    swapChainDesc.scaling = nri::Scaling::ONE_TO_ONE;
+      uint32_t swapChainTextureNum;
+      nri::Texture *const*swapChainTextures = swapChainInterface.GetSwapChainTextures(*swapChain, swapChainTextureNum);
 
-    checkNri(swapChainInterface.CreateSwapChain(*renderingDevice, swapChainDesc, swapChain), "Create NRI swap chain");
+      nri::Format swapChainFormat = coreInterface.GetTextureDesc(*swapChainTextures[0]).format;
 
-    uint32_t swapChainTextureNum;
-    nri::Texture* const* swapChainTextures = swapChainInterface.GetSwapChainTextures(*swapChain, swapChainTextureNum);
+      for (uint32_t i = 0; i < swapChainTextureNum; i++) {
+        nri::TextureViewDesc textureViewDesc = {
+          swapChainTextures[i], nri::TextureView::COLOR_ATTACHMENT, swapChainFormat
+        };
 
-    nri::Format swapChainFormat = this->swapChainTextures[0].attachmentFormat;
+        nri::Descriptor *colorAttachment = nullptr;
+        (coreInterface.CreateTextureView(textureViewDesc, colorAttachment));
 
-    this->swapChainTextures.clear();
-    for (uint32_t i = 0; i < swapChainTextureNum; i++) {
-        nri::TextureViewDesc textureViewDesc = {swapChainTextures[i], nri::TextureView::COLOR_ATTACHMENT, swapChainFormat};
-
-        nri::Descriptor* colorAttachment = nullptr;
-        checkNri(coreInterface.CreateTextureView(textureViewDesc, colorAttachment), "Create color attachment");
-
-        nri::Fence* acquireSemaphore = nullptr;
-        checkNri(coreInterface.CreateFence(*renderingDevice, nri::SWAPCHAIN_SEMAPHORE, acquireSemaphore), "Create acquire semaphore");
-
-        nri::Fence* releaseSemaphore = nullptr;
-        checkNri(coreInterface.CreateFence(*renderingDevice, nri::SWAPCHAIN_SEMAPHORE, releaseSemaphore), "Create release semaphore");
-
-        SwapChainTexture& swapChainTexture = this->swapChainTextures.emplace_back();
-
+        SwapChainImage &swapChainTexture = swapChainImages.emplace_back();
         swapChainTexture = {};
-        swapChainTexture.acquireSemaphore = acquireSemaphore;
-        swapChainTexture.releaseSemaphore = releaseSemaphore;
+
+        (coreInterface.CreateFence(*renderingDevice, nri::SWAPCHAIN_SEMAPHORE, swapChainTexture.releaseSemaphore));
+
         swapChainTexture.texture = swapChainTextures[i];
         swapChainTexture.colorAttachment = colorAttachment;
         swapChainTexture.attachmentFormat = swapChainFormat;
+      }
     }
   }
 
-  void Renderer::destroySwapChains() {
-  }
-
-  void Renderer::renderFrame() {
+  void Renderer::render() {
     {
-      if (swapChainResize) {
-        swapChainResize = false;
+      if (updateSwapChain) {
+        updateSwapChain = false;
         recreateWindowSurface(window);
       }
     }
 
-    uint32_t currentFrameIndex = framesDrawn % GetQueuedFrameNum();
-    const FrameResources &currentFrameResource = frameResources[currentFrameIndex];
+    uint32_t currentFrameIndex = frameCount % GetQueuedFrameNum(window.options.vsync);
 
-    coreInterface.Wait(*frameFence, framesDrawn >= GetQueuedFrameNum() ? (framesDrawn + 1) - GetQueuedFrameNum() : 0);
+    coreInterface.Wait(*queuedFrames[currentFrameIndex].frameFence, queuedFrames[currentFrameIndex].lastFenceValue);
+    coreInterface.ResetCommandAllocator(*queuedFrames[currentFrameIndex].commandAllocator);
 
-    coreInterface.ResetCommandAllocator(*currentFrameResource.commandAllocator);
-
-    uint32_t acquireSemaphoreIndex = currentFrameIndex % (uint32_t)swapChainTextures.size();
-    nri::Fence *swapChainAcquireSemaphore = swapChainTextures[acquireSemaphoreIndex].acquireSemaphore;
-
-    uint32_t currentSwapChainTextureIndex = 0;
-    const nri::Result acquireResult =
-        swapChainInterface.AcquireNextTexture(
-            *swapChain,
-            *swapChainAcquireSemaphore,
-            currentSwapChainTextureIndex
-        );
-    if (acquireResult == nri::Result::OUT_OF_DATE) {
-      swapChainResize = true;
+    uint32_t imageIndex;
+    auto res = swapChainInterface.AcquireNextTexture(*swapChain, *queuedFrames[currentFrameIndex].acquireSemaphore, imageIndex);
+    if (res == nri::Result::OUT_OF_DATE) {
+      updateSwapChain = true;
       return;
     }
-    checkNri(acquireResult, "Acquire next swap-chain texture");
-    const SwapChainTexture &swapChainTexture = swapChainTextures[currentSwapChainTextureIndex];
+    checkNri(res);
 
-    nri::CommandBuffer &commandBuffer = *currentFrameResource.commandBuffer;
+    // Record
+    nri::CommandBuffer &commandBuffer = *queuedFrames[currentFrameIndex].commandBuffer;
     coreInterface.BeginCommandBuffer(commandBuffer, nullptr);
     {
       nri::TextureBarrierDesc textureBarriers = {};
-      textureBarriers.texture = swapChainTexture.texture;
+      textureBarriers.texture = swapChainImages[imageIndex].texture;
       textureBarriers.after = {nri::AccessBits::COPY_SOURCE, nri::Layout::COPY_SOURCE};
       textureBarriers.layerNum = 1;
       textureBarriers.mipNum = 1;
@@ -331,7 +276,7 @@ namespace Core::Renderer {
       coreInterface.CmdBarrier(commandBuffer, barrierDesc);
 
       nri::AttachmentDesc colorAttachmentDesc = {};
-      colorAttachmentDesc.descriptor = swapChainTexture.colorAttachment;
+      colorAttachmentDesc.descriptor = swapChainImages[imageIndex].colorAttachment;
 
       nri::RenderingDesc renderingDesc = {};
       renderingDesc.colorNum = 1;
@@ -353,42 +298,45 @@ namespace Core::Renderer {
     }
     coreInterface.EndCommandBuffer(commandBuffer);
 
-    // Submit
-    {
+    { // Submit
       nri::FenceSubmitDesc textureAcquiredFence = {};
-      textureAcquiredFence.fence = swapChainAcquireSemaphore;
+      textureAcquiredFence.fence = queuedFrames[currentFrameIndex].acquireSemaphore;
       textureAcquiredFence.stages = nri::StageBits::COLOR_ATTACHMENT;
 
       nri::FenceSubmitDesc renderingFinishedFence = {};
-      renderingFinishedFence.fence = swapChainTexture.releaseSemaphore;
+      renderingFinishedFence.fence = swapChainImages[imageIndex].releaseSemaphore;
 
       nri::QueueSubmitDesc queueSubmitDesc = {};
       queueSubmitDesc.waitFences = &textureAcquiredFence;
       queueSubmitDesc.waitFenceNum = 1;
-      queueSubmitDesc.commandBuffers = &currentFrameResource.commandBuffer;
+      queueSubmitDesc.commandBuffers = &queuedFrames[currentFrameIndex].commandBuffer;
       queueSubmitDesc.commandBufferNum = 1;
       queueSubmitDesc.signalFences = &renderingFinishedFence;
       queueSubmitDesc.signalFenceNum = 1;
 
-      coreInterface.QueueSubmit(*presentQueue, queueSubmitDesc);
+      coreInterface.QueueSubmit(*graphicsQueue, queueSubmitDesc);
     }
 
     // Present
-    if (swapChainInterface.QueuePresent(*swapChain, *swapChainTexture.releaseSemaphore) == nri::Result::OUT_OF_DATE) {
-      swapChainResize = true;
+    auto res2 = swapChainInterface.QueuePresent(*swapChain, *swapChainImages[imageIndex].releaseSemaphore);
+    if (res2 == nri::Result::OUT_OF_DATE) {
+      updateSwapChain = true;
     }
+
     { // Signaling after "Present" improves D3D11 performance a bit
       nri::FenceSubmitDesc signalFence = {};
-      signalFence.value = framesDrawn + 1;
-      signalFence.fence = frameFence;
+      signalFence.fence = queuedFrames[currentFrameIndex].frameFence;
+      signalFence.value = queuedFrames[currentFrameIndex].lastFenceValue + 1;
 
       nri::QueueSubmitDesc queueSubmitDesc = {};
       queueSubmitDesc.signalFences = &signalFence;
       queueSubmitDesc.signalFenceNum = 1;
+      queuedFrames[currentFrameIndex].lastFenceValue = signalFence.value;
 
-      coreInterface.QueueSubmit(*presentQueue, queueSubmitDesc);
+      coreInterface.QueueSubmit(*graphicsQueue, queueSubmitDesc);
     }
 
-    ++framesDrawn;
+    // frameIndex = (frameIndex + 1) % GetQueuedFrameNum(window.options.vsync);
+    ++frameCount;
   }
 }

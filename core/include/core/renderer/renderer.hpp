@@ -23,16 +23,16 @@ namespace Core::Renderer {
     private:
       void recreateWindowSurface(const Application::Window &window);
 
+      nri::Fence* frameFence;
+
       struct QueuedFrame {
-        uint64_t lastFenceValue = 0;
-        nri::Fence* frameFence;
-        nri::Fence* acquireSemaphore;
         nri::CommandAllocator* commandAllocator;
         nri::CommandBuffer* commandBuffer;
       };
 
       struct SwapChainImage {
         nri::Fence* releaseSemaphore;
+        nri::Fence* acquireSemaphore;
         nri::Texture* texture;
         nri::Descriptor* colorAttachment;
         nri::Format attachmentFormat;
@@ -47,8 +47,6 @@ namespace Core::Renderer {
 
       std::vector<QueuedFrame> queuedFrames = {};
       std::vector<SwapChainImage> swapChainImages;
-
-      bool updateSwapChain = false;
 
       const Application::Window &window;
       uint32_t frameCount = 0;

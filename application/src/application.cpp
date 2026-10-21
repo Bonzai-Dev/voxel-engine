@@ -128,16 +128,16 @@ namespace Application {
           // renderer->updateSwapchain();
           break;
         case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED: {
-          // SDL_Window *window = SDL_GetWindowFromID(event.window.windowID);
-          // int width = 0;
-          // int height = 0;
-          //
+          SDL_Window *window = SDL_GetWindowFromID(event.window.windowID);
+          int width = 0;
+          int height = 0;
+
           // if (window && SDL_GetWindowSize(window, &width, &height)) {
-          //   // EventDispatcher::queue(WindowResized(
-          //   //   static_cast<std::uint32_t>(width),
-          //   //   static_cast<std::uint32_t>(height),
-          //   //   event.window.windowID
-          //   // ));
+          //   EventDispatcher::queue(WindowResized(
+          //     static_cast<std::uint32_t>(width),
+          //     static_cast<std::uint32_t>(height),
+          //     event.window.windowID
+          //   ));
           // }
           break;
         }

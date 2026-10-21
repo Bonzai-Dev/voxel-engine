@@ -14,6 +14,7 @@
 #include "core/application/logger.hpp"
 
 using namespace Core::Application;
+
 namespace {
   inline uint8_t GetQueuedFrameNum(bool vsync) {
     return vsync ? 2 : 3;
@@ -162,6 +163,7 @@ namespace Core::Renderer {
         SwapChainImage &swapChainTexture = swapChainImages.emplace_back();
 
         (coreInterface.CreateFence(*renderingDevice, nri::SWAPCHAIN_SEMAPHORE, swapChainTexture.releaseSemaphore));
+        (coreInterface.CreateFence(*renderingDevice, nri::SWAPCHAIN_SEMAPHORE, swapChainTexture.acquireSemaphore));
 
         swapChainTexture.texture = swapChainTextures[i];
         swapChainTexture.colorAttachment = colorAttachment;
@@ -169,12 +171,13 @@ namespace Core::Renderer {
       }
     }
 
+    coreInterface.CreateFence(*renderingDevice, 0, frameFence);
+
     queuedFrames.resize(GetQueuedFrameNum(window.options.vsync));
     for (auto &queuedFrame: queuedFrames) {
-      coreInterface.CreateFence(*renderingDevice, 0, queuedFrame.frameFence);
       coreInterface.CreateCommandAllocator(*graphicsQueue, queuedFrame.commandAllocator);
       coreInterface.CreateCommandBuffer(*queuedFrame.commandAllocator, queuedFrame.commandBuffer);
-      (coreInterface.CreateFence(*renderingDevice, nri::SWAPCHAIN_SEMAPHORE, queuedFrame.acquireSemaphore));
+      // (coreInterface.CreateFence(*renderingDevice, nri::SWAPCHAIN_SEMAPHORE, queuedFrame.acquireSemaphore));
     }
   }
 
@@ -182,83 +185,90 @@ namespace Core::Renderer {
   }
 
   void Renderer::recreateWindowSurface(const Application::Window &window) {
-    {
-      coreInterface.QueueWaitIdle(graphicsQueue);
+    // Wait for idle
+    coreInterface.QueueWaitIdle(graphicsQueue);
 
-      for (auto &swapChainImage: swapChainImages) {
-        coreInterface.DestroyDescriptor(swapChainImage.colorAttachment);
-        coreInterface.DestroyFence(swapChainImage.releaseSemaphore);
-      }
-      swapChainImages.clear();
+    // Destroy old swapchain
+    for (SwapChainImage &swapChainTexture: swapChainImages) {
+      coreInterface.DestroyFence(swapChainTexture.acquireSemaphore);
+      coreInterface.DestroyFence(swapChainTexture.releaseSemaphore);
+      coreInterface.DestroyDescriptor(swapChainTexture.colorAttachment);
+    }
 
-      swapChainInterface.DestroySwapChain(swapChain);
+    swapChainInterface.DestroySwapChain(swapChain);
 
-      // Swap chain
-      nri::SwapChainDesc swapChainDesc = {};
-      swapChainDesc.window = getNriWindow(window);
-      swapChainDesc.queue = graphicsQueue;
-      swapChainDesc.format = nri::SwapChainFormat::BT709_G22_8BIT;
-      swapChainDesc.flags = (window.options.vsync ? nri::SwapChainBits::VSYNC : nri::SwapChainBits::NONE) |
-        nri::SwapChainBits::NONE;
-      swapChainDesc.width = (uint16_t)window.options.width;
-      swapChainDesc.height = (uint16_t)window.options.height;
-      swapChainDesc.textureNum = GetOptimalSwapChainTextureNum(window.options.vsync);
-      swapChainDesc.queuedFrameNum = GetQueuedFrameNum(window.options.vsync);
-      swapChainDesc.scaling = nri::Scaling::ONE_TO_ONE;
-      (swapChainInterface.CreateSwapChain(*renderingDevice, swapChainDesc, swapChain));
+    // Create new swapchain
+    nri::SwapChainDesc swapChainDesc = {};
+    swapChainDesc.window = getNriWindow(window);
+    swapChainDesc.queue = graphicsQueue;
+    swapChainDesc.format = nri::SwapChainFormat::BT709_G22_8BIT;
+    swapChainDesc.flags = (window.options.vsync ? nri::SwapChainBits::VSYNC : nri::SwapChainBits::NONE) |
+      nri::SwapChainBits::NONE;
+    swapChainDesc.width = (uint16_t)window.options.width;
+    swapChainDesc.height = (uint16_t)window.options.height;
+    swapChainDesc.textureNum = GetOptimalSwapChainTextureNum(window.options.vsync);
+    swapChainDesc.queuedFrameNum = GetQueuedFrameNum(window.options.vsync);
+    swapChainDesc.scaling = nri::Scaling::ONE_TO_ONE;
+    checkNri(swapChainInterface.CreateSwapChain(*renderingDevice, swapChainDesc, swapChain));
 
-      uint32_t swapChainTextureNum;
-      nri::Texture *const*swapChainTextures = swapChainInterface.GetSwapChainTextures(*swapChain, swapChainTextureNum);
+    uint32_t swapChainTextureNum;
+    nri::Texture *const*swapChainTextures = swapChainInterface.GetSwapChainTextures(*swapChain, swapChainTextureNum);
 
-      nri::Format swapChainFormat = coreInterface.GetTextureDesc(*swapChainTextures[0]).format;
+    nri::Format swapChainFormat = coreInterface.GetTextureDesc(*swapChainTextures[0]).format;
 
-      for (uint32_t i = 0; i < swapChainTextureNum; i++) {
-        nri::TextureViewDesc textureViewDesc = {
-          swapChainTextures[i], nri::TextureView::COLOR_ATTACHMENT, swapChainFormat
-        };
+    swapChainImages.clear();
+    for (uint32_t i = 0; i < swapChainTextureNum; i++) {
+      nri::TextureViewDesc textureViewDesc = {
+        swapChainTextures[i], nri::TextureView::COLOR_ATTACHMENT, swapChainFormat
+      };
 
-        nri::Descriptor *colorAttachment = nullptr;
-        (coreInterface.CreateTextureView(textureViewDesc, colorAttachment));
+      nri::Descriptor *colorAttachment = nullptr;
+      checkNri(coreInterface.CreateTextureView(textureViewDesc, colorAttachment));
 
-        SwapChainImage &swapChainTexture = swapChainImages.emplace_back();
-        swapChainTexture = {};
+      nri::Fence *acquireSemaphore = nullptr;
+      checkNri(coreInterface.CreateFence(*renderingDevice, nri::SWAPCHAIN_SEMAPHORE, acquireSemaphore));
 
-        (coreInterface.CreateFence(*renderingDevice, nri::SWAPCHAIN_SEMAPHORE, swapChainTexture.releaseSemaphore));
+      nri::Fence *releaseSemaphore = nullptr;
+      checkNri(coreInterface.CreateFence(*renderingDevice, nri::SWAPCHAIN_SEMAPHORE, releaseSemaphore));
 
-        swapChainTexture.texture = swapChainTextures[i];
-        swapChainTexture.colorAttachment = colorAttachment;
-        swapChainTexture.attachmentFormat = swapChainFormat;
-      }
+      SwapChainImage &swapChainTexture = swapChainImages.emplace_back();
+
+      swapChainTexture = {};
+      swapChainTexture.acquireSemaphore = acquireSemaphore;
+      swapChainTexture.releaseSemaphore = releaseSemaphore;
+      swapChainTexture.texture = swapChainTextures[i];
+      swapChainTexture.colorAttachment = colorAttachment;
+      swapChainTexture.attachmentFormat = swapChainFormat;
     }
   }
 
   void Renderer::render() {
-    {
-      if (updateSwapChain) {
-        updateSwapChain = false;
-        recreateWindowSurface(window);
-      }
-    }
-
     uint32_t currentFrameIndex = frameCount % GetQueuedFrameNum(window.options.vsync);
+    const QueuedFrame &queuedFrame = queuedFrames[currentFrameIndex];
 
-    coreInterface.Wait(*queuedFrames[currentFrameIndex].frameFence, queuedFrames[currentFrameIndex].lastFenceValue);
-    coreInterface.ResetCommandAllocator(*queuedFrames[currentFrameIndex].commandAllocator);
+    coreInterface.Wait(*frameFence, frameCount >= GetQueuedFrameNum(window.options.vsync)
+                                      ? 1 + frameCount - GetQueuedFrameNum(window.options.vsync)
+                                      : 0);
+    coreInterface.ResetCommandAllocator(*queuedFrame.commandAllocator);
 
-    uint32_t imageIndex;
-    auto res = swapChainInterface.AcquireNextTexture(*swapChain, *queuedFrames[currentFrameIndex].acquireSemaphore, imageIndex);
-    if (res == nri::Result::OUT_OF_DATE) {
-      updateSwapChain = true;
+    // Acquire a swap chain texture
+    uint32_t recycledSemaphoreIndex = frameCount % (uint32_t)swapChainImages.size();
+    nri::Fence *swapChainAcquireSemaphore = swapChainImages[recycledSemaphoreIndex].acquireSemaphore;
+
+    uint32_t currentSwapChainTextureIndex = 0;
+    if (swapChainInterface.AcquireNextTexture(*swapChain, *swapChainAcquireSemaphore, currentSwapChainTextureIndex) == nri::Result::OUT_OF_DATE) {
+      recreateWindowSurface(window);
       return;
     }
-    checkNri(res);
+
+    const SwapChainImage &swapChainTexture = swapChainImages[currentSwapChainTextureIndex];
 
     // Record
-    nri::CommandBuffer &commandBuffer = *queuedFrames[currentFrameIndex].commandBuffer;
+    nri::CommandBuffer &commandBuffer = *queuedFrame.commandBuffer;
     coreInterface.BeginCommandBuffer(commandBuffer, nullptr);
     {
       nri::TextureBarrierDesc textureBarriers = {};
-      textureBarriers.texture = swapChainImages[imageIndex].texture;
+      textureBarriers.texture = swapChainTexture.texture;
       textureBarriers.after = {nri::AccessBits::COPY_SOURCE, nri::Layout::COPY_SOURCE};
       textureBarriers.layerNum = 1;
       textureBarriers.mipNum = 1;
@@ -276,7 +286,7 @@ namespace Core::Renderer {
       coreInterface.CmdBarrier(commandBuffer, barrierDesc);
 
       nri::AttachmentDesc colorAttachmentDesc = {};
-      colorAttachmentDesc.descriptor = swapChainImages[imageIndex].colorAttachment;
+      colorAttachmentDesc.descriptor = swapChainTexture.colorAttachment;
 
       nri::RenderingDesc renderingDesc = {};
       renderingDesc.colorNum = 1;
@@ -298,18 +308,19 @@ namespace Core::Renderer {
     }
     coreInterface.EndCommandBuffer(commandBuffer);
 
-    { // Submit
+    {
+      // Submit
       nri::FenceSubmitDesc textureAcquiredFence = {};
-      textureAcquiredFence.fence = queuedFrames[currentFrameIndex].acquireSemaphore;
+      textureAcquiredFence.fence = swapChainAcquireSemaphore;
       textureAcquiredFence.stages = nri::StageBits::COLOR_ATTACHMENT;
 
       nri::FenceSubmitDesc renderingFinishedFence = {};
-      renderingFinishedFence.fence = swapChainImages[imageIndex].releaseSemaphore;
+      renderingFinishedFence.fence = swapChainTexture.releaseSemaphore;
 
       nri::QueueSubmitDesc queueSubmitDesc = {};
       queueSubmitDesc.waitFences = &textureAcquiredFence;
       queueSubmitDesc.waitFenceNum = 1;
-      queueSubmitDesc.commandBuffers = &queuedFrames[currentFrameIndex].commandBuffer;
+      queueSubmitDesc.commandBuffers = &queuedFrame.commandBuffer;
       queueSubmitDesc.commandBufferNum = 1;
       queueSubmitDesc.signalFences = &renderingFinishedFence;
       queueSubmitDesc.signalFenceNum = 1;
@@ -318,25 +329,24 @@ namespace Core::Renderer {
     }
 
     // Present
-    auto res2 = swapChainInterface.QueuePresent(*swapChain, *swapChainImages[imageIndex].releaseSemaphore);
-    if (res2 == nri::Result::OUT_OF_DATE) {
-      updateSwapChain = true;
+    if (swapChainInterface.QueuePresent(*swapChain, *swapChainTexture.releaseSemaphore, 0) == nri::Result::OUT_OF_DATE) {
+      recreateWindowSurface(window);
+      return;
     }
 
-    { // Signaling after "Present" improves D3D11 performance a bit
+    {
+      // Signaling after "Present" improves D3D11 performance a bit
       nri::FenceSubmitDesc signalFence = {};
-      signalFence.fence = queuedFrames[currentFrameIndex].frameFence;
-      signalFence.value = queuedFrames[currentFrameIndex].lastFenceValue + 1;
+      signalFence.fence = frameFence;
+      signalFence.value = 1 + frameCount;
 
       nri::QueueSubmitDesc queueSubmitDesc = {};
       queueSubmitDesc.signalFences = &signalFence;
       queueSubmitDesc.signalFenceNum = 1;
-      queuedFrames[currentFrameIndex].lastFenceValue = signalFence.value;
 
       coreInterface.QueueSubmit(*graphicsQueue, queueSubmitDesc);
     }
 
-    // frameIndex = (frameIndex + 1) % GetQueuedFrameNum(window.options.vsync);
     ++frameCount;
   }
 }

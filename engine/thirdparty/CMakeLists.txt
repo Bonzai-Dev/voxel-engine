@@ -4,32 +4,32 @@ set(SDL_STATIC ON CACHE BOOL "" FORCE)
 set(SDL_DISABLE_INSTALL ON CACHE BOOL "" FORCE)
 set(SDL_TEST_LIBRARY OFF CACHE BOOL "" FORCE)
 add_subdirectory(SDL EXCLUDE_FROM_ALL)
-target_link_libraries(engine-core PUBLIC SDL3::SDL3)
+target_link_libraries(engine PRIVATE SDL3::SDL3)
 
 # glm
 #add_subdirectory(glm EXCLUDE_FROM_ALL)
-#target_link_libraries(engine-core PRIVATE glm::glm)
+#target_link_libraries(engine PRIVATE glm::glm)
 
 #simdjson
 #add_subdirectory(simdjson EXCLUDE_FROM_ALL)
-#target_link_libraries(engine-core PRIVATE simdjson::simdjson)
+#target_link_libraries(engine PRIVATE simdjson::simdjson)
 
 # spdlog
 add_subdirectory(spdlog EXCLUDE_FROM_ALL)
-target_link_libraries(engine-core PUBLIC spdlog::spdlog)
+target_link_libraries(engine PRIVATE spdlog::spdlog)
 
 # Vulkan
-add_subdirectory(vma EXCLUDE_FROM_ALL)
-add_subdirectory(vulkan EXCLUDE_FROM_ALL)
+#add_subdirectory(vma EXCLUDE_FROM_ALL)
+#add_subdirectory(vulkan EXCLUDE_FROM_ALL)
 
 # We are making sure that volk uses the bundled Vulkan headers instead of the system ones
-set(VOLK_PULL_IN_VULKAN OFF CACHE BOOL "" FORCE)
-add_subdirectory(volk EXCLUDE_FROM_ALL)
-target_link_libraries(volk PRIVATE Vulkan-Headers)
+#set(VOLK_PULL_IN_VULKAN OFF CACHE BOOL "" FORCE)
+#add_subdirectory(volk EXCLUDE_FROM_ALL)
+#target_link_libraries(volk PRIVATE Vulkan-Headers)
 
-add_library(VulkanHeaders INTERFACE)
-target_link_libraries(VulkanHeaders INTERFACE Vulkan-Headers volk GPUOpen::VulkanMemoryAllocator)
-target_link_libraries(engine-core PUBLIC VulkanHeaders)
+#add_library(VulkanHeaders INTERFACE)
+#target_link_libraries(VulkanHeaders INTERFACE Vulkan-Headers volk GPUOpen::VulkanMemoryAllocator)
+#target_link_libraries(engine PRIVATE VulkanHeaders)
 
 # Slang
 set(SLANG_ENABLE_PCH OFF CACHE BOOL "" FORCE)
@@ -44,7 +44,7 @@ set(SLANG_ENABLE_OPTIX OFF CACHE BOOL "" FORCE)
 
 set(SLANG_LIB_TYPE "SHARED" CACHE STRING "" FORCE)
 add_subdirectory(slang EXCLUDE_FROM_ALL)
-target_link_libraries(engine-core PRIVATE slang)
+target_link_libraries(engine PRIVATE slang)
 
 # NRI
 set(NRI_STATIC_LIBRARY ON)
@@ -60,4 +60,4 @@ elseif (UNIX)
 endif ()
 
 add_subdirectory(NRI EXCLUDE_FROM_ALL)
-target_link_libraries(engine-core PUBLIC NRI)
+target_link_libraries(engine PUBLIC NRI)

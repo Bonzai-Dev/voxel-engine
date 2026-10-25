@@ -77,13 +77,13 @@ file(
 )
 
 # Creating core library
-#add_library(engine-core STATIC ${APPLICATION_SOURCES} ${EVENTS_SOURCES} ${RHI_SOURCES})
-add_library(engine-core STATIC ${APPLICATION_SOURCES} ${EVENTS_SOURCES})
-add_library(voxel-engine::core ALIAS engine-core)
-target_include_directories(engine-core PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
-target_compile_definitions(engine-core PRIVATE ${RHI_ENABLED_BACKENDS})
+#add_library(engine STATIC ${APPLICATION_SOURCES} ${EVENTS_SOURCES} ${RHI_SOURCES})
+add_library(engine STATIC ${APPLICATION_SOURCES} ${EVENTS_SOURCES})
+add_library(voxel-engine::core ALIAS engine)
+target_include_directories(engine PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
+target_compile_definitions(engine PRIVATE ${RHI_ENABLED_BACKENDS})
 target_compile_definitions(
-    engine-core PRIVATE
+    engine PRIVATE
     $<$<CONFIG:Debug>:ENGINE_DEBUG>
     $<$<CONFIG:Release>:ENGINE_RELEASE>
 )
@@ -115,9 +115,9 @@ add_custom_target(engine-triangle-shaders
         "${SHADERS_DIRECTORY}/triangle.vert.spv"
         "${SHADERS_DIRECTORY}/triangle.frag.spv"
 )
-add_dependencies(engine-core engine-triangle-shaders)
+add_dependencies(engine engine-triangle-shaders)
 target_compile_definitions(
-    engine-core PRIVATE
+    engine PRIVATE
     ENGINE_TRIANGLE_VERTEX_SHADER="${SHADERS_DIRECTORY}/triangle.vert.spv"
     ENGINE_TRIANGLE_FRAGMENT_SHADER="${SHADERS_DIRECTORY}/triangle.frag.spv"
 )

@@ -1,7 +1,7 @@
 #pragma once
 #include "event.hpp"
 
-namespace Core::Events {
+namespace Engine::Events {
   class WindowEvent: public Event {
     public:
       WindowEvent(EventType eventType, const char *name, std::uint32_t windowId): Event(eventType, name),

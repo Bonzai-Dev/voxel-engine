@@ -9,9 +9,9 @@
 #include <queue>
 #include <typeindex>
 
-#include "core/application/logger.hpp"
+#include "../core/logging.hpp"
 
-namespace Core::Events {
+namespace Engine::Events {
   enum class EventType {
     None = 0,
     QuitApplication,

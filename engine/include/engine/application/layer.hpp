@@ -6,7 +6,7 @@
 // For example, one layer could be responsible for rendering the game world, while another layer could be
 // responsible for rendering the UI.
 
-namespace Core::Application {
+namespace Engine::Application {
   class Application;
 
   class Layer {

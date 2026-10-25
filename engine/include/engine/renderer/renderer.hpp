@@ -7,11 +7,11 @@
 #include <Extensions/NRIDeviceCreation.h>
 #include "Extensions/NRIStreamer.h"
 
-namespace Core::Application {
+namespace Engine::Application {
   class Window;
 }
 
-namespace Core::Renderer {
+namespace Engine::Renderer {
   class Renderer {
     public:
       explicit Renderer(const Application::Window &window);

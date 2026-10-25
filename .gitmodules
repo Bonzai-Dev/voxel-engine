@@ -55,3 +55,15 @@
 [submodule "core/thirdparty/NRI"]
 	path = core/thirdparty/NRI
 	url = https://github.com/NVIDIA-RTX/NRI.git
+[submodule "engine/thirdparty/SDL"]
+	path = engine/thirdparty/SDL
+	url = https://github.com/libsdl-org/SDL.git
+[submodule "engine/thirdparty/NRI"]
+	path = engine/thirdparty/NRI
+	url = https://github.com/NVIDIA-RTX/NRI.git
+[submodule "engine/thirdparty/slang"]
+	path = engine/thirdparty/slang
+	url = https://github.com/shader-slang/slang.git
+[submodule "engine/thirdparty/spdlog"]
+	path = engine/thirdparty/spdlog
+	url = https://github.com/gabime/spdlog.git

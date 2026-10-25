@@ -1,35 +1,26 @@
 #pragma once
 #include <cstdint>
+
 struct SDL_Window;
 
-namespace Core::Application {
+namespace Engine::Application {
   struct WindowOptions {
     bool mouseLocked = false;
     bool fullScreen = false;
     bool vsync = false;
     bool resizable = true;
 
-    std::uint32_t width = 800;
-    std::uint32_t height = 600;
+    uint32_t width = 800;
+    uint32_t height = 600;
 
     const char *windowName = "Window";
-  };
-
-  struct DisplayInfo {
-    std::uint32_t displayId;
-
-    std::uint32_t width;
-    std::uint32_t height;
   };
 
   class Window {
     public:
       explicit Window(
-        const DisplayInfo &displayInfo,
         const WindowOptions &windowOptions
       );
-
-      WindowOptions options;
 
       Window(const Window &other) = delete;
 
@@ -40,6 +31,8 @@ namespace Core::Application {
       Window &operator=(Window &&other) = delete;
 
       ~Window();
+
+      const WindowOptions &getOptions() const { return options; }
 
       void show() { shown = true; }
 
@@ -57,7 +50,7 @@ namespace Core::Application {
 
       void maximize() { minimized = false; }
 
-      void resize(std::uint32_t width, std::uint32_t height) {
+      void resize(uint32_t width, uint32_t height) {
         options.width = width;
         options.height = height;
       }
@@ -70,7 +63,7 @@ namespace Core::Application {
 
       void unlockMouse() const;
 
-      std::uint32_t getId() const;
+      uint32_t getId() const;
 
       void *getHandle() const { return window; }
 
@@ -80,9 +73,9 @@ namespace Core::Application {
       bool mouseFocused = false; // Whether if the mouse is in the window or not
       bool keyboardFocused = false;
 
-      const DisplayInfo &displayInfo;
+      WindowOptions options;
 
       SDL_Window *window = nullptr;
-      std::uint64_t windowFlags = 0;
+      uint64_t windowFlags = 0;
   };
 }

@@ -1,21 +1,21 @@
 #pragma once
 
-#ifdef ENGINE_PLATFORM_WINDOWS
+#if defined(ENGINE_PLATFORM_WINDOWS)
   #define ENGINE_DEBUG_BREAK() __debugbreak()
-#elif ENGINE_COMPILER_CLANG
+#elif defined(ENGINE_COMPILER_CLANG)
   #define ENGINE_DEBUG_BREAK() __builtin_debugtrap()
-# elif ENGINE_COMPILER_GCC
+#elif defined(ENGINE_COMPILER_GCC)
   #include <csignal>
   #define ENGINE_DEBUG_BREAK() raise(SIGTRAP)
 #else
   #define ENGINE_DEBUG_BREAK()
 #endif
 
-#ifdef ENGINE_DEBUG
+#if defined(ENGINE_DEBUG)
   #define ENGINE_ENABLE_ASSERTS
 #endif
 
-#ifdef ENGINE_ENABLE_ASSERTS
+#if defined(ENGINE_ENABLE_ASSERTS)
   #define ENGINE_ASSERT(condition, ...) \
     if (condition) { } \
     else { \
@@ -28,4 +28,3 @@
   #define ENGINE_ASSERT(condition, ...)
   #define ENGINE_STATIC_ASSERT(condition, ...)
 #endif
-

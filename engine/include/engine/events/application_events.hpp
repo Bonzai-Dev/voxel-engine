@@ -1,7 +1,7 @@
 #pragma once
 #include "event.hpp"
 
-namespace Core::Events {
+namespace Engine::Events {
   class ApplicationQuit: public Event {
     public:
       ApplicationQuit(): Event(EventType::QuitApplication, "ApplicationQuit") {

@@ -2,7 +2,7 @@
 #include "window_events.hpp"
 #include "event.hpp"
 
-namespace Core::Events {
+namespace Engine::Events {
   class KeyEvent: public WindowEvent {
     public:
       KeyEvent(std::uint32_t keyCode, EventType eventType, const char *name, std::uint64_t windowId):

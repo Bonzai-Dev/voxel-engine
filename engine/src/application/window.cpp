@@ -1,17 +1,17 @@
 #include <SDL3/SDL_video.h>
 #include <SDL3/SDL_mouse.h>
-#include <core/events/window_events.hpp>
-#include <core/memory/intrusive_ptr.hpp>
-#include <core/application/logger.hpp>
-#include <core/application/window.hpp>
+#include <engine/events/window_events.hpp>
+#include <engine/memory/intrusive_ptr.hpp>
+#include <engine/core/logging.hpp>
+#include <engine/application/window.hpp>
+#include "../engine.hpp"
 
-namespace Core::Application {
+namespace Engine::Application {
   Window::Window(
-     const DisplayInfo &displayInfo,
      const WindowOptions &windowOptions
-   ) : options(windowOptions), displayInfo(displayInfo) {
-    std::uint32_t width = options.width;
-    std::uint32_t height = options.height;
+   ) : options(windowOptions) {
+    uint32_t width = options.width;
+    uint32_t height = options.height;
 
     if (options.fullScreen)
       windowFlags |= SDL_WINDOW_FULLSCREEN;
@@ -28,9 +28,13 @@ namespace Core::Application {
     );
 
     if (!window) {
-      LOG_CORE_ERROR("Failed to create window: {}", SDL_GetError());
+      ENGINE_LOG_ERROR(Engine::Core::coreLogger, "Failed to create window: {}", SDL_GetError());
       return;
     }
+
+    #ifdef ENGINE_PLATFORM_WINDOWS
+      ENGINE_LOG_ERROR(Engine::Core::coreLogger, "Failed to create window: {}", SDL_GetError());
+    #endif
 
     SDL_SetWindowRelativeMouseMode(window, options.mouseLocked);
   }
@@ -52,7 +56,7 @@ namespace Core::Application {
     SDL_SetWindowRelativeMouseMode(window, false);
   }
 
-  std::uint32_t Window::getId() const {
+  uint32_t Window::getId() const {
     return SDL_GetWindowID(window);
   }
 }

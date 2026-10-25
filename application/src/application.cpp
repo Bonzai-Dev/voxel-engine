@@ -1,19 +1,20 @@
+#include <memory>
 #include "application.hpp"
 
-using namespace Core::Events;
+using namespace Engine::Events;
 
 namespace Application {
   Application::Application(const char *name): name(name) {
     if (!SDL_Init(SDL_INIT_VIDEO)) {
-      LOG_CORE_CRITICAL("Failed to initialize SDL Video: {}", SDL_GetError());
+      ENGINE_LOG_CRITICAL(appLogger, "Failed to initialize SDL Video: {}", SDL_GetError());
       return;
     }
 
     displays = SDL_GetDisplays(&displayCount);
     if (displayCount > 0 && displays)
-      LOG_CORE_INFO("Found {} display(s)", displayCount);
+      ENGINE_LOG_INFO(appLogger, "Found {} display(s)", displayCount);
     else
-      LOG_CORE_WARNING("No displays found");
+      ENGINE_LOG_WARNING(appLogger, "No displays found");
 
     currentDisplay = SDL_GetCurrentDisplayMode(displays[0]);
     displayInfo = {
@@ -43,7 +44,7 @@ namespace Application {
     EventDispatcher::listen<KeyPressedEvent>([&](const KeyPressedEvent &event) { onKeyPressed(event); });
     EventDispatcher::listen<KeyReleasedEvent>([&](const KeyReleasedEvent &event) { onKeyReleased(event); });
 
-    Core::Application::WindowOptions op {
+    Engine::Application::WindowOptions op {
       .mouseLocked = false,
       .fullScreen = false,
       .vsync = true,
@@ -52,11 +53,8 @@ namespace Application {
       .height = 1080,
       .windowName = "Game"
     };
-    std::unique_ptr<Core::Application::Window> window = std::make_unique<Core::Application::Window>(
-      displayInfo,
-      op
-    );
-    renderer = std::make_unique<Core::Renderer::Renderer>(*window);
+    std::unique_ptr<Engine::Application::Window> window = std::make_unique<Engine::Application::Window>(op);
+    renderer = std::make_unique<Engine::Renderer::Renderer>(*window);
     windows.emplace(window->getId(), std::move(window));
   }
 
@@ -81,7 +79,7 @@ namespace Application {
     }
   }
 
-  void Application::createWindow(const Core::Application::WindowOptions &options) const {
+  void Application::createWindow(const Engine::Application::WindowOptions &options) const {
     // std::unique_ptr<Core::Application::Window> window = std::make_unique<Core::Application::Window>(
     //   displayInfo,
     //   options

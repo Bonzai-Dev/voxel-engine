@@ -24,7 +24,7 @@
 #include <cstdint>
 #include <atomic>
 
-namespace Core {
+namespace Engine {
   // Base class for all reference-counted objects
   // The user is expected to manage the lifetime themselves by overriding addRef and release methods
   // Example usage:

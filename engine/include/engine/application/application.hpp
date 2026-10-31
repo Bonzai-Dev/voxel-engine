@@ -34,7 +34,7 @@ namespace Engine::Application {
 
       Application &operator=(Application &&other) = delete;
 
-      ~Application();
+      virtual ~Application();
 
       template <typename LayerT>
       requires(std::is_base_of_v<Layer, LayerT>)

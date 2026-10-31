@@ -32,7 +32,7 @@ namespace Engine::Core {
     static bool initialized = false;
     static const char *formatPattern = "%(time) [%(log_level)] [%(logger)] %(message)";
     static const char *timestampPattern = "%Y-%m-%d %H:%M:%S.%Qms";
-
+// LOGV_TRACE_L3("Initializing logger: {}", name);
     if (!initialized) {
       quill::Backend::start();
 

@@ -21,11 +21,11 @@ namespace Engine::Application {
       ENGINE_LOG_WARNING(appLogger, "No displays found");
 
     currentDisplay = SDL_GetCurrentDisplayMode(displays[0]);
-    displayInfo = {
-      .displayId = currentDisplay->displayID,
-      .width = static_cast<std::uint32_t>(currentDisplay->w),
-      .height = static_cast<std::uint32_t>(currentDisplay->h)
-    };
+    // displayInfo = {
+    //   .displayId = currentDisplay->displayID,
+    //   .width = static_cast<std::uint32_t>(currentDisplay->w),
+    //   .height = static_cast<std::uint32_t>(currentDisplay->h)
+    // };
 
     EventDispatcher::listen<ApplicationQuit>([&](const ApplicationQuit &event) { quit(); });
 
@@ -72,7 +72,7 @@ namespace Engine::Application {
     while (running) {
       lastFrameTime = currentFrameTime;
       currentFrameTime = SDL_GetPerformanceCounter();
-      deltaTime = currentFrameTime - lastFrameTime;
+      // deltaTime = currentFrameTime - lastFrameTime;
 
       pollInputs();
       eventDispatcher.process();

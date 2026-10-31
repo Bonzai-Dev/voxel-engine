@@ -1,10 +1,6 @@
 #pragma once
-#include <memory>
-#include <format>
-
-namespace spdlog {
-  class logger;
-}
+#include <quill/Logger.h>
+#include <quill/LogMacros.h>
 
 namespace Engine::Core {
   enum class LogLevel {
@@ -18,29 +14,52 @@ namespace Engine::Core {
 
   class Logger {
     public:
-      Logger(const char *name);
+      explicit Logger(const char *name);
 
-      template<typename... Args>
-      void log(LogLevel level, std::format_string<Args...> format, Args&&... args) const {
-        const std::string formated = std::format(format, std::forward<Args>(args)...);
-        output(level, formated);
+      inline operator quill::Logger*() const {
+        return logger;
+      }
+
+      inline quill::Logger *operator->() const {
+        return logger;
       }
 
     private:
-      void output(LogLevel level, std::string_view message) const;
-
       static inline LogLevel logLevel = LogLevel::Info;
 
-      std::shared_ptr<spdlog::logger> logger;
+      const char *name;
+      quill::Logger *logger = nullptr;
   };
 }
 
 #define ENGINE_DEFINE_LOG_CATEGORY(category, name) extern inline const ::Engine::Core::Logger category(name)
 
-#define ENGINE_LOG(category, level, ...) category.log(level, __VA_ARGS__)
-#define ENGINE_LOG_TRACE(category, ...) category.log(::Engine::Core::LogLevel::Trace, __VA_ARGS__)
-#define ENGINE_LOG_INFO(category, ...) category.log(::Engine::Core::LogLevel::Info, __VA_ARGS__)
-#define ENGINE_LOG_WARNING(category, ...) category.log(::Engine::Core::LogLevel::Warn, __VA_ARGS__)
-#define ENGINE_LOG_ERROR(category, ...) category.log(::Engine::Core::LogLevel::Error, __VA_ARGS__)
-#define ENGINE_LOG_CRITICAL(category, ...) category.log(::Engine::Core::LogLevel::Critical, __VA_ARGS__)
-#define ENGINE_LOG_DEBUG(category, ...) category.log(::Engine::Core::LogLevel::Debug, __VA_ARGS__)
+#define ENGINE_LOG(logger, level, ...)          \
+do {                                            \
+  switch (level) {                              \
+    case LogLevel::Trace:                       \
+      LOG_TRACE_L3(logger, __VA_ARGS__);        \
+      break;                                    \
+    case LogLevel::Debug:                       \
+      LOG_DEBUG(logger, __VA_ARGS__);           \
+      break;                                    \
+    case LogLevel::Info:                        \
+      LOG_INFO(logger, __VA_ARGS__);            \
+      break;                                    \
+    case LogLevel::Warn:                        \
+      LOG_WARNING(logger, __VA_ARGS__);         \
+      break;                                    \
+    case LogLevel::Error:                       \
+      LOG_ERROR(logger, __VA_ARGS__);           \
+      break;                                    \
+    case LogLevel::Critical:                    \
+      LOG_CRITICAL(logger, __VA_ARGS__);        \
+      break;                                    \
+  }                                             \
+} while (0)
+
+#define ENGINE_LOG_TRACE(logger, ...) do { LOG_TRACE_L3(logger, __VA_ARGS__); } while (0)
+#define ENGINE_LOG_INFO(logger, ...) do { LOG_INFO(logger, __VA_ARGS__); } while (0)
+#define ENGINE_LOG_WARNING(logger, ...) do { LOG_WARNING(logger, __VA_ARGS__); } while (0)
+#define ENGINE_LOG_ERROR(logger, ...) do { LOG_ERROR(logger, __VA_ARGS__); } while (0)
+#define ENGINE_LOG_CRITICAL(logger, ...) do { LOG_CRITICAL(logger, __VA_ARGS__); } while (0)

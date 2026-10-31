@@ -1,9 +1,13 @@
 #include <memory>
-#include "application.hpp"
+#include <SDL3/SDL_timer.h>
+#include <SDL3/SDL_init.h>
+#include <SDL3/SDL_video.h>
+#include <SDL3/SDL_mouse.h>
+#include <engine/application/application.hpp>
 
 using namespace Engine::Events;
 
-namespace Application {
+namespace Engine::Application {
   Application::Application(const char *name): name(name) {
     if (!SDL_Init(SDL_INIT_VIDEO)) {
       ENGINE_LOG_CRITICAL(appLogger, "Failed to initialize SDL Video: {}", SDL_GetError());

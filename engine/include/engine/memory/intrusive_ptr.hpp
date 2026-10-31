@@ -33,11 +33,11 @@ namespace Engine {
     public:
       virtual ~RefCounted() = default;
 
-      virtual unsigned long addRef() {
+      virtual unsigned long addRef(std::memory_order memoryOrder) const {
         return 0;
       }
 
-      virtual unsigned long release() {
+      virtual unsigned long release(std::memory_order memoryOrder) const {
         return 0;
       }
 
@@ -55,7 +55,7 @@ namespace Engine {
       //   return result;
       // }
 
-      unsigned long getRefCount() {
+      unsigned long getRefCount() const {
         return referenceCount.load();
       }
 

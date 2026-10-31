@@ -1,5 +1,5 @@
 #include <engine/application/window.hpp>
-#include "application.hpp"
+#include "../../engine/include/engine/application/application.hpp"
 #include "app_layer.hpp"
 
 int main() {
@@ -13,7 +13,6 @@ int main() {
   //   .height = 1080,
   //   .windowName = "Game"
   // });
-
   // application.addLayer<Application::AppLayer>();
   application.run();
 

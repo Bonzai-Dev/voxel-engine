@@ -14,9 +14,9 @@ target_link_libraries(engine PRIVATE SDL3::SDL3)
 #add_subdirectory(simdjson EXCLUDE_FROM_ALL)
 #target_link_libraries(engine PRIVATE simdjson::simdjson)
 
-# spdlog
-add_subdirectory(spdlog EXCLUDE_FROM_ALL)
-target_link_libraries(engine PRIVATE spdlog::spdlog)
+# quill
+add_subdirectory(quill EXCLUDE_FROM_ALL)
+target_link_libraries(engine PUBLIC quill::quill)
 
 # Vulkan
 #add_subdirectory(vma EXCLUDE_FROM_ALL)

@@ -1,9 +1,10 @@
 #pragma once
-#include <cstdint>
+#include <engine/memory/intrusive_ptr.hpp>
 
 struct SDL_Window;
 
 namespace Engine::Application {
+
   struct WindowOptions {
     bool mouseLocked = false;
     bool fullScreen = false;
@@ -16,7 +17,7 @@ namespace Engine::Application {
     const char *windowName = "Window";
   };
 
-  class Window {
+  class Window: public RefCounted {
     public:
       explicit Window(
         const WindowOptions &windowOptions
@@ -30,7 +31,19 @@ namespace Engine::Application {
 
       Window &operator=(Window &&other) = delete;
 
-      ~Window();
+      ~Window() override;
+
+      unsigned long addRef(std::memory_order memoryOrder) const override {
+        return ++referenceCount;
+      }
+
+      unsigned long release(std::memory_order memoryOrder) const override {
+        unsigned long result = --referenceCount;
+        if (result == 0) {
+          delete this;
+        }
+        return result;
+      }
 
       const WindowOptions &getOptions() const { return options; }
 

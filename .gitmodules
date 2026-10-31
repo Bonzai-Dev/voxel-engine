@@ -64,6 +64,6 @@
 [submodule "engine/thirdparty/slang"]
 	path = engine/thirdparty/slang
 	url = https://github.com/shader-slang/slang.git
-[submodule "engine/thirdparty/spdlog"]
-	path = engine/thirdparty/spdlog
-	url = https://github.com/gabime/spdlog.git
+[submodule "engine/thirdparty/quill"]
+	path = engine/thirdparty/quill
+	url = https://github.com/odygrd/quill.git

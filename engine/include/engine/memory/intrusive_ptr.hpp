@@ -21,6 +21,7 @@
 */
 
 #pragma once
+#include <cassert>
 #include <cstdint>
 #include <atomic>
 
@@ -33,11 +34,11 @@ namespace Engine {
     public:
       virtual ~RefCounted() = default;
 
-      virtual unsigned long addRef(std::memory_order memoryOrder) const {
+      virtual unsigned long addRef() const {
         return 0;
       }
 
-      virtual unsigned long release(std::memory_order memoryOrder) const {
+      virtual unsigned long release() const {
         return 0;
       }
 
@@ -65,7 +66,7 @@ namespace Engine {
 
   // Class that contains the pointer
   template<typename T>
-  class IntrusivePtr {
+  class SharedPtr {
     public:
       typedef T InterfaceType;
 
@@ -81,7 +82,7 @@ namespace Engine {
     protected:
       InterfaceType *instance;
       template<class U>
-      friend class IntrusivePtr;
+      friend class SharedPtr;
 
       void internalAddRef() const noexcept {
         if (instance != nullptr) {
@@ -102,97 +103,97 @@ namespace Engine {
       }
 
     public:
-      IntrusivePtr() noexcept: instance(nullptr) {
+      SharedPtr() noexcept: instance(nullptr) {
       }
 
-      IntrusivePtr(std::nullptr_t) noexcept: instance(nullptr) {
+      SharedPtr(std::nullptr_t) noexcept: instance(nullptr) {
       }
 
       template<class U>
-      IntrusivePtr(U *other) noexcept: instance(other) {
+      SharedPtr(U *other) noexcept: instance(other) {
         internalAddRef();
       }
 
-      IntrusivePtr(const IntrusivePtr &other) noexcept: instance(other.instance) {
+      SharedPtr(const SharedPtr &other) noexcept: instance(other.instance) {
         internalAddRef();
       }
 
       // copy ctor that allows to instantiate class when U* is convertible to T*
       template<class U>
-      IntrusivePtr(const IntrusivePtr<U> &other, std::enable_if_t<std::is_convertible_v<U *, T *>, void *> * = nullptr)
+      SharedPtr(const SharedPtr<U> &other, std::enable_if_t<std::is_convertible_v<U *, T *>, void *> * = nullptr)
         noexcept: instance(
         other.instance) {
         internalAddRef();
       }
 
-      IntrusivePtr(IntrusivePtr &&other) noexcept: instance(nullptr) {
-        if (this != reinterpret_cast<IntrusivePtr *>(&reinterpret_cast<unsigned char &>(other))) {
+      SharedPtr(SharedPtr &&other) noexcept: instance(nullptr) {
+        if (this != reinterpret_cast<SharedPtr *>(&reinterpret_cast<unsigned char &>(other))) {
           swap(other);
         }
       }
 
       // Move ctor that allows instantiation of a class when U* is convertible to T*
       template<class U>
-      IntrusivePtr(IntrusivePtr<U> &&other, std::enable_if_t<std::is_convertible_v<U *, T *>, void *> * = nullptr)
+      SharedPtr(SharedPtr<U> &&other, std::enable_if_t<std::is_convertible_v<U *, T *>, void *> * = nullptr)
         noexcept: instance(
         other.instance) {
         other.instance = nullptr;
       }
 
-      ~IntrusivePtr() noexcept {
+      ~SharedPtr() noexcept {
         internalRelease();
       }
 
-      IntrusivePtr &operator=(std::nullptr_t) noexcept {
+      SharedPtr &operator=(std::nullptr_t) noexcept {
         internalRelease();
         return *this;
       }
 
-      IntrusivePtr &operator=(T *other) noexcept {
+      SharedPtr &operator=(T *other) noexcept {
         if (instance != other) {
-          IntrusivePtr(other).swap(*this);
+          SharedPtr(other).swap(*this);
         }
         return *this;
       }
 
       template<typename U>
-      IntrusivePtr &operator=(U *other) noexcept {
-        IntrusivePtr(other).swap(*this);
+      SharedPtr &operator=(U *other) noexcept {
+        SharedPtr(other).swap(*this);
         return *this;
       }
 
-      IntrusivePtr &operator=(const IntrusivePtr &other) noexcept // NOLINT(bugprone-unhandled-self-assignment)
+      SharedPtr &operator=(const SharedPtr &other) noexcept // NOLINT(bugprone-unhandled-self-assignment)
       {
         if (instance != other.instance) {
-          IntrusivePtr(other).swap(*this);
+          SharedPtr(other).swap(*this);
         }
         return *this;
       }
 
       template<class U>
-      IntrusivePtr &operator=(const IntrusivePtr<U> &other) noexcept {
-        IntrusivePtr(other).swap(*this);
+      SharedPtr &operator=(const SharedPtr<U> &other) noexcept {
+        SharedPtr(other).swap(*this);
         return *this;
       }
 
-      IntrusivePtr &operator=(IntrusivePtr &&other) noexcept {
-        IntrusivePtr(static_cast<IntrusivePtr &&>(other)).swap(*this);
+      SharedPtr &operator=(SharedPtr &&other) noexcept {
+        SharedPtr(static_cast<SharedPtr &&>(other)).swap(*this);
         return *this;
       }
 
       template<class U>
-      IntrusivePtr &operator=(IntrusivePtr<U> &&other) noexcept {
-        IntrusivePtr(static_cast<IntrusivePtr<U> &&>(other)).swap(*this);
+      SharedPtr &operator=(SharedPtr<U> &&other) noexcept {
+        SharedPtr(static_cast<SharedPtr<U> &&>(other)).swap(*this);
         return *this;
       }
 
-      void swap(IntrusivePtr &&r) noexcept {
+      void swap(SharedPtr &&r) noexcept {
         T *tmp = instance;
         instance = r.instance;
         r.instance = tmp;
       }
 
-      void swap(IntrusivePtr &r) noexcept {
+      void swap(SharedPtr &r) noexcept {
         T *tmp = instance;
         instance = r.instance;
         r.instance = tmp;
@@ -250,8 +251,8 @@ namespace Engine {
 
       // Create a wrapper around a raw object while keeping the object's reference count unchanged
       template <typename... Args>
-      static IntrusivePtr<T> create(Args &&... args) {
-        IntrusivePtr<T> instance;
+      static SharedPtr<T> create(Args &&... args) {
+        SharedPtr<T> instance;
         instance.attach(new T(std::forward<Args>(args)...));
         return instance;
       }

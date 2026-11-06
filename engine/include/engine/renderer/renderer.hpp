@@ -8,20 +8,20 @@
 #include "Extensions/NRIStreamer.h"
 
 namespace Engine::Application {
-  class Window;
+  class PlatformWindow;
 }
 
 namespace Engine::Renderer {
   class Renderer {
     public:
-      explicit Renderer(const Application::Window &window);
+      explicit Renderer(const Application::PlatformWindow &window);
 
       ~Renderer();
 
       void render();
 
     private:
-      void recreateWindowSurface(const Application::Window &window);
+      void recreateWindowSurface(const Application::PlatformWindow &window);
 
       nri::Fence* frameFence;
 
@@ -48,7 +48,7 @@ namespace Engine::Renderer {
       std::vector<QueuedFrame> queuedFrames = {};
       std::vector<SwapChainImage> swapChainImages;
 
-      const Application::Window &window;
+      const Application::PlatformWindow &window;
       uint32_t frameCount = 0;
   };
 }

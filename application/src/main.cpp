@@ -1,20 +1,31 @@
-#include <engine/application/window.hpp>
-#include "../../engine/include/engine/application/application.hpp"
-#include "app_layer.hpp"
+#include <engine/graphics/graphical_application.hpp>
+#include <engine/graphics/graphical_window.hpp>
+#include <engine/events/application_events.hpp>
 
 int main() {
-  const Application::Application application("Vulkan Template");
-  // application.createWindow({
-  //   .mouseLocked = false,
-  //   .fullScreen = false,
-  //   .vsync = true,
-  //   .resizable = true,
-  //   .width = 1920,
-  //   .height = 1080,
-  //   .windowName = "Game"
-  // });
-  // application.addLayer<Application::AppLayer>();
-  application.run();
+  bool exitRequested = false;
+  Engine::Events::EventDispatcher eventDispatcher;
+  Engine::Events::EventDispatcher::listen<Engine::Events::ApplicationExitRequest>([&](const Engine::Events::ApplicationExitRequest &event) {
+    exitRequested = true;
+  });
+
+  Engine::Graphics::GraphicalApplication application;
+
+  Engine::Graphics::WindowOptions windowOptions = {};
+  windowOptions.width  = 1920;
+  windowOptions.height = 1080;
+  windowOptions.title = "Game";
+  windowOptions.focusWhenFirstShown = true;
+  windowOptions.fullScreen = true;
+  windowOptions.resizable = true;
+
+  const auto window = Engine::SharedPtr<Engine::Graphics::GraphicalWindow>().create(windowOptions);
+  application.addWindow(window, true);
+
+  while (!exitRequested) {
+    eventDispatcher.process();
+    application.pollInputs();
+  }
 
   return 0;
 }

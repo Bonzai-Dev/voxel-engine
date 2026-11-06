@@ -8,7 +8,7 @@
 #include <vector>
 
 #include <SDL3/SDL_video.h>
-#include <engine/application/window.hpp>
+#include <engine/application/platform_window.hpp>
 #include <engine/renderer/renderer.hpp>
 
 #include "../../include/engine/core/logging.hpp"
@@ -53,7 +53,7 @@ namespace {
     return code;
   }
 
-  nri::Window getNriWindow(const Window &window) {
+  nri::Window getNriWindow(const PlatformWindow &window) {
     auto *sdlWindow = static_cast<SDL_Window*>(window.getHandle());
     if (sdlWindow == nullptr) {
       throw std::runtime_error("Cannot create an NRI swap chain for a null window");
@@ -103,7 +103,7 @@ namespace {
 }
 
 namespace Engine::Renderer {
-  Renderer::Renderer(const Application::Window &window): window(window) {
+  Renderer::Renderer(const Application::PlatformWindow &window): window(window) {
 //     // Adapters
 //     std::uint32_t adapterCount = 0;
 //     checkNri(nri::nriEnumerateAdapters(nullptr, adapterCount));
@@ -184,7 +184,7 @@ namespace Engine::Renderer {
   Renderer::~Renderer() {
   }
 
-  void Renderer::recreateWindowSurface(const Application::Window &window) {
+  void Renderer::recreateWindowSurface(const Application::PlatformWindow &window) {
     // // Wait for idle
     // coreInterface.QueueWaitIdle(graphicsQueue);
     //

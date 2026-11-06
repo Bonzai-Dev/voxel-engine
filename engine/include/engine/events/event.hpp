@@ -9,8 +9,6 @@
 #include <queue>
 #include <typeindex>
 
-#include "../core/logging.hpp"
-
 namespace Engine::Events {
   enum class EventType {
     None = 0,
@@ -55,14 +53,16 @@ namespace Engine::Events {
     public:
       EventDispatcher() = default;
 
-      EventDispatcher(EventDispatcher &&) noexcept = default;
+      EventDispatcher(EventDispatcher &&) noexcept = delete;
 
       EventDispatcher(const EventDispatcher &) = delete;
 
-      EventDispatcher &operator=(EventDispatcher &&) noexcept = default;
+      EventDispatcher &operator=(EventDispatcher &&) noexcept = delete;
+
+      ~EventDispatcher() = default;
 
       template<typename T>
-      static std::uint64_t listen(const std::function<void(const T &)> &listener) {
+      static uint64_t listen(const std::function<void(const T &)> &listener) {
         auto &eventListeners = listeners[std::type_index(typeid(T))];
         const auto listenerHandle = ListenerHandle{listenerCount++};
 
@@ -80,7 +80,7 @@ namespace Engine::Events {
         });
       }
 
-      static void removeListener(const std::uint64_t handle) {
+      static void removeListener(const uint64_t handle) {
         for (auto &listeners: listeners) {
           listeners.second.erase(handle);
         }
@@ -124,6 +124,6 @@ namespace Engine::Events {
       static inline std::map<std::type_index, Listeners> listeners;
       static inline std::queue<std::function<void(EventDispatcher&)>> queuedDispatches;
 
-      static inline std::uint64_t listenerCount;
+      static inline uint64_t listenerCount;
   };
 }

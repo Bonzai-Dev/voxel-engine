@@ -2,9 +2,9 @@
 #include "event.hpp"
 
 namespace Engine::Events {
-  class ApplicationQuit: public Event {
+  class ApplicationExitRequest: public Event {
     public:
-      ApplicationQuit(): Event(EventType::QuitApplication, "ApplicationQuit") {
+      ApplicationExitRequest(): Event(EventType::QuitApplication, "ApplicationExitRequest") {
       }
   };
 }

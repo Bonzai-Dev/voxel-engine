@@ -4,15 +4,15 @@
 #include <SDL3/SDL_video.h>
 #include <engine/events/window_events.hpp>
 #include <engine/events/input_events.hpp>
-#include <engine/application/platform_application.hpp>
 #include <engine/events/application_events.hpp>
+#include <engine/application/platform_application.hpp>
 
 using namespace Engine::Events;
 
 namespace Engine::Application {
   PlatformApplication::PlatformApplication() {
     if (!SDL_Init(SDL_INIT_VIDEO)) {
-      ENGINE_LOG_CRITICAL(appLogger, "Failed to initialize SDL Video: {}", SDL_GetError());
+      ENGINE_LOG_CRITICAL(applicationLogger, "Failed to initialize SDL: {}", SDL_GetError());
       return;
     }
   }
@@ -25,7 +25,7 @@ namespace Engine::Application {
     SDL_DisplayID *sdlDisplays = SDL_GetDisplays(&count);
 
     if (!sdlDisplays) {
-      ENGINE_LOG_ERROR(appLogger, "Failed to get displays: {}", SDL_GetError());
+      ENGINE_LOG_ERROR(applicationLogger, "Failed to get displays: {}", SDL_GetError());
       return;
     }
 
@@ -43,11 +43,11 @@ namespace Engine::Application {
       monitorInfo.nativeWidth = static_cast<uint32_t>(displayMode->w);
       monitorInfo.nativeHeight = static_cast<uint32_t>(displayMode->h);
       monitorInfo.dpi = static_cast<uint32_t>(scale);
-      monitorInfo.primaryDisplay = false;
+      // monitorInfo.primaryDisplay = false;
     }
 
     info.primaryDisplay = &info.monitorInfo[sdlPrimaryDisplay];
-    info.primaryDisplay->primaryDisplay = true;
+    // info.primaryDisplay->primaryDisplay = true;
 
     SDL_free(sdlDisplays);
   }

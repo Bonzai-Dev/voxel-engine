@@ -22,7 +22,7 @@ function(add_slang_shader_target SHADER_SOURCE OUTPUT_DIRECTORY TARGET)
     )
 
     add_custom_target(SHADER_${SHADER_NAME} DEPENDS ${OUTPUT_DIRECTORY}/${OUTPUT_FILE})
-    add_dependencies(${TARGET} SHADER_${SHADER_NAME})
+    target_sources(${TARGET} PRIVATE "${OUTPUT_DIRECTORY}/${OUTPUT_FILE}")
 endfunction()
 
 

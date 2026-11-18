@@ -1,14 +1,15 @@
 #include <SDL3/SDL_video.h>
 #include <SDL3/SDL_mouse.h>
-#include <engine/graphics/graphical_window.hpp>
+#include <engine/application/graphics_window.hpp>
 #include <engine/memory/intrusive_ptr.hpp>
 #include <engine/core/logging.hpp>
 #include <engine/application/platform_window.hpp>
 #include "../engine.hpp"
+#include "Extensions/NRISwapChain.h"
 
 namespace Engine::Application {
   PlatformWindow::PlatformWindow(
-    const Graphics::WindowOptions &windowOptions
+    const WindowOptions &windowOptions
   ) {
     uint64_t windowFlags = SDL_WINDOW_HIDDEN;
 
@@ -38,13 +39,13 @@ namespace Engine::Application {
       SDL_RaiseWindow(window);
   }
 
+  RHI::SwapChainFormat PlatformWindow::getFormat() const {
+    return RHI::SwapChainFormat::BT709_G22_8BIT;
+  }
+
   PlatformWindow::~PlatformWindow() {
     if (window)
       SDL_DestroyWindow(window);
-  }
-
-  void PlatformWindow::close() const {
-    SDL_HideWindow(window);
   }
 
   void PlatformWindow::show() {
@@ -53,6 +54,10 @@ namespace Engine::Application {
 
   void PlatformWindow::hide() {
     SDL_HideWindow(window);
+  }
+
+  void PlatformWindow::minimize() const {
+    SDL_MinimizeWindow(window);
   }
 
   void PlatformWindow::maximize() const {

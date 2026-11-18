@@ -11,8 +11,8 @@ target_link_libraries(engine PRIVATE SDL3::SDL3)
 #target_link_libraries(engine PRIVATE glm::glm)
 
 #simdjson
-#add_subdirectory(simdjson EXCLUDE_FROM_ALL)
-#target_link_libraries(engine PRIVATE simdjson::simdjson)
+add_subdirectory(simdjson EXCLUDE_FROM_ALL)
+target_link_libraries(engine PRIVATE simdjson::simdjson)
 
 # quill
 add_subdirectory(quill EXCLUDE_FROM_ALL)
@@ -46,7 +46,7 @@ set(SLANG_LIB_TYPE "SHARED" CACHE STRING "" FORCE)
 add_subdirectory(slang EXCLUDE_FROM_ALL)
 target_link_libraries(engine PRIVATE slang)
 
-# NRI
+# RHI
 set(NRI_STATIC_LIBRARY ON)
 set(NRI_ENABLE_NONE_SUPPORT ON)
 if (WIN32)
@@ -59,5 +59,5 @@ elseif (UNIX)
     set(NRI_ENABLE_VK_SUPPORT ON)
 endif ()
 
-add_subdirectory(NRI EXCLUDE_FROM_ALL)
+add_subdirectory(RHI EXCLUDE_FROM_ALL)
 target_link_libraries(engine PUBLIC NRI)

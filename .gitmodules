@@ -67,3 +67,9 @@
 [submodule "engine/thirdparty/quill"]
 	path = engine/thirdparty/quill
 	url = https://github.com/odygrd/quill.git
+[submodule "engine/thirdparty/RHI"]
+	path = engine/thirdparty/RHI
+	url = https://github.com/4lixir-engine/RHI.git
+[submodule "engine/thirdparty/simdjson"]
+	path = engine/thirdparty/simdjson
+	url = https://github.com/simdjson/simdjson.git

@@ -4,15 +4,15 @@
 #include <engine/memory/intrusive_ptr.hpp>
 
 namespace Engine::Application {
-  ENGINE_DEFINE_LOG_CATEGORY(appLogger, "application");
+  ENGINE_DEFINE_LOG_CATEGORY(applicationLogger, "application");
 
   struct MonitorInfo {
+    std::string name;
+
     uint32_t monitorId = 0;
     uint32_t nativeWidth = 0;
     uint32_t nativeHeight = 0;
     uint32_t dpi = 0;
-    bool primaryDisplay = false;
-    std::string name;
   };
 
   struct DisplayInfo {
@@ -20,7 +20,7 @@ namespace Engine::Application {
     std::vector<MonitorInfo> monitorInfo;
   };
 
-  class PlatformApplication: RefCounted {
+  class PlatformApplication: public RefCounted {
     public:
       explicit PlatformApplication();
 
@@ -32,18 +32,6 @@ namespace Engine::Application {
 
       PlatformApplication &operator=(PlatformApplication &&other) = delete;
 
-      virtual unsigned long addRef() {
-        return ++referenceCount;
-      }
-
-      virtual unsigned long release() {
-        unsigned long result = --referenceCount;
-        if (result == 0) {
-          delete this;
-        }
-        return result;
-      }
-
       ~PlatformApplication() override;
 
       void getDisplayInfo(DisplayInfo &info) const;
@@ -51,8 +39,6 @@ namespace Engine::Application {
       virtual void pollInputs() const;
 
     private:
-      // mutable std::unique_ptr<Renderer::Renderer> renderer;
-
       mutable bool running = true;
   };
 }

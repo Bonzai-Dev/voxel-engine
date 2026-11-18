@@ -33,34 +33,22 @@ endif()
 
 add_subdirectory(thirdparty)
 
-add_custom_command(
-    OUTPUT "${SHADERS_DIRECTORY}/triangle.vert.spv"
-    COMMAND ${CMAKE_COMMAND} -E make_directory "${SHADERS_DIRECTORY}"
-    COMMAND slangc "${CMAKE_CURRENT_SOURCE_DIR}/src/renderer/triangle.vert.slang"
-    -target spirv -profile spirv_1_4 -emit-spirv-directly -fvk-use-entrypoint-name
-    -o "${SHADERS_DIRECTORY}/triangle.vert.spv"
-    DEPENDS slang-glslang
-    COMMENT "Compiling triangle vertex shader"
-    VERBATIM
+# Compiling shaders
+file(
+    GLOB_RECURSE ${CMAKE_PROJECT_NAME}_SHADERS CONFIGURE_DEPENDS
+    "src/*.slang"
 )
-add_custom_command(
-    OUTPUT "${SHADERS_DIRECTORY}/triangle.frag.spv"
-    COMMAND ${CMAKE_COMMAND} -E make_directory "${SHADERS_DIRECTORY}"
-    COMMAND slangc "${CMAKE_CURRENT_SOURCE_DIR}/src/renderer/triangle.frag.slang"
-    -target spirv -profile spirv_1_4 -emit-spirv-directly -fvk-use-entrypoint-name
-    -o "${SHADERS_DIRECTORY}/triangle.frag.spv"
-    DEPENDS slang-glslang
-    COMMENT "Compiling triangle fragment shader"
-    VERBATIM
-)
-add_custom_target(engine-triangle-shaders
-    DEPENDS
-    "${SHADERS_DIRECTORY}/triangle.vert.spv"
-    "${SHADERS_DIRECTORY}/triangle.frag.spv"
-)
-add_dependencies(engine engine-triangle-shaders)
+
+foreach(shader IN LISTS ${CMAKE_PROJECT_NAME}_SHADERS)
+    add_slang_shader_target(
+        "${shader}"
+        "${${CMAKE_PROJECT_NAME}_SHADERS_DIRECTORY}"
+        engine
+    )
+endforeach()
+
 target_compile_definitions(
     engine PRIVATE
-    ENGINE_TRIANGLE_VERTEX_SHADER="${SHADERS_DIRECTORY}/triangle.vert.spv"
-    ENGINE_TRIANGLE_FRAGMENT_SHADER="${SHADERS_DIRECTORY}/triangle.frag.spv"
+    ENGINE_TRIANGLE_VERTEX_SHADER="${${CMAKE_PROJECT_NAME}_SHADERS_DIRECTORY}/triangle_vertex.spv"
+    ENGINE_TRIANGLE_FRAGMENT_SHADER="${${CMAKE_PROJECT_NAME}_SHADERS_DIRECTORY}/triangle_fragment.spv"
 )

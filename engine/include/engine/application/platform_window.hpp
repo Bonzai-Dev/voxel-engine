@@ -1,17 +1,18 @@
 #pragma once
 #include <engine/memory/intrusive_ptr.hpp>
 
-namespace Engine::Graphics {
-  struct WindowOptions;
-}
+#include "NRIDescs.h"
+#include "Extensions/NRISwapChain.h"
 
 struct SDL_Window;
 
 namespace Engine::Application {
+  struct WindowOptions;
+
   class PlatformWindow: public RefCounted {
     public:
       explicit PlatformWindow(
-        const Graphics::WindowOptions &windowOptions
+        const WindowOptions &windowOptions
       );
 
       PlatformWindow(const PlatformWindow &other) = delete;
@@ -24,18 +25,6 @@ namespace Engine::Application {
 
       ~PlatformWindow() override;
 
-      unsigned long addRef() const override {
-        return ++referenceCount;
-      }
-
-      unsigned long release() const override {
-        unsigned long result = --referenceCount;
-        if (result == 0) {
-          delete this;
-        }
-        return result;
-      }
-
       void show();
       void hide();
 
@@ -45,9 +34,9 @@ namespace Engine::Application {
       void resize(uint32_t width, uint32_t height) const;
       void restore() const;
 
-      void close() const;
-
       void *getHandle() const { return window; }
+
+      RHI::SwapChainFormat getFormat() const;
 
     protected:
       SDL_Window *window = nullptr;

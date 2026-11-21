@@ -1,10 +1,14 @@
 #pragma once
 #include <memory>
-#include <engine/events/event.hpp>
-#include <engine/application/platform_application.hpp>
+#include <engine/runtime/events/event.hpp>
+#include <engine/runtime/application/platform_application.hpp>
 
-namespace Engine::UI {
+namespace Engine::Application {
   class UIRenderer;
+}
+
+namespace Engine::Scene {
+  class SceneRenderer;
 }
 
 namespace Engine::RHI {
@@ -55,20 +59,17 @@ namespace Engine::Application {
       ) const;
 
       void pollInputs() const;
-      void render() const;
 
     protected:
       SharedPtr<PlatformApplication> platformApplication;
 
     private:
-      SharedPtr<PlatformWindow> createWindow(const SharedPtr<GraphicsWindow> &graphicalWindow) const;
-
       mutable Events::EventDispatcher eventDispatcher;
 
       mutable std::vector<SharedPtr<GraphicsWindow>> windows;
 
       SharedPtr<Renderer::RendererContext> rendererContext;
-      mutable std::unique_ptr<UI::UIRenderer> uiRenderer;
+      mutable std::unique_ptr<UIRenderer> uiRenderer;
 
       void onWindowShow(const Events::WindowShown &event);
       void onWindowHide(const Events::WindowHidden &event);

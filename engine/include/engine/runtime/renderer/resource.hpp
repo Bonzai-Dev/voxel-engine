@@ -1,5 +1,5 @@
 #pragma once
-#include <engine/memory/intrusive_ptr.hpp>
+#include <engine/runtime/core/intrusive_ptr.hpp>
 
 namespace Engine::Renderer {
   class RendererResource: public RefCounted {

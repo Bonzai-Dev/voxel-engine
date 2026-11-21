@@ -5,11 +5,11 @@
 #include <string>
 #include <vector>
 #include <SDL3/SDL_video.h>
-#include <engine/memory/intrusive_ptr.hpp>
-#include <engine/renderer/renderer_context.hpp>
-#include <engine/application/platform_window.hpp>
-#include <engine/application/graphics_window.hpp>
-#include <engine/ui/ui_renderer.hpp>
+#include <engine/runtime/core/intrusive_ptr.hpp>
+#include <engine/runtime/renderer/renderer_context.hpp>
+#include <engine/runtime/application/platform_window.hpp>
+#include <engine/runtime/graphics/graphics_window.hpp>
+#include <engine/runtime/scene/scene_renderer.hpp>
 
 #ifndef ENGINE_TRIANGLE_VERTEX_SHADER
 #error "ENGINE_TRIANGLE_VERTEX_SHADER must name the compiled triangle vertex shader"
@@ -101,8 +101,8 @@ namespace {
   }
 }
 
-namespace Engine::UI {
-  struct UIRenderer::SwapChainImage {
+namespace Engine::Scene {
+  struct SceneRenderer::SwapChainImage {
     RHI::Texture *texture = nullptr;
     RHI::Descriptor *colorAttachment = nullptr;
     RHI::Fence *acquireSemaphore = nullptr;
@@ -110,7 +110,7 @@ namespace Engine::UI {
     bool hasBeenPresented = false;
   };
 
-  struct UIRenderer::Viewport {
+  struct SceneRenderer::Viewport {
     SharedPtr<Application::GraphicsWindow> window;
     RHI::SwapChain *swapChain = nullptr;
     RHI::PipelineLayout *pipelineLayout = nullptr;
@@ -121,9 +121,9 @@ namespace Engine::UI {
     std::uint64_t frameIndex = 0;
   };
 
-  UIRenderer::UIRenderer(const SharedPtr<Renderer::RendererContext> &rendererContext): context(rendererContext) {
+  SceneRenderer::SceneRenderer(const SharedPtr<Renderer::RendererContext> &rendererContext): context(rendererContext) {
     if (!context) {
-      throw std::invalid_argument("UIRenderer requires a renderer context");
+      throw std::invalid_argument("SceneRenderer requires a renderer context");
     }
 
     checkResult(
@@ -131,7 +131,7 @@ namespace Engine::UI {
       "GetQueue"
     );
     if (graphicsQueue == nullptr) {
-      throw std::invalid_argument("UIRenderer requires a graphics queue");
+      throw std::invalid_argument("SceneRenderer requires a graphics queue");
     }
 
     try {
@@ -145,11 +145,11 @@ namespace Engine::UI {
     }
   }
 
-  UIRenderer::~UIRenderer() {
+  SceneRenderer::~SceneRenderer() {
     destroyResources();
   }
 
-  void UIRenderer::createViewport(const SharedPtr<Application::GraphicsWindow> &window) {
+  void SceneRenderer::createViewport(const SharedPtr<Application::GraphicsWindow> &window) {
     if (!window) {
       throw std::invalid_argument("Cannot create a renderer viewport for a null window");
     }
@@ -162,10 +162,10 @@ namespace Engine::UI {
     windowSwapChains.emplace(window.get(), std::move(viewport));
   }
 
-  bool UIRenderer::createSwapChain(Viewport &viewport, std::uint32_t width, std::uint32_t height) {
+  bool SceneRenderer::createSwapChain(Viewport &viewport, std::uint32_t width, std::uint32_t height) {
     if (width > std::numeric_limits<RHI::Dim_t>::max() ||
       height > std::numeric_limits<RHI::Dim_t>::max()) {
-      throw std::out_of_range("UIRenderer extent exceeds the RHI dimension range");
+      throw std::out_of_range("SceneRenderer extent exceeds the RHI dimension range");
     }
 
     if (viewport.swapChain != nullptr) {
@@ -240,7 +240,7 @@ namespace Engine::UI {
     }
   }
 
-  void UIRenderer::createPipeline(Viewport &viewport, RHI::Format format) {
+  void SceneRenderer::createPipeline(Viewport &viewport, RHI::Format format) {
     RHI::PipelineLayoutDesc layoutDesc = {};
     layoutDesc.shaderStages = RHI::StageBits::VERTEX_SHADER | RHI::StageBits::FRAGMENT_SHADER;
     checkResult(context->CreatePipelineLayout(context->getDevice(), layoutDesc, viewport.pipelineLayout),
@@ -271,7 +271,7 @@ namespace Engine::UI {
                 "CreateGraphicsPipeline");
   }
 
-  void UIRenderer::destroySwapChainResources(Viewport &viewport) noexcept {
+  void SceneRenderer::destroySwapChainResources(Viewport &viewport) noexcept {
     if (!context) {
       return;
     }
@@ -311,11 +311,11 @@ namespace Engine::UI {
     viewport.frameIndex = 0;
   }
 
-  void UIRenderer::destroyResources() noexcept {
+  void SceneRenderer::destroyResources() noexcept {
     if (context && (frameFenceValue != 0 || !windowSwapChains.empty())) {
       const RHI::Result idleResult = context->DeviceWaitIdle(&context->getDevice());
       if (idleResult != RHI::Result::SUCCESS) {
-        ENGINE_LOG_ERROR(Renderer::rendererLogger, "DeviceWaitIdle during UIRenderer teardown failed: {}",
+        ENGINE_LOG_ERROR(Renderer::rendererLogger, "DeviceWaitIdle during SceneRenderer teardown failed: {}",
                          static_cast<int>(idleResult));
       }
     }
@@ -342,7 +342,7 @@ namespace Engine::UI {
     }
   }
 
-  void UIRenderer::render(
+  void SceneRenderer::render(
     const SharedPtr<Application::GraphicsWindow> &window,
     std::uint32_t width,
     std::uint32_t height
@@ -355,10 +355,10 @@ namespace Engine::UI {
     }
     if (width > std::numeric_limits<RHI::Dim_t>::max() ||
       height > std::numeric_limits<RHI::Dim_t>::max()) {
-      throw std::out_of_range("UIRenderer extent exceeds the RHI dimension range");
+      throw std::out_of_range("SceneRenderer extent exceeds the RHI dimension range");
     }
     if (frameFenceValue == std::numeric_limits<std::uint64_t>::max()) {
-      throw std::overflow_error("UIRenderer frame fence value overflow");
+      throw std::overflow_error("SceneRenderer frame fence value overflow");
     }
 
     const auto viewportIt = windowSwapChains.find(window.get());

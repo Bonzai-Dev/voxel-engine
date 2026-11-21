@@ -1,8 +1,8 @@
-#include <engine/application/graphics_application.hpp>
-#include <engine/application/graphics_window.hpp>
-#include <engine/events/application_events.hpp>
-#include <engine/renderer/renderer_context.hpp>
-#include <engine/scene/scene_renderer.hpp>
+#include <engine/runtime/events/application_events.hpp>
+#include <engine/runtime/renderer/renderer_context.hpp>
+#include <engine/runtime/graphics/graphics_application.hpp>
+#include <engine/runtime/graphics/graphics_window.hpp>
+#include <engine/runtime/game/game_viewport_manager.hpp>
 
 int main() {
   bool exitRequested = false;
@@ -14,7 +14,7 @@ int main() {
   const auto rendererContext = Engine::SharedPtr<Engine::Renderer::RendererContext>::create();
   const auto application = Engine::Application::GraphicsApplication(rendererContext);
 
-  const auto sceneRenderer = Engine::Renderer::SceneRenderer(rendererContext);
+  const auto viewportManager = Engine::Game::GameViewportManager(rendererContext);
 
   const Engine::Application::WindowOptions windowOptions = {
     .title = "Game",
@@ -25,12 +25,14 @@ int main() {
     .resizable = true,
   };
 
-  auto window = application.addWindow(Engine::SharedPtr<Engine::Application::GraphicsWindow>::create(windowOptions), true);
+  const auto window = application.addWindow(Engine::SharedPtr<Engine::Application::GraphicsWindow>::create(windowOptions), true);
+
+  viewportManager.createViewport(window);
 
   while (!exitRequested) {
     eventDispatcher.process();
     application.pollInputs();
-    application.render();
+    viewportManager.render(window);
   }
 
   return 0;

@@ -1,9 +1,9 @@
 #include <SDL3/SDL_video.h>
 #include <SDL3/SDL_mouse.h>
-#include <engine/application/graphics_window.hpp>
-#include <engine/memory/intrusive_ptr.hpp>
-#include <engine/core/logging.hpp>
-#include <engine/application/platform_window.hpp>
+#include <engine/runtime/graphics/graphics_window.hpp>
+#include <engine/runtime/core/intrusive_ptr.hpp>
+#include <engine/runtime/core/logging.hpp>
+#include <engine/runtime/application/platform_window.hpp>
 #include "../engine.hpp"
 #include "Extensions/NRISwapChain.h"
 
@@ -50,6 +50,7 @@ namespace Engine::Application {
 
   void PlatformWindow::show() {
     SDL_ShowWindow(window);
+    SDL_SyncWindow(window);
   }
 
   void PlatformWindow::hide() {
@@ -70,5 +71,29 @@ namespace Engine::Application {
 
   void PlatformWindow::restore() const {
     SDL_RestoreWindow(window);
+  }
+
+  float PlatformWindow::getDPIScaleFactor() const {
+    return SDL_GetDisplayContentScale(SDL_GetWindowID(window));
+  }
+
+  uint32_t PlatformWindow::getPixelWidth() const {
+    int width = 0;
+    SDL_GetWindowSizeInPixels(window, &width, nullptr);
+    return static_cast<uint32_t>(width);
+  }
+
+  uint32_t PlatformWindow::getPixelHeight() const {
+    int height = 0;
+    SDL_GetWindowSizeInPixels(window, nullptr, &height);
+    return static_cast<uint32_t>(height);
+  }
+
+  uint32_t PlatformWindow::getWindowWidth() const {
+
+  }
+
+  uint32_t PlatformWindow::getWindowHeight() const {
+
   }
 }

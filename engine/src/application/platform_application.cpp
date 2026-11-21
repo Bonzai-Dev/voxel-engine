@@ -2,10 +2,10 @@
 #include <SDL3/SDL_timer.h>
 #include <SDL3/SDL_init.h>
 #include <SDL3/SDL_video.h>
-#include <engine/events/window_events.hpp>
-#include <engine/events/input_events.hpp>
-#include <engine/events/application_events.hpp>
-#include <engine/application/platform_application.hpp>
+#include <engine/runtime/events/window_events.hpp>
+#include <engine/runtime/events/input_events.hpp>
+#include <engine/runtime/events/application_events.hpp>
+#include <engine/runtime/application/platform_application.hpp>
 
 using namespace Engine::Events;
 

@@ -1,12 +1,15 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
-#include <engine/renderer/renderer_context.hpp>
+#include <engine/runtime/renderer/renderer_context.hpp>
 #include <Extensions/NRISwapChain.h>
 #include <Extensions/NRIDeviceCreation.h>
+// #include "slang-com-ptr.h"
 
 namespace {
   using namespace Engine;
+
+  // inline Slang::ComPtr<slang::IGlobalSession> slangGlobalSession;
 
   constexpr RHI::VKBindingOffsets VK_BINDING_OFFSETS = {0, 128, 32, 64};
 
@@ -22,6 +25,9 @@ namespace {
 
 namespace Engine::Renderer {
   RendererContext::RendererContext() {
+    // SlangGlobalSessionDesc desc = {};
+    // slang::createGlobalSession(&desc, slangGlobalSession.writeRef());
+
     uint32_t adapterCount = 0;
     checkNri(RHI::nriEnumerateAdapters(nullptr, adapterCount));
 

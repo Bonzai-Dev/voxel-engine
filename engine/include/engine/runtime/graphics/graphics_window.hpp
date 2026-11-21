@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
-#include <engine/memory/intrusive_ptr.hpp>
-#include <engine/application/platform_window.hpp>
+#include <engine/runtime/core/intrusive_ptr.hpp>
+#include <engine/runtime/application/platform_window.hpp>
 
 #include "NRIDescs.h"
 
@@ -27,8 +27,11 @@ namespace Engine::Application {
 
       const std::string &getTitle() const { return title; }
 
-      uint32_t getWidth() const { return width; }
-      uint32_t getHeight() const { return height; }
+      uint32_t getInitialWidth() const;
+      uint32_t getInitialHeight() const;
+
+      uint32_t getWidth() const;
+      uint32_t getHeight() const;
 
       bool isFullscreen() const { return fullscreen; }
       bool isResizable() const { return resizable; }
@@ -37,10 +40,10 @@ namespace Engine::Application {
       RHI::SwapChainFormat getFormat() const;
 
       /* Makes window visible */
-      void show();
+      void show() const;
 
       /* Makes window invisible */
-      void hide();
+      void hide() const;
 
       void minimize() const;
       void maximize() const;
@@ -55,8 +58,8 @@ namespace Engine::Application {
 
       std::string title;
 
-      uint32_t width;
-      uint32_t height;
+      const uint32_t initialWidth;
+      const uint32_t initialHeight;
 
       bool fullscreen;
       bool resizable;

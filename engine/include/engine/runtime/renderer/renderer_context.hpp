@@ -9,9 +9,9 @@
 #include "Extensions/NRIStreamer.h"
 #include "Extensions/NRISwapChain.h"
 #include "Extensions/NRIUpscaler.h"
-#include <engine/core/logging.hpp>
+#include <engine/runtime/core/logging.hpp>
 
-namespace Engine::UI {
+namespace Engine::Application {
   class GraphicsWindow;
 }
 

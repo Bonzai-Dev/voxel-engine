@@ -1,10 +1,10 @@
-#include <engine/application/graphics_window.hpp>
+#include <engine/runtime/graphics/graphics_window.hpp>
 
 namespace Engine::Application {
   GraphicsWindow::GraphicsWindow(const WindowOptions &options):
   title(options.title),
-  width(options.width),
-  height(options.height),
+  initialWidth(options.width),
+  initialHeight(options.height),
   fullscreen(options.fullScreen),
   resizable(options.resizable) {
   }
@@ -13,15 +13,37 @@ namespace Engine::Application {
     return this->nativeWindow->getFormat();
   }
 
-  void GraphicsWindow::setNativeWindow(const SharedPtr<Application::PlatformWindow> &window) {
+  void GraphicsWindow::setNativeWindow(const SharedPtr<PlatformWindow> &window) {
     this->nativeWindow = window;
   }
 
-  void GraphicsWindow::show() {
+  uint32_t GraphicsWindow::getInitialWidth() const {
+    return initialWidth;
+  }
+
+  uint32_t GraphicsWindow::getInitialHeight() const {
+    return initialHeight;
+  }
+
+  uint32_t GraphicsWindow::getWidth() const {
+    if (!nativeWindow)
+      return 0;
+
+    return nativeWindow->getPixelWidth();
+  }
+
+  uint32_t GraphicsWindow::getHeight() const {
+    if (!nativeWindow)
+      return 0;
+
+    return nativeWindow->getPixelHeight();
+  }
+
+  void GraphicsWindow::show() const {
     nativeWindow->show();
   }
 
-  void GraphicsWindow::hide() {
+  void GraphicsWindow::hide() const {
     nativeWindow->hide();
   }
 
@@ -41,7 +63,7 @@ namespace Engine::Application {
     nativeWindow->restore();
   }
 
-  SharedPtr<Application::PlatformWindow> GraphicsWindow::getNativeWindow() const {
+  SharedPtr<PlatformWindow> GraphicsWindow::getNativeWindow() const {
     return nativeWindow;
   }
 }

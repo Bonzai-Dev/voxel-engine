@@ -1,5 +1,5 @@
 #pragma once
-#include <engine/memory/intrusive_ptr.hpp>
+#include <engine/runtime/core/intrusive_ptr.hpp>
 
 #include "NRIDescs.h"
 #include "Extensions/NRISwapChain.h"
@@ -24,6 +24,15 @@ namespace Engine::Application {
       PlatformWindow &operator=(PlatformWindow &&other) = delete;
 
       ~PlatformWindow() override;
+
+      uint32_t getPixelWidth() const;
+      uint32_t getPixelHeight() const;
+
+      uint32_t getWindowWidth() const;
+      uint32_t getWindowHeight() const;
+
+      /* Returns the content scale of the display */
+      float getDPIScaleFactor() const;
 
       void show();
       void hide();

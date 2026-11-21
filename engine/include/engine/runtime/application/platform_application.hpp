@@ -1,7 +1,7 @@
 #pragma once
 #include <memory>
-#include <engine/core/logging.hpp>
-#include <engine/memory/intrusive_ptr.hpp>
+#include <engine/runtime/core/logging.hpp>
+#include <engine/runtime/core/intrusive_ptr.hpp>
 
 namespace Engine::Application {
   ENGINE_DEFINE_LOG_CATEGORY(applicationLogger, "application");

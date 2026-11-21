@@ -2,7 +2,7 @@
 #include <quill/Frontend.h>
 #include <quill/Logger.h>
 #include <quill/sinks/ConsoleSink.h>
-#include <engine/core/logging.hpp>
+#include <engine/runtime/core/logging.hpp>
 
 namespace {
   using namespace Engine::Core;

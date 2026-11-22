@@ -2,6 +2,8 @@
 #include <SDL3/SDL_mouse.h>
 #include <engine/runtime/application/platform_window.hpp>
 #include "Extensions/NRISwapChain.h"
+#include <engine/runtime/core/logging.hpp>
+#include "application.hpp"
 
 namespace Engine::Application {
   PlatformWindow::PlatformWindow(
@@ -27,7 +29,7 @@ namespace Engine::Application {
     );
 
     if (!window) {
-      // ENGINE_LOG_ERROR(Engine::Core::coreLogger, "Failed to create window: {}", SDL_GetError());
+      ENGINE_LOG_ERROR(applicationLogger, "Failed to create window: {}", SDL_GetError());
       return;
     }
 
@@ -74,25 +76,25 @@ namespace Engine::Application {
   }
 
   uint32_t PlatformWindow::getPixelWidth() const {
-    int width = 0;
+    int width;
     SDL_GetWindowSizeInPixels(window, &width, nullptr);
     return static_cast<uint32_t>(width);
   }
 
   uint32_t PlatformWindow::getPixelHeight() const {
-    int height = 0;
+    int height;
     SDL_GetWindowSizeInPixels(window, nullptr, &height);
     return static_cast<uint32_t>(height);
   }
 
   uint32_t PlatformWindow::getWindowWidth() const {
-    int width = 0;
+    int width;
     SDL_GetWindowSize(window, &width, nullptr);
     return static_cast<uint32_t>(width);
   }
 
   uint32_t PlatformWindow::getWindowHeight() const {
-    int height = 0;
+    int height;
     SDL_GetWindowSize(window, nullptr, &height);
     return static_cast<uint32_t>(height);
   }

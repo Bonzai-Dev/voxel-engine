@@ -23,6 +23,9 @@ cmake ..
 cmake --build . -j 8
 ```
 
+Engine public headers are shared at `engine/runtime/include/<module>/` so modules
+publish one include root and consumers include headers as `<module/file.hpp>`.
+
 ## About
 Written in C++ and OpenGL, this simple cross-platform engine demonstrates basic terrain generation using gradient noises
 such as open simplex noise. It features simple diffused lighting and a Skybox, which are all customizable in the config file.

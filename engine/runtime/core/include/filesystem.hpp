@@ -21,5 +21,5 @@ namespace Engine::Core::FileSystem {
   constexpr bool remove(const std::filesystem::path &path);
   constexpr bool rename(const std::filesystem::path &oldPath, const std::filesystem::path &newPath);
 
-  constexpr bool readBytes(const std::filesystem::path& filepath);
+  std::string readBytes(const std::filesystem::path& filepath);
 }

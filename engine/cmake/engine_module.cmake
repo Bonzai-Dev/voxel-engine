@@ -2,10 +2,12 @@ function(add_engine_module name)
     cmake_parse_arguments(MODULE "" "" "EXCLUDE_SOURCE_DIRS" ${ARGN})
     set(target "engine-${name}")
     set(includeRoot "${CMAKE_CURRENT_BINARY_DIR}/include")
+    set(moduleIncludeDir "${CMAKE_CURRENT_SOURCE_DIR}/include")
+    set(moduleLink "${includeRoot}/engine/runtime/${name}")
 
     file(GLOB_RECURSE headers CONFIGURE_DEPENDS
-        "${CMAKE_CURRENT_SOURCE_DIR}/include/*.h"
-        "${CMAKE_CURRENT_SOURCE_DIR}/include/*.hpp"
+        "${moduleIncludeDir}/*.h"
+        "${moduleIncludeDir}/*.hpp"
     )
 
     file(GLOB_RECURSE sources CONFIGURE_DEPENDS
@@ -16,15 +18,11 @@ function(add_engine_module name)
         list(FILTER sources EXCLUDE REGEX "^${CMAKE_CURRENT_SOURCE_DIR}/src/${directory}/")
     endforeach()
 
-    foreach(header IN LISTS headers)
-        file(RELATIVE_PATH relativeHeader "${CMAKE_CURRENT_SOURCE_DIR}/include" "${header}")
-        set(ENGINE_MODULE_HEADER "${header}")
-        configure_file(
-            "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/engine_module_header.hpp.in"
-            "${includeRoot}/engine/runtime/${name}/${relativeHeader}"
-            @ONLY
-        )
-    endforeach()
+    file(MAKE_DIRECTORY "${includeRoot}/engine/runtime")
+    file(CREATE_LINK "${moduleIncludeDir}" "${moduleLink}" SYMBOLIC RESULT linkResult)
+    if(NOT linkResult STREQUAL "0" AND NOT IS_SYMLINK "${moduleLink}")
+        message(FATAL_ERROR "Could not create module include symlink '${moduleLink}': ${linkResult}")
+    endif()
 
     add_library(${target} STATIC ${headers} ${sources})
     add_library(voxel-engine::${name} ALIAS ${target})

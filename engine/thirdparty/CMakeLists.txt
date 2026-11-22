@@ -1,22 +1,20 @@
+add_library(engine-thirdparty INTERFACE)
+
 # SDL
 set(SDL_SHARED OFF CACHE BOOL "" FORCE)
 set(SDL_STATIC ON CACHE BOOL "" FORCE)
 set(SDL_DISABLE_INSTALL ON CACHE BOOL "" FORCE)
 set(SDL_TEST_LIBRARY OFF CACHE BOOL "" FORCE)
 add_subdirectory(SDL EXCLUDE_FROM_ALL)
-target_link_libraries(engine PRIVATE SDL3::SDL3)
 
 # glm
 #add_subdirectory(glm EXCLUDE_FROM_ALL)
-#target_link_libraries(engine PRIVATE glm::glm)
 
 #simdjson
 add_subdirectory(simdjson EXCLUDE_FROM_ALL)
-target_link_libraries(engine PRIVATE simdjson::simdjson)
 
 # quill
 add_subdirectory(quill EXCLUDE_FROM_ALL)
-target_link_libraries(engine PUBLIC quill::quill)
 
 # Vulkan
 #add_subdirectory(vma EXCLUDE_FROM_ALL)
@@ -29,7 +27,7 @@ target_link_libraries(engine PUBLIC quill::quill)
 
 #add_library(VulkanHeaders INTERFACE)
 #target_link_libraries(VulkanHeaders INTERFACE Vulkan-Headers volk GPUOpen::VulkanMemoryAllocator)
-#target_link_libraries(engine PRIVATE VulkanHeaders)
+#target_link_libraries(engine-thirdparty INTERFACE VulkanHeaders)
 
 # Slang
 set(SLANG_ENABLE_PCH OFF CACHE BOOL "" FORCE)
@@ -44,7 +42,6 @@ set(SLANG_ENABLE_OPTIX OFF CACHE BOOL "" FORCE)
 
 set(SLANG_LIB_TYPE "SHARED" CACHE STRING "" FORCE)
 add_subdirectory(slang EXCLUDE_FROM_ALL)
-target_link_libraries(engine PRIVATE slang)
 
 # RHI
 set(NRI_STATIC_LIBRARY ON)
@@ -60,4 +57,3 @@ elseif (UNIX)
 endif ()
 
 add_subdirectory(RHI EXCLUDE_FROM_ALL)
-target_link_libraries(engine PUBLIC NRI)

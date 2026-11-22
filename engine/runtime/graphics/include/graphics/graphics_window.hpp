@@ -1,8 +1,8 @@
 #pragma once
 #include <cstdint>
 #include <string>
-#include <engine/runtime/core/intrusive_ptr.hpp>
-#include <engine/runtime/application/platform_window.hpp>
+#include <core/shared_pointer.hpp>
+#include <application/platform_window.hpp>
 #include "NRIDescs.h"
 
 namespace Engine::Application {

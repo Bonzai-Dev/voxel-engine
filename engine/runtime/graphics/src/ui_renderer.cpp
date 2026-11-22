@@ -1,5 +1,5 @@
-#include <engine/runtime/scene/scene_renderer.hpp>
-#include <engine/runtime/graphics/ui/ui_renderer.hpp>
+#include <scene/scene_renderer.hpp>
+#include <graphics/ui/ui_renderer.hpp>
 
 namespace Engine::Application {
   UIRenderer::UIRenderer(const SharedPtr<Renderer::RendererContext> &rendererContext):

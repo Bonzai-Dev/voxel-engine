@@ -3,12 +3,10 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include <engine/runtime/core/logging.hpp>
-#include <engine/runtime/core/intrusive_ptr.hpp>
+#include <core/logging.hpp>
+#include <core/shared_pointer.hpp>
 
 namespace Engine::Application {
-  ENGINE_DEFINE_LOG_CATEGORY(applicationLogger, "application");
-
   struct MonitorInfo {
     std::string name;
 

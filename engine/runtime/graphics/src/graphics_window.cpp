@@ -1,4 +1,4 @@
-#include <engine/runtime/graphics/graphics_window.hpp>
+#include <graphics/graphics_window.hpp>
 
 namespace Engine::Application {
   GraphicsWindow::GraphicsWindow(const WindowOptions &options):

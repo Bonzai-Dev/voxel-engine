@@ -2,7 +2,7 @@
 #include <quill/Frontend.h>
 #include <quill/Logger.h>
 #include <quill/sinks/ConsoleSink.h>
-#include <engine/runtime/core/logging.hpp>
+#include <core/logging.hpp>
 
 namespace {
   using namespace Engine::Core;
@@ -45,6 +45,7 @@ namespace Engine::Core {
     quill::PatternFormatterOptions options;
     options.format_pattern = formatPattern;
     options.timestamp_pattern = timestampPattern;
+    options.add_metadata_to_multi_line_logs = false;
 
     logger = quill::Frontend::create_logger(
       name,

@@ -4,14 +4,14 @@
 
 #include <SDL3/SDL_video.h>
 
-#include <engine/runtime/events/input_events.hpp>
-#include <engine/runtime/events/window_events.hpp>
-#include <engine/runtime/application/platform_window.hpp>
-#include <engine/runtime/renderer/renderer_context.hpp>
-#include <engine/runtime/graphics/ui/ui_renderer.hpp>
-#include <engine/runtime/core/intrusive_ptr.hpp>
-#include <engine/runtime/graphics/graphics_window.hpp>
-#include <engine/runtime/graphics/graphics_application.hpp>
+#include <events/input_events.hpp>
+#include <events/window_events.hpp>
+#include <application/platform_window.hpp>
+#include <renderer/renderer_context.hpp>
+#include <graphics/ui/ui_renderer.hpp>
+#include <core/shared_pointer.hpp>
+#include <graphics/graphics_window.hpp>
+#include <graphics/graphics_application.hpp>
 
 using namespace Engine::Events;
 

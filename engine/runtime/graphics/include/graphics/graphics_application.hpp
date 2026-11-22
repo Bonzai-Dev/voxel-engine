@@ -2,8 +2,8 @@
 #include <memory>
 #include <utility>
 #include <vector>
-#include <engine/runtime/events/event.hpp>
-#include <engine/runtime/application/platform_application.hpp>
+#include <events/event.hpp>
+#include <application/platform_application.hpp>
 
 namespace Engine::Application {
   class UIRenderer;

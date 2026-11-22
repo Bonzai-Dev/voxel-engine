@@ -1,7 +1,7 @@
 #pragma once
 #include <cstdint>
 #include <string>
-#include <engine/runtime/core/intrusive_ptr.hpp>
+#include <core/shared_pointer.hpp>
 
 #include "NRIDescs.h"
 #include "Extensions/NRISwapChain.h"

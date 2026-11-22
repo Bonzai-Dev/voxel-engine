@@ -1,9 +1,9 @@
 #include <fstream>
 #include <vector>
-#include <engine/runtime/core/filesystem.hpp>
-#include <engine/runtime/core/logging.hpp>
-#include <engine/runtime/core/assert.hpp>
-#include <engine/runtime/core/unix/unix_filesystem.hpp>
+#include <core/filesystem.hpp>
+#include <core/logging.hpp>
+#include <core/assert.hpp>
+#include <core/unix/unix_filesystem.hpp>
 
 namespace Engine::Core::FileSystem {
   std::string readBytes(const std::filesystem::path& filepath) {

@@ -1,7 +1,7 @@
 #pragma once
 #include <cstdint>
 #include <memory>
-#include <engine/runtime/core/intrusive_ptr.hpp>
+#include <core/shared_pointer.hpp>
 
 namespace Engine::Application {
   class GraphicsWindow;

@@ -1,8 +1,8 @@
 #include <SDL3/SDL_video.h>
 #include <SDL3/SDL_mouse.h>
-#include <engine/runtime/application/platform_window.hpp>
+#include <application/platform_window.hpp>
 #include "Extensions/NRISwapChain.h"
-#include <engine/runtime/core/logging.hpp>
+#include <core/logging.hpp>
 #include "application.hpp"
 
 namespace Engine::Application {

@@ -1,8 +1,8 @@
-#include <engine/runtime/events/application_events.hpp>
-#include <engine/runtime/renderer/renderer_context.hpp>
-#include <engine/runtime/graphics/graphics_application.hpp>
-#include <engine/runtime/graphics/graphics_window.hpp>
-#include <engine/runtime/game/game_viewport_manager.hpp>
+#include <events/application_events.hpp>
+#include <renderer/renderer_context.hpp>
+#include <graphics/graphics_application.hpp>
+#include <graphics/graphics_window.hpp>
+#include <game/game_viewport_manager.hpp>
 
 int main() {
   bool exitRequested = false;

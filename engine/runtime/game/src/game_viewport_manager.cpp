@@ -6,11 +6,11 @@
 #include <string>
 #include <vector>
 #include <SDL3/SDL.h>
-#include <engine/runtime/core/intrusive_ptr.hpp>
-#include <engine/runtime/game/game_viewport_manager.hpp>
-#include <engine/runtime/graphics/graphics_window.hpp>
-#include <engine/runtime/renderer/renderer_context.hpp>
-#include <engine/runtime/scene/scene_renderer.hpp>
+#include <core/shared_pointer.hpp>
+#include <game/game_viewport_manager.hpp>
+#include <graphics/graphics_window.hpp>
+#include <renderer/renderer_context.hpp>
+#include <scene/scene_renderer.hpp>
 
 namespace {
   using namespace Engine;

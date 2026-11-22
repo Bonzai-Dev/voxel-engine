@@ -3,7 +3,7 @@
 #include <memory>
 #include <unordered_map>
 #include <NRI.h>
-#include <engine/runtime/core/intrusive_ptr.hpp>
+#include <core/shared_pointer.hpp>
 
 namespace Engine::Application {
   class GraphicsWindow;
@@ -13,7 +13,7 @@ namespace Engine::Renderer {
   class RendererContext;
 }
 
-#include <engine/runtime/graphics/viewport_manager.hpp>
+#include <graphics/viewport_manager.hpp>
 
 namespace Engine::Scene {
   class SceneRenderer;

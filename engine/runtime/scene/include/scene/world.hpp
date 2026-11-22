@@ -1,6 +1,6 @@
 #pragma once
 #include <memory>
-#include <engine/runtime/scene/scene_renderer.hpp>
+#include <scene/scene_renderer.hpp>
 
 namespace Engine::Scene {
   class World {

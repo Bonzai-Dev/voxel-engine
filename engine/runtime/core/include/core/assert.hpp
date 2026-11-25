@@ -22,15 +22,18 @@ namespace Engine::detail {
 #endif
 
 #if defined(ENGINE_ENABLE_ASSERTS)
-  #define ENGINE_ASSERT(condition, ...)                                                                             \
-    if (condition) { }                                                                                              \
-    else {                                                                                                          \
-      ENGINE_LOG_ERROR(                                                                                             \
-        Engine::detail::assertLogger,                                                                               \
-        "Assertion failed: {0}\n\tExpression: {1}\n\tFile: {2}:{3}\n", __VA_ARGS__, #condition, __FILE__, __LINE__  \
-      );                                                                                                            \
-      Engine::Core::detail::getLogger(Engine::detail::assertLogger)->flush_log();                                   \
-      ENGINE_DEBUG_BREAK();                                                                                         \
+  #define ENGINE_ASSERT(condition, format, ...)                                      \
+    if (condition) { }                                                               \
+    else {                                                                           \
+      ENGINE_LOG_ERROR(                                                              \
+        Engine::detail::assertLogger,                                                \
+        "Assertion failed: " format                                                  \
+        "\n\tExpression: " #condition                                                \
+        "\n\tFile: " __FILE__ ":{}\n",                                               \
+        __VA_OPT__(__VA_ARGS__,) __LINE__                                            \
+      );                                                                             \
+      Engine::Core::detail::getLogger(Engine::detail::assertLogger)->flush_log();    \
+      ENGINE_DEBUG_BREAK();                                                          \
     }
 
   #define ENGINE_STATIC_ASSERT(condition, ...) static_assert(condition, __VA_ARGS__)

@@ -1,4 +1,4 @@
-function(add_slang_shader_target SHADER_SOURCE OUTPUT_DIRECTORY TARGET)
+function(add_shader_target SHADER_SOURCE OUTPUT_DIRECTORY TARGET)
     get_filename_component(SHADER_NAME ${SHADER_SOURCE} NAME_WE)
 
     set(OUTPUT_FILE "${SHADER_NAME}.spv")

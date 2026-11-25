@@ -104,7 +104,7 @@ namespace Engine::Game {
     if (!swapChains.contains(&window))
       return;
 
-    SwapChain &swapChain = *swapChains.at(&window);
+    SwapChain &swapChain = swapChains.at(&window);
     uint32_t frameIndex = frameCount % swapChain.images.size();
     nri::Fence *acquireSemaphore = swapChain.images[frameIndex].acquireSemaphore;
 
@@ -242,9 +242,7 @@ namespace Engine::Game {
     swapChainDesc.queue = graphicsQueue;
     swapChainDesc.textureNum = 3;
 
-    SwapChain &swapChain = *swapChains.emplace(
-      &window, std::make_unique<SwapChain>()
-    ).first->second; // TODO: VERIFY
+    SwapChain &swapChain = swapChains.insert({&window, SwapChain()}).first->second;
     rendererContext->CreateSwapChain(rendererContext->getDevice(), swapChainDesc, swapChain.swapChain);
 
     uint32_t textureCount = 0;
@@ -273,8 +271,8 @@ namespace Engine::Game {
     layoutDesc.shaderStages = nri::StageBits::VERTEX_SHADER | nri::StageBits::FRAGMENT_SHADER;
     (rendererContext->CreatePipelineLayout(rendererContext->getDevice(), layoutDesc, swapChain.pipelineLayout));
 
-    const std::vector<std::uint8_t> vertexBytecode = Core::FileSystem::readBytes(ENGINE_TRIANGLE_VERTEX_SHADER);
-    const std::vector<std::uint8_t> fragmentBytecode = Core::FileSystem::readBytes(ENGINE_TRIANGLE_FRAGMENT_SHADER);
+    const std::vector<std::uint8_t> vertexBytecode = Core::FileSystem::readBytes("resources/shaders/triangle_vertex.spv");
+    const std::vector<std::uint8_t> fragmentBytecode = Core::FileSystem::readBytes("resources/shaders/triangle_fragment.spv");
     const nri::ShaderDesc shaders[] = {
       {nri::StageBits::VERTEX_SHADER, vertexBytecode.data(), vertexBytecode.size(), "main"},
       {nri::StageBits::FRAGMENT_SHADER, fragmentBytecode.data(), fragmentBytecode.size(), "main"}

@@ -13,10 +13,10 @@ namespace Engine::Application {
     std::uint32_t width,
     std::uint32_t height
   ) {
-    sceneRenderer->render(window, width, height);
+    // sceneRenderer->render(window, width, height);
   }
 
   void UIRenderer::createViewport(const SharedPtr<Application::GraphicsWindow> &window) {
-    sceneRenderer->createViewport(window);
+    // sceneRenderer->createViewport(window);
   }
 }

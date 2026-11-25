@@ -37,7 +37,7 @@ namespace Engine::Game {
       std::unique_ptr<Scene::SceneRenderer> sceneRenderer;
       // mutable std::unique_ptr<Application::UIRenderer> uiRenderer;
 
-      mutable std::unordered_map<const SharedPtr<Application::GraphicsWindow>*, std::unique_ptr<SwapChain>> swapChains;
+      mutable std::unordered_map<const SharedPtr<Application::GraphicsWindow>*, SwapChain> swapChains;
       nri::Queue *graphicsQueue;
       nri::Fence *frameFence;
       mutable uint64_t frameCount = 0;

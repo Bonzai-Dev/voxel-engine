@@ -4,20 +4,24 @@
 #include <core/logging.hpp>
 #include <core/assert.hpp>
 #include <core/unix/unix_filesystem.hpp>
+#include <quill/std/FilesystemPath.h>
+
+ENGINE_DEFINE_LOG_CATEGORY(fs, "FileSystem");
 
 namespace Engine::Core::FileSystem {
   std::vector<uint8_t> readBytes(const std::filesystem::path& filepath) {
     std::vector<uint8_t> buffer;
 
     std::ifstream stream(filepath, std::ios::binary | std::ios::ate);
-    ENGINE_ASSERT(stream, "Failed to open file at {}", filepath.c_str());
+
+    ENGINE_ASSERT(stream, "Failed to open {}", std::filesystem::absolute(filepath).c_str());
 
     auto end = stream.tellg();
     stream.seekg(0, std::ios::beg);
     auto size = end - stream.tellg();
 
-    buffer.resize((uint32_t)size);
-    stream.read(reinterpret_cast<char*>(buffer.data()), buffer.size());
+    buffer.resize(static_cast<uint32_t>(size));
+    stream.read(reinterpret_cast<char*>(buffer.data()), static_cast<std::streamsize>(buffer.size()));
     stream.close();
 
     return buffer;

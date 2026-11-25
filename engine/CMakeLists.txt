@@ -31,19 +31,15 @@ endif()
 add_subdirectory(thirdparty)
 
 add_library(engine-shaders INTERFACE)
-file(GLOB_RECURSE engine_shaders CONFIGURE_DEPENDS "runtime/renderer/src/*.slang")
-foreach(shader IN LISTS engine_shaders)
-    add_slang_shader_target(
+file(GLOB_RECURSE shaders CONFIGURE_DEPENDS "runtime/*.slang" "application/*.slang")
+foreach(shader IN LISTS shaders)
+    add_shader_target(
         "${shader}"
         "${${CMAKE_PROJECT_NAME}_SHADERS_DIRECTORY}"
         engine-shaders
     )
 endforeach()
-target_compile_definitions(
-    engine-shaders INTERFACE
-    ENGINE_TRIANGLE_VERTEX_SHADER="${${CMAKE_PROJECT_NAME}_SHADERS_DIRECTORY}/triangle_vertex.spv"
-    ENGINE_TRIANGLE_FRAGMENT_SHADER="${${CMAKE_PROJECT_NAME}_SHADERS_DIRECTORY}/triangle_fragment.spv"
-)
+
 
 # Linking modules
 add_subdirectory(runtime/core)

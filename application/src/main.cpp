@@ -4,6 +4,8 @@
 #include <graphics/graphics_window.hpp>
 #include <game/game_viewport_manager.hpp>
 
+#include "core/assert.hpp"
+
 int main() {
   bool exitRequested = false;
   Engine::Events::EventDispatcher eventDispatcher;

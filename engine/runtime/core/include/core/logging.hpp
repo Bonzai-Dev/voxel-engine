@@ -41,32 +41,32 @@ namespace Engine::Core {
 #define ENGINE_DEFINE_LOG_CATEGORY(category, name) \
   inline const ::Engine::Core::Logger category = ::Engine::Core::Logger(name)
 
-#define ENGINE_LOG_TRACE(logger, ...) do { LOG_TRACE_L3(::Engine::Core::detail::getLogger(logger), __VA_ARGS__); } while (0)
-#define ENGINE_LOG_INFO(logger, ...) do { LOG_INFO(::Engine::Core::detail::getLogger(logger), __VA_ARGS__); } while (0)
-#define ENGINE_LOG_WARNING(logger, ...) do { LOG_WARNING(::Engine::Core::detail::getLogger(logger), __VA_ARGS__); } while (0)
-#define ENGINE_LOG_ERROR(logger, ...) do { LOG_ERROR(::Engine::Core::detail::getLogger(logger), __VA_ARGS__); } while (0)
-#define ENGINE_LOG_CRITICAL(logger, ...) do { LOG_CRITICAL(::Engine::Core::detail::getLogger(logger), __VA_ARGS__); } while (0)
+#define ENGINE_LOG_TRACE(logger, fmt, ...) do { LOG_TRACE_L3(::Engine::Core::detail::getLogger(logger), fmt, __VA_ARGS__); } while (0)
+#define ENGINE_LOG_INFO(logger, fmt, ...) do { LOG_INFO(::Engine::Core::detail::getLogger(logger), fmt, __VA_ARGS__); } while (0)
+#define ENGINE_LOG_WARNING(logger, fmt, ...) do { LOG_WARNING(::Engine::Core::detail::getLogger(logger), fmt, __VA_ARGS__); } while (0)
+#define ENGINE_LOG_ERROR(logger, fmt, ...) do { LOG_ERROR(::Engine::Core::detail::getLogger(logger), fmt, __VA_ARGS__); } while (0)
+#define ENGINE_LOG_CRITICAL(logger, fmt, ...) do { LOG_CRITICAL(::Engine::Core::detail::getLogger(logger), fmt, __VA_ARGS__); } while (0)
 
-#define ENGINE_LOG(logger, level, ...)            \
-  do {                                            \
-    switch (level) {                              \
-      case LogLevel::Trace:                       \
-        ENGINE_LOG_TRACE(logger, __VA_ARGS__);    \
-        break;                                    \
-      case LogLevel::Debug:                       \
-        ENGINE_LOG_DEBUG(logger, __VA_ARGS__);    \
-        break;                                    \
-      case LogLevel::Info:                        \
-        ENGINE_LOG_INFO(logger, __VA_ARGS__);     \
-        break;                                    \
-      case LogLevel::Warn:                        \
-        ENGINE_LOG_WARNING(logger, __VA_ARGS__);  \
-        break;                                    \
-      case LogLevel::Error:                       \
-        ENGINE_LOG_ERROR(logger, __VA_ARGS__);    \
-        break;                                    \
-      case LogLevel::Critical:                    \
-        ENGINE_LOG_CRITICAL(logger, __VA_ARGS__); \
-        break;                                    \
-    }                                             \
+#define ENGINE_LOG(logger, level, fmt, ...)             \
+  do {                                                  \
+    switch (level) {                                    \
+      case LogLevel::Trace:                             \
+        ENGINE_LOG_TRACE(logger, fmt, __VA_ARGS__);     \
+        break;                                          \
+      case LogLevel::Debug:                             \
+        ENGINE_LOG_DEBUG(logger, fmt, __VA_ARGS__);     \
+        break;                                          \
+      case LogLevel::Info:                              \
+        ENGINE_LOG_INFO(logger, fmt, __VA_ARGS__);      \
+        break;                                          \
+      case LogLevel::Warn:                              \
+        ENGINE_LOG_WARNING(logger, fmt, __VA_ARGS__);   \
+        break;                                          \
+      case LogLevel::Error:                             \
+        ENGINE_LOG_ERROR(logger, fmt, __VA_ARGS__);     \
+        break;                                          \
+      case LogLevel::Critical:                          \
+        ENGINE_LOG_CRITICAL(logger, fmt, __VA_ARGS__);  \
+        break;                                          \
+    }                                                   \
   } while (0)

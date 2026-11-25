@@ -3,38 +3,21 @@
 #include <cstring>
 #include <fstream>
 #include <stdexcept>
-#include <string>
 #include <vector>
 #include <SDL3/SDL.h>
+
+#include <core/filesystem.hpp>
 #include <core/shared_pointer.hpp>
-#include <game/game_viewport_manager.hpp>
+
 #include <graphics/graphics_window.hpp>
 #include <renderer/renderer_context.hpp>
 #include <scene/scene_renderer.hpp>
+#include <game/game_viewport_manager.hpp>
 
 namespace {
   using namespace Engine;
 
-  std::vector<std::uint8_t> readShader(const char *path) {
-    std::ifstream file(path, std::ios::binary | std::ios::ate);
-    if (!file) {
-      throw std::runtime_error(std::string("Unable to open triangle shader: ") + path);
-    }
-
-    const std::streamsize size = file.tellg();
-    if (size <= 0) {
-      throw std::runtime_error(std::string("Triangle shader is empty: ") + path);
-    }
-
-    std::vector<std::uint8_t> bytecode(static_cast<std::size_t>(size));
-    file.seekg(0, std::ios::beg);
-    if (!file.read(reinterpret_cast<char*>(bytecode.data()), size)) {
-      throw std::runtime_error(std::string("Unable to read triangle shader: ") + path);
-    }
-    return bytecode;
-  }
-
-  RHI::Window getNriWindow(const Application::PlatformWindow *window) {
+  nri::Window getNriWindow(const Application::PlatformWindow *window) {
     auto *sdlWindow = static_cast<SDL_Window*>(window->getHandle());
     if (sdlWindow == nullptr) {
       throw std::runtime_error("Cannot create an NRI swap chain for a null window");
@@ -46,7 +29,7 @@ namespace {
       throw std::runtime_error("Unable to query the SDL window's native handle");
     }
 
-    RHI::Window nriWindow = {};
+    nri::Window nriWindow = {};
 #if defined(_WIN32)
     if (std::strcmp(driver, "windows") != 0) {
       throw std::runtime_error("NRI renderer requires SDL's Windows video driver");
@@ -86,17 +69,17 @@ namespace {
 
 namespace Engine::Game {
   struct SwapChainImage {
-    RHI::Texture *texture = nullptr;
-    RHI::Descriptor *colorAttachment = nullptr;
-    RHI::Fence *acquireSemaphore = nullptr;
-    RHI::Fence *releaseSemaphore = nullptr;
+    nri::Texture *texture = nullptr;
+    nri::Descriptor *colorAttachment = nullptr;
+    nri::Fence *acquireSemaphore = nullptr;
+    nri::Fence *releaseSemaphore = nullptr;
     bool hasBeenPresented = false;
   };
 
   struct GameViewportManager::SwapChain {
-    RHI::SwapChain *swapChain = nullptr;
-    RHI::PipelineLayout *pipelineLayout = nullptr;
-    RHI::Pipeline *pipeline = nullptr;
+    nri::SwapChain *swapChain = nullptr;
+    nri::PipelineLayout *pipelineLayout = nullptr;
+    nri::Pipeline *pipeline = nullptr;
     std::vector<SwapChainImage> images;
     uint32_t width = 0;
     uint32_t height = 0;
@@ -107,7 +90,7 @@ namespace Engine::Game {
   graphicsQueue(nullptr),
   frameFence(nullptr),
   rendererContext(rendererContext) {
-    rendererContext->GetQueue(rendererContext->getDevice(), RHI::QueueType::GRAPHICS, 0, graphicsQueue);
+    rendererContext->GetQueue(rendererContext->getDevice(), nri::QueueType::GRAPHICS, 0, graphicsQueue);
     (rendererContext->CreateFence(rendererContext->getDevice(), {}, frameFence));
     (rendererContext->CreateCommandAllocator(*graphicsQueue, commandAllocator));
     (rendererContext->CreateCommandBuffer(*commandAllocator, commandBuffer));
@@ -123,20 +106,20 @@ namespace Engine::Game {
 
     SwapChain &swapChain = *swapChains.at(&window);
     uint32_t frameIndex = frameCount % swapChain.images.size();
-    RHI::Fence *acquireSemaphore = swapChain.images[frameIndex].acquireSemaphore;
+    nri::Fence *acquireSemaphore = swapChain.images[frameIndex].acquireSemaphore;
 
     if (frameCount > 0)
       rendererContext->Wait(*frameFence, frameCount);
 
-    RHI::Result acquireResult = rendererContext->AcquireNextTexture(
+    nri::Result acquireResult = rendererContext->AcquireNextTexture(
       *swapChain.swapChain, *acquireSemaphore, frameIndex
     );
 
-    if (acquireResult == RHI::Result::OUT_OF_DATE) {
+    if (acquireResult == nri::Result::OUT_OF_DATE) {
       // createSwapChain(viewport, width, height);
       return;
     }
-    if (acquireResult == RHI::Result::NOT_READY)
+    if (acquireResult == nri::Result::NOT_READY)
       return;
 
     rendererContext->ResetCommandAllocator(*commandAllocator);
@@ -144,28 +127,28 @@ namespace Engine::Game {
 
     SwapChainImage &image = swapChain.images[frameIndex];
 
-    RHI::TextureBarrierDesc toColorAttachment = {};
+    nri::TextureBarrierDesc toColorAttachment = {};
     toColorAttachment.texture = image.texture;
     toColorAttachment.before = {
-      RHI::AccessBits::NONE,
-      image.hasBeenPresented ? RHI::Layout::PRESENT : RHI::Layout::UNDEFINED,
-      RHI::StageBits::NONE
+      nri::AccessBits::NONE,
+      image.hasBeenPresented ? nri::Layout::PRESENT : nri::Layout::UNDEFINED,
+      nri::StageBits::NONE
     };
     toColorAttachment.after = {
-      RHI::AccessBits::COLOR_ATTACHMENT,
-      RHI::Layout::COLOR_ATTACHMENT,
-      RHI::StageBits::COLOR_ATTACHMENT
+      nri::AccessBits::COLOR_ATTACHMENT,
+      nri::Layout::COLOR_ATTACHMENT,
+      nri::StageBits::COLOR_ATTACHMENT
     };
-    RHI::BarrierDesc barrier = {};
+    nri::BarrierDesc barrier = {};
     barrier.textures = &toColorAttachment;
     barrier.textureNum = 1;
     rendererContext->CmdBarrier(*commandBuffer, barrier);
 
-    RHI::AttachmentDesc colorAttachment = {};
+    nri::AttachmentDesc colorAttachment = {};
     colorAttachment.descriptor = image.colorAttachment;
     colorAttachment.clearValue.color.f = {0.02f, 0.04f, 0.1f, 1.0f};
-    colorAttachment.loadOp = RHI::LoadOp::CLEAR;
-    colorAttachment.storeOp = RHI::StoreOp::STORE;
+    colorAttachment.loadOp = nri::LoadOp::CLEAR;
+    colorAttachment.storeOp = nri::StoreOp::STORE;
 
 
 
@@ -173,52 +156,54 @@ namespace Engine::Game {
 
 
 
-    RHI::RenderingDesc rendering = {};
+
+
+    nri::RenderingDesc rendering = {};
     rendering.colors = &colorAttachment;
     rendering.colorNum = 1;
     rendererContext->CmdBeginRendering(*commandBuffer, rendering);
 
-    const RHI::Viewport rhiViewport = {
+    const nri::Viewport rhiViewport = {
       0.0f, 0.0f, static_cast<float>(window->getWidth()), static_cast<float>(window->getHeight()), 0.0f, 1.0f
     };
-    const RHI::Rect scissor = {
-      0, 0, static_cast<RHI::Dim_t>(window->getWidth()), static_cast<RHI::Dim_t>(window->getHeight())
+    const nri::Rect scissor = {
+      0, 0, static_cast<nri::Dim_t>(window->getWidth()), static_cast<nri::Dim_t>(window->getHeight())
     };
     rendererContext->CmdSetViewports(*commandBuffer, &rhiViewport, 1);
     rendererContext->CmdSetScissors(*commandBuffer, &scissor, 1);
-    rendererContext->CmdSetPipelineLayout(*commandBuffer, RHI::BindPoint::GRAPHICS, *swapChain.pipelineLayout);
+    rendererContext->CmdSetPipelineLayout(*commandBuffer, nri::BindPoint::GRAPHICS, *swapChain.pipelineLayout);
     rendererContext->CmdSetPipeline(*commandBuffer, *swapChain.pipeline);
     rendererContext->CmdDraw(*commandBuffer, {3, 1, 0, 0});
     rendererContext->CmdEndRendering(*commandBuffer);
 
-    RHI::TextureBarrierDesc toPresent = {};
+    nri::TextureBarrierDesc toPresent = {};
     toPresent.texture = image.texture;
     toPresent.before = {
-      RHI::AccessBits::COLOR_ATTACHMENT,
-      RHI::Layout::COLOR_ATTACHMENT,
-      RHI::StageBits::COLOR_ATTACHMENT
+      nri::AccessBits::COLOR_ATTACHMENT,
+      nri::Layout::COLOR_ATTACHMENT,
+      nri::StageBits::COLOR_ATTACHMENT
     };
     toPresent.after = {
-      RHI::AccessBits::NONE,
-      RHI::Layout::PRESENT,
-      RHI::StageBits::NONE
+      nri::AccessBits::NONE,
+      nri::Layout::PRESENT,
+      nri::StageBits::NONE
     };
     barrier.textures = &toPresent;
     rendererContext->CmdBarrier(*commandBuffer, barrier);
     (rendererContext->EndCommandBuffer(*commandBuffer));
 
     const uint64_t nextFrameCount = frameCount + 1;
-    RHI::FenceSubmitDesc waitAcquire = {};
+    nri::FenceSubmitDesc waitAcquire = {};
     waitAcquire.fence = acquireSemaphore;
-    waitAcquire.stages = RHI::StageBits::COLOR_ATTACHMENT;
+    waitAcquire.stages = nri::StageBits::COLOR_ATTACHMENT;
 
-    RHI::FenceSubmitDesc signalFences[] = {
-      {image.releaseSemaphore, 0, RHI::StageBits::ALL},
-      {frameFence, nextFrameCount, RHI::StageBits::ALL}
+    nri::FenceSubmitDesc signalFences[] = {
+      {image.releaseSemaphore, 0, nri::StageBits::ALL},
+      {frameFence, nextFrameCount, nri::StageBits::ALL}
     };
-    RHI::CommandBuffer *commandBuffers[] = {commandBuffer};
+    nri::CommandBuffer *commandBuffers[] = {commandBuffer};
 
-    RHI::QueueSubmitDesc submit = {};
+    nri::QueueSubmitDesc submit = {};
     submit.waitFences = &waitAcquire;
     submit.waitFenceNum = 1;
     submit.commandBuffers = commandBuffers;
@@ -237,8 +222,8 @@ namespace Engine::Game {
     frameCount = nextFrameCount;
     ++swapChain.frameIndex;
 
-    const RHI::Result presentResult = rendererContext->QueuePresent(*swapChain.swapChain, *image.releaseSemaphore, 0);
-    if (presentResult == RHI::Result::OUT_OF_DATE) {
+    const nri::Result presentResult = rendererContext->QueuePresent(*swapChain.swapChain, *image.releaseSemaphore, 0);
+    if (presentResult == nri::Result::OUT_OF_DATE) {
       // createSwapChain(viewport, width, height);
       return;
     }
@@ -248,11 +233,11 @@ namespace Engine::Game {
     if (swapChains.contains(&window))
       return;
 
-    RHI::SwapChainDesc swapChainDesc = {};
+    nri::SwapChainDesc swapChainDesc = {};
     swapChainDesc.width = window->getWidth();
     swapChainDesc.height = window->getHeight();
     swapChainDesc.format = window->getFormat();
-    swapChainDesc.flags = RHI::SwapChainBits::VSYNC;
+    swapChainDesc.flags = nri::SwapChainBits::VSYNC;
     swapChainDesc.window = getNriWindow(window->getNativeWindow().get());
     swapChainDesc.queue = graphicsQueue;
     swapChainDesc.textureNum = 3;
@@ -263,47 +248,47 @@ namespace Engine::Game {
     rendererContext->CreateSwapChain(rendererContext->getDevice(), swapChainDesc, swapChain.swapChain);
 
     uint32_t textureCount = 0;
-    RHI::Texture *const *textures = rendererContext->GetSwapChainTextures(*swapChain.swapChain, textureCount);
+    nri::Texture *const *textures = rendererContext->GetSwapChainTextures(*swapChain.swapChain, textureCount);
 
     swapChain.images.resize(textureCount);
 
-    const RHI::Format format = rendererContext->GetTextureDesc(*textures[0]).format;
+    const nri::Format format = rendererContext->GetTextureDesc(*textures[0]).format;
     for (uint32_t i = 0; i < textureCount; ++i) {
       SwapChainImage &image = swapChain.images[i];
       image.texture = textures[i];
 
-      const RHI::TextureViewDesc viewDesc = {
-        image.texture, RHI::TextureView::COLOR_ATTACHMENT, format
+      const nri::TextureViewDesc viewDesc = {
+        image.texture, nri::TextureView::COLOR_ATTACHMENT, format
       };
 
       rendererContext->CreateTextureView(viewDesc, image.colorAttachment);
 
-      const RHI::FenceDesc semaphoreDesc = {RHI::SWAPCHAIN_SEMAPHORE};
+      const nri::FenceDesc semaphoreDesc = {nri::SWAPCHAIN_SEMAPHORE};
       (rendererContext->CreateFence(rendererContext->getDevice(), semaphoreDesc, image.acquireSemaphore));
       (rendererContext->CreateFence(rendererContext->getDevice(), semaphoreDesc, image.releaseSemaphore));
     }
 
     /// Creating pipeline TEMPORARY
-    RHI::PipelineLayoutDesc layoutDesc = {};
-    layoutDesc.shaderStages = RHI::StageBits::VERTEX_SHADER | RHI::StageBits::FRAGMENT_SHADER;
+    nri::PipelineLayoutDesc layoutDesc = {};
+    layoutDesc.shaderStages = nri::StageBits::VERTEX_SHADER | nri::StageBits::FRAGMENT_SHADER;
     (rendererContext->CreatePipelineLayout(rendererContext->getDevice(), layoutDesc, swapChain.pipelineLayout));
 
-    const std::vector<std::uint8_t> vertexBytecode = readShader(ENGINE_TRIANGLE_VERTEX_SHADER);
-    const std::vector<std::uint8_t> fragmentBytecode = readShader(ENGINE_TRIANGLE_FRAGMENT_SHADER);
-    const RHI::ShaderDesc shaders[] = {
-      {RHI::StageBits::VERTEX_SHADER, vertexBytecode.data(), vertexBytecode.size(), "main"},
-      {RHI::StageBits::FRAGMENT_SHADER, fragmentBytecode.data(), fragmentBytecode.size(), "main"}
+    const std::vector<std::uint8_t> vertexBytecode = Core::FileSystem::readBytes(ENGINE_TRIANGLE_VERTEX_SHADER);
+    const std::vector<std::uint8_t> fragmentBytecode = Core::FileSystem::readBytes(ENGINE_TRIANGLE_FRAGMENT_SHADER);
+    const nri::ShaderDesc shaders[] = {
+      {nri::StageBits::VERTEX_SHADER, vertexBytecode.data(), vertexBytecode.size(), "main"},
+      {nri::StageBits::FRAGMENT_SHADER, fragmentBytecode.data(), fragmentBytecode.size(), "main"}
     };
 
-    RHI::GraphicsPipelineDesc pipelineDesc = {};
+    nri::GraphicsPipelineDesc pipelineDesc = {};
     pipelineDesc.pipelineLayout = swapChain.pipelineLayout;
-    pipelineDesc.inputAssembly.topology = RHI::Topology::TRIANGLE_LIST;
-    pipelineDesc.rasterization.fillMode = RHI::FillMode::SOLID;
-    pipelineDesc.rasterization.cullMode = RHI::CullMode::NONE;
+    pipelineDesc.inputAssembly.topology = nri::Topology::TRIANGLE_LIST;
+    pipelineDesc.rasterization.fillMode = nri::FillMode::SOLID;
+    pipelineDesc.rasterization.cullMode = nri::CullMode::NONE;
 
-    RHI::ColorAttachmentDesc colorDesc = {};
+    nri::ColorAttachmentDesc colorDesc = {};
     colorDesc.format = format;
-    colorDesc.colorWriteMask = RHI::ColorWriteBits::RGBA;
+    colorDesc.colorWriteMask = nri::ColorWriteBits::RGBA;
     pipelineDesc.outputMerger.colors = &colorDesc;
     pipelineDesc.outputMerger.colorNum = 1;
     pipelineDesc.shaders = shaders;

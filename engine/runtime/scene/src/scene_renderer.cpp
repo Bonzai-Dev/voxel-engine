@@ -22,7 +22,7 @@
 namespace {
   using namespace Engine;
 
-  RHI::Window getNriWindow(const Application::PlatformWindow *window) {
+  nri::Window getNriWindow(const Application::PlatformWindow *window) {
     auto *sdlWindow = static_cast<SDL_Window*>(window->getHandle());
     if (sdlWindow == nullptr) {
       throw std::runtime_error("Cannot create an NRI swap chain for a null window");
@@ -34,7 +34,7 @@ namespace {
       throw std::runtime_error("Unable to query the SDL window's native handle");
     }
 
-    RHI::Window nriWindow = {};
+    nri::Window nriWindow = {};
 #if defined(_WIN32)
     if (std::strcmp(driver, "windows") != 0) {
       throw std::runtime_error("NRI renderer requires SDL's Windows video driver");
@@ -72,8 +72,8 @@ namespace {
 
   constexpr std::uint8_t swapChainTextureCount = 3;
 
-  void checkResult(RHI::Result result, const char *operation) {
-    if (result != RHI::Result::SUCCESS) {
+  void checkResult(nri::Result result, const char *operation) {
+    if (result != nri::Result::SUCCESS) {
       throw std::runtime_error(
         std::string(operation) + " failed with RHI result " +
         std::to_string(static_cast<int>(result))
@@ -103,18 +103,18 @@ namespace {
 
 namespace Engine::Scene {
   struct SceneRenderer::SwapChainImage {
-    RHI::Texture *texture = nullptr;
-    RHI::Descriptor *colorAttachment = nullptr;
-    RHI::Fence *acquireSemaphore = nullptr;
-    RHI::Fence *releaseSemaphore = nullptr;
+    nri::Texture *texture = nullptr;
+    nri::Descriptor *colorAttachment = nullptr;
+    nri::Fence *acquireSemaphore = nullptr;
+    nri::Fence *releaseSemaphore = nullptr;
     bool hasBeenPresented = false;
   };
 
   struct SceneRenderer::Viewport {
     SharedPtr<Application::GraphicsWindow> window;
-    RHI::SwapChain *swapChain = nullptr;
-    RHI::PipelineLayout *pipelineLayout = nullptr;
-    RHI::Pipeline *pipeline = nullptr;
+    nri::SwapChain *swapChain = nullptr;
+    nri::PipelineLayout *pipelineLayout = nullptr;
+    nri::Pipeline *pipeline = nullptr;
     std::vector<SwapChainImage> images;
     std::uint32_t width = 0;
     std::uint32_t height = 0;
@@ -127,7 +127,7 @@ namespace Engine::Scene {
     }
 
     checkResult(
-      context->GetQueue(context->getDevice(), RHI::QueueType::GRAPHICS, 0, graphicsQueue),
+      context->GetQueue(context->getDevice(), nri::QueueType::GRAPHICS, 0, graphicsQueue),
       "GetQueue"
     );
     if (graphicsQueue == nullptr) {
@@ -163,8 +163,8 @@ namespace Engine::Scene {
   }
 
   bool SceneRenderer::createSwapChain(Viewport &viewport, std::uint32_t width, std::uint32_t height) {
-    if (width > std::numeric_limits<RHI::Dim_t>::max() ||
-      height > std::numeric_limits<RHI::Dim_t>::max()) {
+    if (width > std::numeric_limits<nri::Dim_t>::max() ||
+      height > std::numeric_limits<nri::Dim_t>::max()) {
       throw std::out_of_range("SceneRenderer extent exceeds the RHI dimension range");
     }
 
@@ -181,19 +181,19 @@ namespace Engine::Scene {
       throw std::runtime_error("Cannot create an NRI swap chain for a window without a native window");
     }
 
-    RHI::SwapChainDesc swapChainDesc = {};
+    nri::SwapChainDesc swapChainDesc = {};
     swapChainDesc.window = getNriWindow(nativeWindow.get());
     swapChainDesc.queue = graphicsQueue;
     swapChainDesc.format = viewport.window->getFormat();
-    swapChainDesc.flags = RHI::SwapChainBits::VSYNC;
+    swapChainDesc.flags = nri::SwapChainBits::VSYNC;
     swapChainDesc.width = width;
     swapChainDesc.height = height;
     swapChainDesc.textureNum = swapChainTextureCount;
 
-    const RHI::Result createResult = context->CreateSwapChain(
+    const nri::Result createResult = context->CreateSwapChain(
       context->getDevice(), swapChainDesc, viewport.swapChain
     );
-    if (createResult == RHI::Result::NOT_READY) {
+    if (createResult == nri::Result::NOT_READY) {
       viewport.swapChain = nullptr;
       return false;
     }
@@ -201,12 +201,12 @@ namespace Engine::Scene {
 
     try {
       std::uint32_t textureCount = 0;
-      RHI::Texture *const *textures = context->GetSwapChainTextures(*viewport.swapChain, textureCount);
+      nri::Texture *const *textures = context->GetSwapChainTextures(*viewport.swapChain, textureCount);
       if (textures == nullptr || textureCount == 0 || textures[0] == nullptr) {
         throw std::runtime_error("Swap chain returned no valid images");
       }
 
-      const RHI::Format format = context->GetTextureDesc(*textures[0]).format;
+      const nri::Format format = context->GetTextureDesc(*textures[0]).format;
       viewport.images.resize(textureCount);
       for (std::uint32_t i = 0; i < textureCount; ++i) {
         if (textures[i] == nullptr) {
@@ -216,12 +216,12 @@ namespace Engine::Scene {
         SwapChainImage &image = viewport.images[i];
         image.texture = textures[i];
 
-        const RHI::TextureViewDesc viewDesc = {
-          image.texture, RHI::TextureView::COLOR_ATTACHMENT, format
+        const nri::TextureViewDesc viewDesc = {
+          image.texture, nri::TextureView::COLOR_ATTACHMENT, format
         };
         checkResult(context->CreateTextureView(viewDesc, image.colorAttachment), "CreateTextureView");
 
-        const RHI::FenceDesc semaphoreDesc = {RHI::SWAPCHAIN_SEMAPHORE};
+        const nri::FenceDesc semaphoreDesc = {nri::SWAPCHAIN_SEMAPHORE};
         checkResult(context->CreateFence(context->getDevice(), semaphoreDesc, image.acquireSemaphore),
                     "CreateFence(acquire semaphore)");
         checkResult(context->CreateFence(context->getDevice(), semaphoreDesc, image.releaseSemaphore),
@@ -240,28 +240,28 @@ namespace Engine::Scene {
     }
   }
 
-  void SceneRenderer::createPipeline(Viewport &viewport, RHI::Format format) {
-    RHI::PipelineLayoutDesc layoutDesc = {};
-    layoutDesc.shaderStages = RHI::StageBits::VERTEX_SHADER | RHI::StageBits::FRAGMENT_SHADER;
+  void SceneRenderer::createPipeline(Viewport &viewport, nri::Format format) {
+    nri::PipelineLayoutDesc layoutDesc = {};
+    layoutDesc.shaderStages = nri::StageBits::VERTEX_SHADER | nri::StageBits::FRAGMENT_SHADER;
     checkResult(context->CreatePipelineLayout(context->getDevice(), layoutDesc, viewport.pipelineLayout),
                 "CreatePipelineLayout");
 
     const std::vector<std::uint8_t> vertexBytecode = readShader(ENGINE_TRIANGLE_VERTEX_SHADER);
     const std::vector<std::uint8_t> fragmentBytecode = readShader(ENGINE_TRIANGLE_FRAGMENT_SHADER);
-    const RHI::ShaderDesc shaders[] = {
-      {RHI::StageBits::VERTEX_SHADER, vertexBytecode.data(), vertexBytecode.size(), "main"},
-      {RHI::StageBits::FRAGMENT_SHADER, fragmentBytecode.data(), fragmentBytecode.size(), "main"}
+    const nri::ShaderDesc shaders[] = {
+      {nri::StageBits::VERTEX_SHADER, vertexBytecode.data(), vertexBytecode.size(), "main"},
+      {nri::StageBits::FRAGMENT_SHADER, fragmentBytecode.data(), fragmentBytecode.size(), "main"}
     };
 
-    RHI::GraphicsPipelineDesc pipelineDesc = {};
+    nri::GraphicsPipelineDesc pipelineDesc = {};
     pipelineDesc.pipelineLayout = viewport.pipelineLayout;
-    pipelineDesc.inputAssembly.topology = RHI::Topology::TRIANGLE_LIST;
-    pipelineDesc.rasterization.fillMode = RHI::FillMode::SOLID;
-    pipelineDesc.rasterization.cullMode = RHI::CullMode::NONE;
+    pipelineDesc.inputAssembly.topology = nri::Topology::TRIANGLE_LIST;
+    pipelineDesc.rasterization.fillMode = nri::FillMode::SOLID;
+    pipelineDesc.rasterization.cullMode = nri::CullMode::NONE;
 
-    RHI::ColorAttachmentDesc colorDesc = {};
+    nri::ColorAttachmentDesc colorDesc = {};
     colorDesc.format = format;
-    colorDesc.colorWriteMask = RHI::ColorWriteBits::RGBA;
+    colorDesc.colorWriteMask = nri::ColorWriteBits::RGBA;
     pipelineDesc.outputMerger.colors = &colorDesc;
     pipelineDesc.outputMerger.colorNum = 1;
     pipelineDesc.shaders = shaders;
@@ -313,8 +313,8 @@ namespace Engine::Scene {
 
   void SceneRenderer::destroyResources() noexcept {
     if (context && (frameFenceValue != 0 || !windowSwapChains.empty())) {
-      const RHI::Result idleResult = context->DeviceWaitIdle(&context->getDevice());
-      if (idleResult != RHI::Result::SUCCESS) {
+      const nri::Result idleResult = context->DeviceWaitIdle(&context->getDevice());
+      if (idleResult != nri::Result::SUCCESS) {
         ENGINE_LOG_ERROR(Renderer::rendererLogger, "DeviceWaitIdle during SceneRenderer teardown failed: {}",
                          static_cast<int>(idleResult));
       }
@@ -353,8 +353,8 @@ namespace Engine::Scene {
     if (width == 0 || height == 0) {
       return;
     }
-    if (width > std::numeric_limits<RHI::Dim_t>::max() ||
-      height > std::numeric_limits<RHI::Dim_t>::max()) {
+    if (width > std::numeric_limits<nri::Dim_t>::max() ||
+      height > std::numeric_limits<nri::Dim_t>::max()) {
       throw std::out_of_range("SceneRenderer extent exceeds the RHI dimension range");
     }
     if (frameFenceValue == std::numeric_limits<std::uint64_t>::max()) {
@@ -380,16 +380,16 @@ namespace Engine::Scene {
     }
 
     const std::size_t acquireIndex = static_cast<std::size_t>(viewport.frameIndex % viewport.images.size());
-    RHI::Fence *acquireSemaphore = viewport.images[acquireIndex].acquireSemaphore;
+    nri::Fence *acquireSemaphore = viewport.images[acquireIndex].acquireSemaphore;
     std::uint32_t imageIndex = 0;
-    const RHI::Result acquireResult = context->AcquireNextTexture(
+    const nri::Result acquireResult = context->AcquireNextTexture(
       *viewport.swapChain, *acquireSemaphore, imageIndex
     );
-    if (acquireResult == RHI::Result::OUT_OF_DATE) {
+    if (acquireResult == nri::Result::OUT_OF_DATE) {
       createSwapChain(viewport, width, height);
       return;
     }
-    if (acquireResult == RHI::Result::NOT_READY) {
+    if (acquireResult == nri::Result::NOT_READY) {
       return;
     }
     checkResult(acquireResult, "AcquireNextTexture");
@@ -401,75 +401,75 @@ namespace Engine::Scene {
     checkResult(context->BeginCommandBuffer(*commandBuffer, nullptr), "BeginCommandBuffer");
 
     SwapChainImage &image = viewport.images[imageIndex];
-    RHI::TextureBarrierDesc toColorAttachment = {};
+    nri::TextureBarrierDesc toColorAttachment = {};
     toColorAttachment.texture = image.texture;
     toColorAttachment.before = {
-      RHI::AccessBits::NONE,
-      image.hasBeenPresented ? RHI::Layout::PRESENT : RHI::Layout::UNDEFINED,
-      RHI::StageBits::NONE
+      nri::AccessBits::NONE,
+      image.hasBeenPresented ? nri::Layout::PRESENT : nri::Layout::UNDEFINED,
+      nri::StageBits::NONE
     };
     toColorAttachment.after = {
-      RHI::AccessBits::COLOR_ATTACHMENT,
-      RHI::Layout::COLOR_ATTACHMENT,
-      RHI::StageBits::COLOR_ATTACHMENT
+      nri::AccessBits::COLOR_ATTACHMENT,
+      nri::Layout::COLOR_ATTACHMENT,
+      nri::StageBits::COLOR_ATTACHMENT
     };
-    RHI::BarrierDesc barrier = {};
+    nri::BarrierDesc barrier = {};
     barrier.textures = &toColorAttachment;
     barrier.textureNum = 1;
     context->CmdBarrier(*commandBuffer, barrier);
 
-    RHI::AttachmentDesc colorAttachment = {};
+    nri::AttachmentDesc colorAttachment = {};
     colorAttachment.descriptor = image.colorAttachment;
     colorAttachment.clearValue.color.f = {0.02f, 0.04f, 0.1f, 1.0f};
-    colorAttachment.loadOp = RHI::LoadOp::CLEAR;
-    colorAttachment.storeOp = RHI::StoreOp::STORE;
+    colorAttachment.loadOp = nri::LoadOp::CLEAR;
+    colorAttachment.storeOp = nri::StoreOp::STORE;
 
-    RHI::RenderingDesc rendering = {};
+    nri::RenderingDesc rendering = {};
     rendering.colors = &colorAttachment;
     rendering.colorNum = 1;
     context->CmdBeginRendering(*commandBuffer, rendering);
 
-    const RHI::Viewport rhiViewport = {
+    const nri::Viewport rhiViewport = {
       0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f, 1.0f
     };
-    const RHI::Rect scissor = {
-      0, 0, static_cast<RHI::Dim_t>(width), static_cast<RHI::Dim_t>(height)
+    const nri::Rect scissor = {
+      0, 0, static_cast<nri::Dim_t>(width), static_cast<nri::Dim_t>(height)
     };
     context->CmdSetViewports(*commandBuffer, &rhiViewport, 1);
     context->CmdSetScissors(*commandBuffer, &scissor, 1);
-    context->CmdSetPipelineLayout(*commandBuffer, RHI::BindPoint::GRAPHICS, *viewport.pipelineLayout);
+    context->CmdSetPipelineLayout(*commandBuffer, nri::BindPoint::GRAPHICS, *viewport.pipelineLayout);
     context->CmdSetPipeline(*commandBuffer, *viewport.pipeline);
     context->CmdDraw(*commandBuffer, {3, 1, 0, 0});
     context->CmdEndRendering(*commandBuffer);
 
-    RHI::TextureBarrierDesc toPresent = {};
+    nri::TextureBarrierDesc toPresent = {};
     toPresent.texture = image.texture;
     toPresent.before = {
-      RHI::AccessBits::COLOR_ATTACHMENT,
-      RHI::Layout::COLOR_ATTACHMENT,
-      RHI::StageBits::COLOR_ATTACHMENT
+      nri::AccessBits::COLOR_ATTACHMENT,
+      nri::Layout::COLOR_ATTACHMENT,
+      nri::StageBits::COLOR_ATTACHMENT
     };
     toPresent.after = {
-      RHI::AccessBits::NONE,
-      RHI::Layout::PRESENT,
-      RHI::StageBits::NONE
+      nri::AccessBits::NONE,
+      nri::Layout::PRESENT,
+      nri::StageBits::NONE
     };
     barrier.textures = &toPresent;
     context->CmdBarrier(*commandBuffer, barrier);
     checkResult(context->EndCommandBuffer(*commandBuffer), "EndCommandBuffer");
 
     const std::uint64_t nextFenceValue = frameFenceValue + 1;
-    RHI::FenceSubmitDesc waitAcquire = {};
+    nri::FenceSubmitDesc waitAcquire = {};
     waitAcquire.fence = acquireSemaphore;
-    waitAcquire.stages = RHI::StageBits::COLOR_ATTACHMENT;
+    waitAcquire.stages = nri::StageBits::COLOR_ATTACHMENT;
 
-    RHI::FenceSubmitDesc signalFences[] = {
-      {image.releaseSemaphore, 0, RHI::StageBits::ALL},
-      {frameFence, nextFenceValue, RHI::StageBits::ALL}
+    nri::FenceSubmitDesc signalFences[] = {
+      {image.releaseSemaphore, 0, nri::StageBits::ALL},
+      {frameFence, nextFenceValue, nri::StageBits::ALL}
     };
-    RHI::CommandBuffer *commandBuffers[] = {commandBuffer};
+    nri::CommandBuffer *commandBuffers[] = {commandBuffer};
 
-    RHI::QueueSubmitDesc submit = {};
+    nri::QueueSubmitDesc submit = {};
     submit.waitFences = &waitAcquire;
     submit.waitFenceNum = 1;
     submit.commandBuffers = commandBuffers;
@@ -482,8 +482,8 @@ namespace Engine::Scene {
     frameFenceValue = nextFenceValue;
     ++viewport.frameIndex;
 
-    const RHI::Result presentResult = context->QueuePresent(*viewport.swapChain, *image.releaseSemaphore, 0);
-    if (presentResult == RHI::Result::OUT_OF_DATE) {
+    const nri::Result presentResult = context->QueuePresent(*viewport.swapChain, *image.releaseSemaphore, 0);
+    if (presentResult == nri::Result::OUT_OF_DATE) {
       createSwapChain(viewport, width, height);
       return;
     }

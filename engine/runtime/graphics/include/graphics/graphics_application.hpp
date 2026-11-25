@@ -71,7 +71,6 @@ namespace Engine::Application {
       mutable std::vector<SharedPtr<GraphicsWindow>> windows;
 
       SharedPtr<Renderer::RendererContext> rendererContext;
-      mutable std::unique_ptr<UIRenderer> uiRenderer;
 
       void onWindowShow(const Events::WindowShown &event);
       void onWindowHide(const Events::WindowHidden &event);

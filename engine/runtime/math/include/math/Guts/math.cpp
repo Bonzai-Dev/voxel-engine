@@ -1,0 +1,16 @@
+#include <math/math.hpp>
+
+#include "emulation.h"
+#include "../../../src/math.h"
+#include "../../../src/swizzle.h"
+#include "bool1.h"
+#include "i32.h"
+#include "../../../src/u32.h"
+#include "fsmall.h"
+#include "f32.h"
+#include "f64.h"
+#include "conversion.h"
+#include "../../../src/other.h"
+#include "../../../src/packing.h"
+#include "../../../src/sorting.h"
+#include "../../../src/tests.h"

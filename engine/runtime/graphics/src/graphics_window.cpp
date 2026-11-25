@@ -9,7 +9,7 @@ namespace Engine::Application {
   resizable(options.resizable) {
   }
 
-  RHI::SwapChainFormat GraphicsWindow::getFormat() const {
+  nri::SwapChainFormat GraphicsWindow::getFormat() const {
     return this->nativeWindow->getFormat();
   }
 

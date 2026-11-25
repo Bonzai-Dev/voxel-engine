@@ -1,7 +1,7 @@
+#include <cstdint>
 #include <SDL3/SDL_video.h>
 #include <SDL3/SDL_mouse.h>
 #include <application/platform_window.hpp>
-#include "Extensions/NRISwapChain.h"
 #include <core/logging.hpp>
 #include "application.hpp"
 
@@ -37,8 +37,8 @@ namespace Engine::Application {
       SDL_RaiseWindow(window);
   }
 
-  RHI::SwapChainFormat PlatformWindow::getFormat() const {
-    return RHI::SwapChainFormat::BT709_G22_8BIT;
+  nri::SwapChainFormat PlatformWindow::getFormat() const {
+    return nri::SwapChainFormat::BT709_G22_8BIT;
   }
 
   PlatformWindow::~PlatformWindow() {

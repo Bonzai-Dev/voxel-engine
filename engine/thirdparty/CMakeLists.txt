@@ -56,4 +56,4 @@ elseif (UNIX)
     set(NRI_ENABLE_VK_SUPPORT ON)
 endif ()
 
-add_subdirectory(RHI EXCLUDE_FROM_ALL)
+add_subdirectory(NRI EXCLUDE_FROM_ALL)

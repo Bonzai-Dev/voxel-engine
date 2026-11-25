@@ -1,10 +1,8 @@
 #pragma once
-#include <cstdint>
 #include <string>
 #include <core/shared_pointer.hpp>
-
-#include "NRIDescs.h"
-#include "Extensions/NRISwapChain.h"
+#include <NRIDescs.h>
+#include <Extensions/NRISwapChain.h>
 
 struct SDL_Window;
 
@@ -56,7 +54,7 @@ namespace Engine::Application {
 
       void *getHandle() const { return window; }
 
-      RHI::SwapChainFormat getFormat() const;
+      nri::SwapChainFormat getFormat() const; // TODO: move this into graphics window?
 
     protected:
       SDL_Window *window = nullptr;

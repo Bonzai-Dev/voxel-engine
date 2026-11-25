@@ -3,7 +3,6 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include <core/logging.hpp>
 #include <core/shared_pointer.hpp>
 
 namespace Engine::Application {

@@ -9,6 +9,7 @@
 #include <application/platform_window.hpp>
 #include <renderer/renderer_context.hpp>
 #include <graphics/ui/ui_renderer.hpp>
+#include <scene/scene_renderer.hpp>
 #include <core/shared_pointer.hpp>
 #include <graphics/graphics_window.hpp>
 #include <graphics/graphics_application.hpp>

@@ -1,16 +1,8 @@
 #pragma once
 #include <filesystem>
+#include <vector>
 
 namespace Engine::Core::FileSystem {
-  enum class FileError: uint8_t {
-    NotFound,
-    AccessDenied,
-    AlreadyExists,
-    InvalidArgument,
-    IoFailure,
-    Unknown,
-  };
-
   constexpr bool createDirectory(const std::filesystem::path &path);
 
   constexpr bool exists(const std::filesystem::path &path);
@@ -21,5 +13,5 @@ namespace Engine::Core::FileSystem {
   constexpr bool remove(const std::filesystem::path &path);
   constexpr bool rename(const std::filesystem::path &oldPath, const std::filesystem::path &newPath);
 
-  std::string readBytes(const std::filesystem::path& filepath);
+  std::vector<uint8_t> readBytes(const std::filesystem::path& filepath);
 }

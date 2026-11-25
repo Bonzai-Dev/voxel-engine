@@ -3,9 +3,11 @@
 #include <scene/scene_renderer.hpp>
 
 namespace Engine::Scene {
-  class World {
+
+  // Contains any cpu logic of the scene
+  class Scene {
     public:
-      World();
+      Scene();
 
     private:
       std::unique_ptr<SceneRenderer> sceneRenderer;

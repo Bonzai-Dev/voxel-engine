@@ -6,6 +6,7 @@
 #include <core/shared_pointer.hpp>
 
 namespace Engine::Application {
+  class UIRenderer;
   class GraphicsWindow;
 }
 
@@ -34,14 +35,15 @@ namespace Engine::Game {
       struct SwapChain;
 
       std::unique_ptr<Scene::SceneRenderer> sceneRenderer;
+      // mutable std::unique_ptr<Application::UIRenderer> uiRenderer;
 
       mutable std::unordered_map<const SharedPtr<Application::GraphicsWindow>*, std::unique_ptr<SwapChain>> swapChains;
-      RHI::Queue *graphicsQueue;
-      RHI::Fence *frameFence;
+      nri::Queue *graphicsQueue;
+      nri::Fence *frameFence;
       mutable uint64_t frameCount = 0;
 
-      RHI::CommandAllocator *commandAllocator = nullptr;
-      RHI::CommandBuffer *commandBuffer = nullptr;
+      nri::CommandAllocator *commandAllocator = nullptr;
+      nri::CommandBuffer *commandBuffer = nullptr;
 
       SharedPtr<Renderer::RendererContext> rendererContext;
   };

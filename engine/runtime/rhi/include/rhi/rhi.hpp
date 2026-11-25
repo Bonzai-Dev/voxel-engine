@@ -1,8 +1,5 @@
-//
-// Created by bonzai on 11/21/26.
-//
+#pragma once
 
-#ifndef VOXEL_ENGINE_RHI_HPP
-#define VOXEL_ENGINE_RHI_HPP
+namespace Engine {
 
-#endif //VOXEL_ENGINE_RHI_HPP
+}

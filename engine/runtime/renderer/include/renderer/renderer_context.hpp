@@ -24,23 +24,23 @@ namespace Engine::Renderer {
 
   class RendererContext: 
   public RendererResource,
-  public RHI::CoreInterface,
-  public RHI::DescriptorHeapInterface,
-  public RHI::HelperInterface,
-  public RHI::LowLatencyInterface,
-  public RHI::MeshShaderInterface,
-  public RHI::RayTracingInterface,
-  public RHI::StreamerInterface,
-  public RHI::SwapChainInterface,
-  public RHI::UpscalerInterface {
+  public nri::CoreInterface,
+  public nri::DescriptorHeapInterface,
+  public nri::HelperInterface,
+  public nri::LowLatencyInterface,
+  public nri::MeshShaderInterface,
+  public nri::RayTracingInterface,
+  public nri::StreamerInterface,
+  public nri::SwapChainInterface,
+  public nri::UpscalerInterface {
     public:
       explicit RendererContext();
 
       ~RendererContext() override;
 
-      RHI::Device &getDevice() const { return *renderingDevice; }
+      nri::Device &getDevice() const { return *renderingDevice; }
 
     private:
-      RHI::Device *renderingDevice = nullptr;
+      nri::Device *renderingDevice = nullptr;
   };
 }

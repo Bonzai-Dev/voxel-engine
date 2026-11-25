@@ -4,6 +4,30 @@ include("cmake/engine_module.cmake")
 add_library(engine-options INTERFACE)
 target_compile_features(engine-options INTERFACE cxx_std_20)
 
+if(WIN32)
+    target_compile_definitions(engine-options INTERFACE ENGINE_PLATFORM_WINDOWS)
+    set(ENGINE_PLATFORM "Windows")
+elseif(APPLE)
+    target_compile_definitions(engine-options INTERFACE ENGINE_PLATFORM_APPLE)
+    set(ENGINE_PLATFORM "Apple")
+elseif(UNIX)
+    target_compile_definitions(engine-options INTERFACE ENGINE_PLATFORM_LINUX)
+    set(ENGINE_PLATFORM "Unix")
+endif()
+
+if(MSVC)
+    target_compile_definitions(engine-options INTERFACE ENGINE_COMPILER_MSVC)
+    set(ENGINE_COMPILER "MSVC")
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    target_compile_definitions(engine-options INTERFACE ENGINE_COMPILER_GCC)
+    set(ENGINE_COMPILER "GCC")
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "^(Apple)?Clang$") # TODO: Verify?
+    target_compile_definitions(engine-options INTERFACE ENGINE_COMPILER_CLANG)
+    set(ENGINE_COMPILER "Clang")
+endif()
+
+
+# Creating engine libraries
 add_subdirectory(thirdparty)
 
 add_library(engine-shaders INTERFACE)
@@ -57,26 +81,3 @@ target_compile_definitions(
     $<$<CONFIG:Debug>:ENGINE_DEBUG>
     $<$<CONFIG:Release>:ENGINE_RELEASE>
 )
-
-# Defines macros for different platforms
-if(WIN32)
-    target_compile_definitions(engine-options INTERFACE ENGINE_PLATFORM_WINDOWS)
-    set(ENGINE_PLATFORM "Windows")
-elseif(APPLE)
-    target_compile_definitions(engine-options INTERFACE ENGINE_PLATFORM_APPLE)
-    set(ENGINE_PLATFORM "Apple")
-elseif(UNIX)
-    target_compile_definitions(engine-options INTERFACE ENGINE_PLATFORM_LINUX)
-    set(ENGINE_PLATFORM "Unix")
-endif()
-
-if(MSVC)
-    target_compile_definitions(engine-options INTERFACE ENGINE_COMPILER_MSVC)
-    set(ENGINE_COMPILER "MSVC")
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    target_compile_definitions(engine-options INTERFACE ENGINE_COMPILER_GCC)
-    set(ENGINE_COMPILER "GCC")
-elseif(CMAKE_CXX_COMPILER_ID MATCHES "^(Apple)?Clang$") # TODO: Verify?
-    target_compile_definitions(engine-options INTERFACE ENGINE_COMPILER_CLANG)
-    set(ENGINE_COMPILER "Clang")
-endif()

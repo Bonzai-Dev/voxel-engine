@@ -26,7 +26,7 @@ namespace Engine::Application {
       bool isResizable() const { return resizable; }
       bool windowShownBefore() const { return windowShownOnce; }
 
-      RHI::SwapChainFormat getFormat() const;
+      nri::SwapChainFormat getFormat() const;
 
       /* Makes window visible */
       void show() const;

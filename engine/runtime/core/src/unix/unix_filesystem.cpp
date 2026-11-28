@@ -4,9 +4,6 @@
 #include <core/logging.hpp>
 #include <core/assert.hpp>
 #include <core/unix/unix_filesystem.hpp>
-#include <quill/std/FilesystemPath.h>
-
-ENGINE_DEFINE_LOG_CATEGORY(fs, "FileSystem");
 
 namespace Engine::Core::FileSystem {
   std::vector<uint8_t> readBytes(const std::filesystem::path& filepath) {

@@ -4,8 +4,6 @@
 #include <graphics/graphics_window.hpp>
 #include <game/game_viewport_manager.hpp>
 
-#include "core/assert.hpp"
-
 int main() {
   bool exitRequested = false;
   Engine::Events::EventDispatcher eventDispatcher;
@@ -14,16 +12,8 @@ int main() {
   });
 
   const auto rendererContext = Engine::SharedPtr<Engine::Renderer::RendererContext>::create();
+  const auto application = Engine::Application::GraphicsApplication(rendererContext);
 
-  // GraphicsWindows SHOULD OWN a root widget which owns other widgets
-  //
-
-
-  // Owns viewports, needs to have a create viewport function of somesort that returns a handle to be passed into viewport manager. a viewport would basically be where we draw our scene.
-  // Look into GetViewportRHI function from unreal (slaterhirenderer.cpp)
-  const auto application = Engine::Application::GraphicsApplication(rendererContext); // Manages IO stuff for graphics apps no rendering
-
-  // Manages all ui stuff?
   const auto viewportManager = Engine::Game::GameViewportManager(rendererContext);
 
   Engine::Application::WindowOptions windowOptions = {};

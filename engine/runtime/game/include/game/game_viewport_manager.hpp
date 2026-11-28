@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <NRI.h>
 #include <core/shared_pointer.hpp>
+#include <graphics/viewport_manager.hpp>
 
 namespace Engine::Application {
   class UIRenderer;
@@ -13,8 +14,6 @@ namespace Engine::Application {
 namespace Engine::Renderer {
   class RendererContext;
 }
-
-#include <graphics/viewport_manager.hpp>
 
 namespace Engine::Scene {
   class SceneRenderer;
@@ -41,9 +40,6 @@ namespace Engine::Game {
       nri::Queue *graphicsQueue;
       nri::Fence *frameFence;
       mutable uint64_t frameCount = 0;
-
-      nri::CommandAllocator *commandAllocator = nullptr;
-      nri::CommandBuffer *commandBuffer = nullptr;
 
       SharedPtr<Renderer::RendererContext> rendererContext;
   };

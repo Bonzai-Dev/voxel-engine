@@ -1,6 +1,26 @@
 #pragma once
 #include <quill/Logger.h>
 #include <quill/LogMacros.h>
+#include <quill/std/Array.h>
+#include <quill/std/Atomic.h>
+#include <quill/std/Bitset.h>
+#include <quill/std/Chrono.h>
+#include <quill/std/Complex.h>
+#include <quill/std/Deque.h>
+#include <quill/std/FilesystemPath.h>
+#include <quill/std/ForwardList.h>
+#include <quill/std/List.h>
+#include <quill/std/Map.h>
+#include <quill/std/Optional.h>
+#include <quill/std/Pair.h>
+#include <quill/std/Set.h>
+#include <quill/std/SystemError.h>
+#include <quill/std/Tuple.h>
+#include <quill/std/UnorderedMap.h>
+#include <quill/std/UnorderedSet.h>
+#include <quill/std/Variant.h>
+#include <quill/std/Vector.h>
+#include <quill/std/WideString.h>
 
 namespace Engine::Core {
   enum class LogLevel {

@@ -40,8 +40,8 @@ namespace Engine::Renderer {
         selectedAdapter = &adapter;
         break;
       }
-
     }
+
     if (!selectedAdapter)
       throw std::runtime_error("No adapter supports Vulkan");
 
